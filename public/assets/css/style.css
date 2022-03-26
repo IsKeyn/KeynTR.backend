@@ -1,0 +1,163 @@
+/* НАЧАЛО переменные */
+:root {
+    /* Цветовая схема DeepOcean  */
+    /* фоны */
+    --body-bg-color: #333333;
+    --main-bg-color: #fff;
+
+    /* Текст */
+    --main-text-color: #000;
+    --main-text-font: PFCentroSansPro-Light;
+    --second-text-color: #fff;
+    --third-text-color: #015278;
+
+    /* Ссылки */
+    --main-href-color: #015278;
+    --main-hover-color: #79a0ff;
+
+    /* Блоки */
+    --main-block-color: #015278;
+    --second-block-color: #fff;
+
+    /* Рамки */
+    --main-border-color: #015278;
+}
+/* КОНЕЦ переменные */
+
+
+/* НАЧАЛО шрифты */
+@font-face {
+    font-family: "PFCentroSansPro-Light";
+    src: url("../fonts/PFCentroSansPro-Light.otf") format("opentype");
+    font-style: normal;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: "PFCentroSansPro-Medium";
+    src: url("../fonts/PFCentroSansPro-Medium.otf") format("opentype");
+    font-style: normal;
+    font-weight: normal;
+}
+/* КОНЕЦ шрифты */
+
+/* НАЧАЛО основные стили */
+body {
+    margin: 0 auto;
+    font-size: 16px;
+    font-family: var(--main-text-font);
+    background-color: var(--body-bg-color);
+    color: var(--main-text-color);
+}
+
+.main {
+    width: 1400px;
+    overflow: auto;
+    margin-right: auto;
+    margin-left: auto;
+    background: var(--main-bg-color);
+}
+
+article {
+    padding: 0 60px 0 60px;
+}
+/* КОНЕЦ основные стили */
+
+/* НАЧАЛО Font awesome */
+i.fas.with-hover-v-1:hover {
+    color: var(--main-hover-color);
+}
+
+i.fas.with-hover-v-2:hover {
+    font-size: 40px;
+}
+/* КОНЕЦ Font awesome */
+
+/* НАЧАЛО кнопки и ссылки */
+a {
+    color: var(--main-href-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    min-width: 300px;
+    margin: 15px auto 15px;
+
+    background: var(--main-block-color);
+    border: 2px solid var(--main-block-color);
+    color: var(--second-text-color);
+
+    padding: 10px;
+    font-size: 20px;
+    font-family: PFCentroSansPro-Medium;
+
+    transition: 1s;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--second-block-color);
+    color: var(--third-text-color);
+}
+/* КОНЕЦ кнопки и ссылки */
+
+/* НАЧАЛО блок новостей */
+.article-box {
+    margin-top: 25px;
+    margin-bottom: 25px;
+    padding: 25px 0 25px 0;
+    font-size: 22px;
+    line-height: 36px;
+    display: inline-block;
+}
+
+.article-box .article-header span.header-line {
+    display: block;
+}
+
+.article-box .article-header span.header-line:nth-child(1) {
+    padding-bottom: 5px;
+}
+
+.article-box .article-header span.header-line:nth-child(2) {
+    padding-top: 5px;
+}
+
+.article-box .article-header .header-line a.title {
+    font-size: 28px;
+    color: var(--third-text-color);
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.article-box .article-header span.publisher-time {
+    float: right;
+    line-height: 38px;
+}
+
+.article-box .article-header .article-image {
+    min-height: 350px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.article-box .article-body {
+    min-height: 140px;
+    padding-top: 10px;
+    padding-bottom: 15px;
+}
+
+.article-box .article-footer {
+    display: inline-block;
+    width: 100%;
+}
+
+.article-box .article-footer span.add-info {
+    float: right;
+    line-height: 70px;
+}
+/* КОНЕЦ блок новостей */
