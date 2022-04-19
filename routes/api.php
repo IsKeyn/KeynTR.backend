@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentsController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,5 +25,8 @@ Route::name('api.')->group(function() {
     Route::get('article/get', [ArticleController::class, 'get']);
     Route::post('article/get', [ArticleController::class, 'getByFilter']);
 
+    Route::post('comment/getList', [CommentsController::class, 'getList']);
     Route::post('comment/add', [CommentsController::class, 'add']);
+
+    Route::post('subscription/add', [SubscriptionController::class, 'add']);
 });
