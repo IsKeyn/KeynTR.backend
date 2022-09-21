@@ -3,6 +3,7 @@
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\YouTubeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,4 +30,6 @@ Route::name('api.')->group(function() {
     Route::post('comment/add', [CommentsController::class, 'add']);
 
     Route::post('subscription/add', [SubscriptionController::class, 'add']);
+
+    Route::post('youtube/lastVideo', [YouTubeController::class, 'getLastVideos']);
 });

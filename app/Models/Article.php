@@ -13,4 +13,9 @@ class Article extends Model
         //dd($this);
         // Пример возвращает $article->entity
     }
+
+    public function comments()
+    {
+        return $this->morphMany(Comments::class, 'entity');
+    }
 }

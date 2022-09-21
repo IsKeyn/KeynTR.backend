@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Comments extends Model
 {
@@ -16,4 +17,9 @@ class Comments extends Model
         'entity_type',
         'entity_id',
     ];
+
+    public function entity()
+    {
+        return $this->morphTo();
+    }
 }

@@ -2,10 +2,9 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Article;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ArticleResource extends JsonResource
+class YouTubeResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,11 +16,9 @@ class ArticleResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'entity' => Article::class,
-            'code' => '/news/' . $this->code,
-            'title' => $this->title,
-            'text_full' => $this->text_preview,
-            'image' => $this->image,
+            'video_id' => $this->video_id,
+            'published_at' => $this->published_at,
+            'thumbnails' => $this->thumbnails,
         ];
     }
 }
