@@ -26,7 +26,11 @@ class ArticleController extends Controller
 
     public function getByFilter(Request $request) {
 
-        $article = $this->model::where('code', '=', $request->filter['code'])->first();
+        if ($request->filter['type']) {
+            $article = $this->model::where('code', $request->filter['code'])->where('type', $request->filter['type'])->first();
+        } else {
+            $article = $this->model::where('code', '=', $request->filter['code'])->first();
+        }
 
         return ArticleResource::make($article);
     }

@@ -18,7 +18,8 @@ class YouTubeResource extends JsonResource
             'id' => $this->id,
             'video_id' => $this->video_id,
             'published_at' => $this->published_at,
-            'thumbnails' => $this->thumbnails,
+            'thumbnails' => json_decode($this->thumbnails),
+            'title' => $this->title,
         ];
     }
 }

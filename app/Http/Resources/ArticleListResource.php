@@ -17,14 +17,16 @@ class ArticleListResource extends JsonResource
     {
         setlocale(LC_TIME , 'russian.UTF-8');
 
+        $type = $this->type ? $this->type : 'news';
+
         return [
             'id' => $this->id,
-            'code' => '/news/' . $this->code,
+            'code' => '/' . $type . '/' . $this->code,
             'title' => $this->title,
             'text_preview' => $this->text_preview,
             'image' => $this->image,
             'tags' => $this->tags,
-            'created_at' => Carbon::parse($this->created_at)->formatLocalized('%d %B %g'),
+            'created_at' => Carbon::parse($this->created_at)->formatLocalized('%d %B %Y') . ' г.',
             'comments_count' => $this->comments->count()
         ];
     }

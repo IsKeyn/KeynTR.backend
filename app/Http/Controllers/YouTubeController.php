@@ -21,6 +21,7 @@ class YouTubeController extends Controller
     public const API_URL = 'https://youtube.googleapis.com/youtube/v3/';
     public const CHANNEL_ID = 'UCOGatAJNTBG0HIHDLsM7xGw';
     public const API_KEY = 'AIzaSyA0_9fFr2ho7faSbNqLt_nM4kMgx3KH9js';
+//    public const API_KEY = 'AIzaSyBVdseDG7v_2kdVZybGgHJO2q6Y46SGoEM';
 
     private const YOU_TUBE_DATE_FORMAT = 'Y-m-d?H:i:s?';
     private const DB_FORMAT = 'Y-m-d H:i:s';
@@ -29,11 +30,12 @@ class YouTubeController extends Controller
     public $videos = [];
 
     public function getDataFromYouTube() {
-        if (!$this->getYouTubeChannelInfo())
-            return redirect()->route('googleOAuth2');
+//        if (!$this->getYouTubeChannelInfo())
+//            return redirect()->route('googleOAuth2');
 
         //$this->getPlayLists();
-        //$this->getVideosFormPlayList();
+//        $this->getVideosFormPlayList();
+        $this->getLastVideosFromApi();
     }
 
     /* Метод получает access_token от google и записывает его в БД, необходима авторизация со стороны пользователя */
@@ -394,9 +396,9 @@ class YouTubeController extends Controller
 
     private function setVideoListArray($response) {
         foreach ($response->items as $item) {
-            if (!array_key_exists($item->snippet->resourceId->videoId, $this->videos)) {
+            if (!array_key_exists($item->snippet->resourceId->videoId, $this->videos) && $item->status->privacyStatus === 'public') {
                 $this->videos[$item->snippet->resourceId->videoId] = array(
-                    'publishedAt' => $item->snippet->publishedAt,
+                    'publishedAt' => $item->contentDetails->videoPublishedAt,
                     'title' => $item->snippet->title,
                     'description' => $item->snippet->description,
                     'thumbnails' => json_encode($item->snippet->thumbnails),
@@ -441,7 +443,9 @@ class YouTubeController extends Controller
 
     /* Функции вывода данных из БД */
     public function getLastVideos(Request $request) {
-        $lastVideo = YoutubeVideo::query()->where('status', 'public')->orderBy('published_at', 'desc')->take(5)->get();
+        $count = $request->count ? $request->count : 5;
+
+        $lastVideo = YoutubeVideo::query()->where('status', 'public')->orderBy('published_at', 'desc')->take($count)->get();
 
 
         $returnData = array();
