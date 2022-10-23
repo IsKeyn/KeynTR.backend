@@ -16,6 +16,22 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
+
+/* Страницы админки */
+Route::middleware('auth')->middleware('is_admin')->group(function () {
+    Route::prefix('admin')->group(function () {
+        Route::resource('articles', App\Http\Controllers\Admin\AdminArticlePagesController::class);
+
+//        Route::prefix('article')->group(function () {
+//            Route::get('', [App\Http\Controllers\Admin\AdminArticlePagesController::class, 'articleMain'])->name('admin.article');
+//
+//            Route::get('update/{id}', [App\Http\Controllers\Admin\AdminArticlePagesController::class, 'update'])->name('admin.article.update');
+//            Route::post('update', [App\Http\Controllers\ArticleController::class, 'update'])->name('article.update');
+//        });
+    });
+});
+
+
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->middleware('auth')->name('home');
 
 Route::get('/get_data_from_youtube', [App\Http\Controllers\YouTubeController::class, 'getDataFromYouTube'])->name('getDataFromYouTube');

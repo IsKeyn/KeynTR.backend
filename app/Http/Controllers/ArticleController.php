@@ -34,4 +34,10 @@ class ArticleController extends Controller
 
         return ArticleResource::make($article);
     }
+
+    public function update(Request $request) {
+        echo '<pre>';
+        print_r($request);
+        echo '</pre>';
+    }
 }

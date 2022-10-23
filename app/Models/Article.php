@@ -9,6 +9,16 @@ class Article extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'type',
+        'title',
+        'code',
+        'tags',
+        'image',
+        'text_preview',
+        'text_full'
+    ];
+
     public function getEntityAttribute() {
         //dd($this);
         // Пример возвращает $article->entity
