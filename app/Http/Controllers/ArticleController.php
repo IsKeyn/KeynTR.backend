@@ -13,7 +13,7 @@ class ArticleController extends Controller
 
     public function get() {
 
-        $articles = array_reverse($this->model::all());
+        $articles = $this->model::all();
 
         $returnData = array();
 
