@@ -26,7 +26,7 @@ class ArticleController extends Controller
 
     public function getByFilter(Request $request) {
 
-        if ($request->filter['type']) {
+        if (array_key_exists('type', $request->filter) && $request->filter['type']) {
             $article = $this->model::where('code', $request->filter['code'])->where('type', $request->filter['type'])->first();
         } else {
             $article = $this->model::where('code', '=', $request->filter['code'])->first();
