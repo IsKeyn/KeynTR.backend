@@ -1,0 +1,17 @@
+/* Стили форм редактирования */
+.admin-form {
+
+}
+
+.admin-form input,
+.admin-form textarea {
+    width: 100%;
+}
+
+.admin-form textarea {
+    min-height: 400px;
+}
+
+.admin-form .row {
+    margin-top: 10px;
+}
