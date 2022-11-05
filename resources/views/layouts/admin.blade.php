@@ -5,5 +5,16 @@
     <link href="/css/app.css" rel="stylesheet">
 </head>
 <body>
-@yield('content')
+<div class="main">
+    <nav>
+        <ul>
+            <li><a href="{{ route('admin.index') }}">Главная</a></li>
+            <li><a href="{{ route('admin.articles.index') }}">Статьи</a></li>
+            <li><a href="">YouTube</a></li>
+        </ul>
+    </nav>
+    <article>
+        @yield('content')
+    </article>
+</div>
 </body>

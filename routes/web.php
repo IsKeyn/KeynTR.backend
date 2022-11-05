@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminArticlePagesController;
+use App\Http\Controllers\Admin\AdminController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -19,8 +21,9 @@ Auth::routes();
 
 /* Страницы админки */
 Route::middleware('auth')->middleware('is_admin')->group(function () {
-    Route::prefix('admin')->group(function () {
-        Route::resource('articles', App\Http\Controllers\Admin\AdminArticlePagesController::class);
+    Route::name('admin.')->prefix('admin')->group(function () {
+        Route::get('/', [AdminController::class, 'index'])->name('index');
+        Route::resource('articles', AdminArticlePagesController::class);
 
 //        Route::prefix('article')->group(function () {
 //            Route::get('', [App\Http\Controllers\Admin\AdminArticlePagesController::class, 'articleMain'])->name('admin.article');

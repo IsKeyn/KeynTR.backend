@@ -7,13 +7,13 @@
             @foreach($articles as $article)
                 <div class="row">
                     <div class="col-md-12">
-                        <a href="{{ route('articles.edit', $article->id) }}">{{ $article->title }}</a>
+                        <a href="{{ route('admin.articles.edit', $article->id) }}">{{ $article->title }}</a>
                     </div>
                 </div>
             @endforeach
             <div class="row">
                 <div class="col-md-12">
-                    <a href="{{ route('articles.create') }}"><button>Добавить статью</button></a>
+                    <a href="{{ route('admin.articles.create') }}"><button>Добавить статью</button></a>
                 </div>
             </div>
         </div>

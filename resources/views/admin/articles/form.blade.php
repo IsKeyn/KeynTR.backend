@@ -6,8 +6,8 @@
     <form
         method="POST"
         enctype="multipart/form-data"
-        @isset($article) action="{{ route('articles.update', $article) }}"
-        @else action="{{ route('articles.store') }}"
+        @isset($article) action="{{ route('admin.articles.update', $article) }}"
+        @else action="{{ route('admin.articles.store') }}"
         @endisset
         class="admin-form"
     >
