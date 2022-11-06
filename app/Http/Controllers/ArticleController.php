@@ -13,7 +13,7 @@ class ArticleController extends Controller
 
     public function get() {
 
-        $articles = $this->model::all();
+        $articles = $this->model::orderBy('created_at', 'desc')->get();
 
         $returnData = array();
 
