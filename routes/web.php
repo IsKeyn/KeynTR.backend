@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\AdminArticlePagesController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\YouTubePageController;
+use App\Http\Controllers\YouTubeController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -23,7 +25,14 @@ Auth::routes();
 Route::middleware('auth')->middleware('is_admin')->group(function () {
     Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('index');
+
         Route::resource('articles', AdminArticlePagesController::class);
+
+        Route::name('youtube.')->prefix('youtube')->group(function() {
+            Route::get('/', [YouTubePageController::class, 'index'])->name('index');
+            Route::get('/fetch-playlists-and-videos', [YouTubeController::class, 'getAllPlaylistsAndVideos'])->name('fetch-playlists-and-videos');
+        });
+
 
 //        Route::prefix('article')->group(function () {
 //            Route::get('', [App\Http\Controllers\Admin\AdminArticlePagesController::class, 'articleMain'])->name('admin.article');

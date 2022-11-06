@@ -10,7 +10,7 @@
         <ul>
             <li><a href="{{ route('admin.index') }}">Главная</a></li>
             <li><a href="{{ route('admin.articles.index') }}">Статьи</a></li>
-            <li><a href="">YouTube</a></li>
+            <li><a href="{{ route('admin.youtube.index') }}">YouTube</a></li>
         </ul>
     </nav>
     <article>

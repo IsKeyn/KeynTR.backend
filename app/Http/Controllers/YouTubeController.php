@@ -33,9 +33,13 @@ class YouTubeController extends Controller
 //        if (!$this->getYouTubeChannelInfo())
 //            return redirect()->route('googleOAuth2');
 
-        //$this->getPlayLists();
-//        $this->getVideosFormPlayList();
+
         $this->getLastVideosFromApi();
+    }
+
+    public function getAllPlaylistsAndVideos() {
+        $this->getPlayLists();
+        $this->getVideosFormPlayList();
     }
 
     /* Метод получает access_token от google и записывает его в БД, необходима авторизация со стороны пользователя */
