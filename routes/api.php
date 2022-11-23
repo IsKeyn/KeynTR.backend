@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentsController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\YouTubeController;
 use Illuminate\Http\Request;
@@ -32,4 +33,9 @@ Route::name('api.')->group(function() {
     Route::post('subscription/add', [SubscriptionController::class, 'add']);
 
     Route::post('youtube/lastVideo', [YouTubeController::class, 'getLastVideos']);
+
+    Route::name('menu.')->prefix('menu/')->group(function() {
+        Route::post('get', [MenuController::class, 'getMenuElements']);
+        Route::post('getArticlesMenu', [MenuController::class, 'getArticlesMenu']);
+    });
 });

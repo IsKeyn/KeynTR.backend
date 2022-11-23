@@ -11,6 +11,8 @@
             <li><a href="{{ route('admin.index') }}">Главная</a></li>
             <li><a href="{{ route('admin.articles.index') }}">Статьи</a></li>
             <li><a href="{{ route('admin.youtube.index') }}">YouTube</a></li>
+            <li><a href="{{ route('admin.menu-types.index') }}">Типы меню</a></li>
+            <li><a href="{{ route('admin.menu.index') }}">Элементы меню</a></li>
         </ul>
     </nav>
     <article>

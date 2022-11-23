@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\AdminArticlePagesController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminMenuPagesController;
+use App\Http\Controllers\Admin\AdminMenuTypesPagesController;
 use App\Http\Controllers\Admin\YouTubePageController;
 use App\Http\Controllers\YouTubeController;
 use Illuminate\Support\Facades\Artisan;
@@ -31,8 +33,11 @@ Route::middleware('auth')->middleware('is_admin')->group(function () {
         Route::name('youtube.')->prefix('youtube')->group(function() {
             Route::get('/', [YouTubePageController::class, 'index'])->name('index');
             Route::get('/fetch-playlists-and-videos', [YouTubeController::class, 'getAllPlaylistsAndVideos'])->name('fetch-playlists-and-videos');
+            Route::get('/fetch-last-videos-from-youtube', [YouTubeController::class, 'getLastVideosFromApi'])->name('fetch-last-videos-from-youtube');
         });
 
+        Route::resource('menu', AdminMenuPagesController::class);
+        Route::resource('menu-types', AdminMenuTypesPagesController::class);
 
 //        Route::prefix('article')->group(function () {
 //            Route::get('', [App\Http\Controllers\Admin\AdminArticlePagesController::class, 'articleMain'])->name('admin.article');
