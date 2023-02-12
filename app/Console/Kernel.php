@@ -16,11 +16,13 @@ class Kernel extends ConsoleKernel
 
     protected $commands = [
         Commands\YouTubeFetchLastVideos::class,
+        Commands\SetLogs::class
     ];
 
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('YouTube:FetchLastVideos')->daily();
+        $schedule->command('log:set')->everyMinute();
         // $schedule->command('inspire')->hourly();
     }
 
