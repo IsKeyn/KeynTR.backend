@@ -13,8 +13,14 @@ class Kernel extends ConsoleKernel
      * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
+
+    protected $commands = [
+        Commands\YouTubeFetchLastVideos::class,
+    ];
+
     protected function schedule(Schedule $schedule)
     {
+        $schedule->command('YouTube:FetchLastVideos')->daily();
         // $schedule->command('inspire')->hourly();
     }
 
