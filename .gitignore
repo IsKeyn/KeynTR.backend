@@ -15,3 +15,7 @@ yarn-error.log
 /.vscode
 .htaccess
 public/.htaccess
+.user.ini
+php.ini
+public/.user.ini
+public/php.ini
