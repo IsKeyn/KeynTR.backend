@@ -192,6 +192,10 @@ class YouTubeController extends Controller
             'video_id',
             ['published_at', 'title', 'thumbnails', 'status', 'channel_id']
         );
+
+        echo '<pre>';
+        print_r($preparedArray);
+        echo '</pre>';
     }
 
     public function getYouTubeChannelInfo() {

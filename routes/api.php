@@ -5,6 +5,7 @@ use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\YouTubeController;
+use App\Services\SearchService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,5 +38,9 @@ Route::name('api.')->group(function() {
     Route::name('menu.')->prefix('menu/')->group(function() {
         Route::post('get', [MenuController::class, 'getMenuElements']);
         Route::post('getArticlesMenu', [MenuController::class, 'getArticlesMenu']);
+    });
+
+    Route::name('search.')->prefix('search/')->group(function() {
+        Route::post('{query}', [SearchService::class, 'search']);
     });
 });

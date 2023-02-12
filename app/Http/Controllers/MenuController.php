@@ -7,6 +7,7 @@ use App\Models\Article;
 use App\Models\Menu;
 use App\Models\MenuType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class MenuController extends Controller
 {
@@ -30,24 +31,49 @@ class MenuController extends Controller
 
     public function getArticlesMenu(Request $request) {
 
+        $menu = [];
+
         // Извлекаем меню новостей
-        $newsMenu = Article::query()->where('type', 'news')->limit(5)->get();
+        $newsMenu = Article::latest()->where('type', 'news')->limit(5)->get();
+
+        $arNewsMenu = [];
+
+        if (count($newsMenu) > 0) {
+            $arNewsMenu = Arr::add($arNewsMenu, 'name', 'Последние новости');
+            $arNewsMenu = Arr::add($arNewsMenu, 'elements', []);
+        }
 
         foreach ($newsMenu as $element) {
-            echo '<pre>';
-            print_r($element);
-            echo '</pre>';
+            $arNewsMenu['elements'][] = array(
+                'id' => $element->id,
+                'name' => $element->title,
+                'url' => $element->type . '/' . $element->code . '/',
+                'link_type' => 'route',
+            );
         }
 
         // Извлекаем меню статей
         $articlesMenu = Article::query()->where('type', 'article')->limit(5)->get();
 
-        foreach ($newsMenu as $element) {
-            echo '<pre>';
-            print_r($element);
-            echo '</pre>';
+        $arArticleMenu = [];
+
+        if (count($articlesMenu) > 0) {
+            $arArticleMenu = Arr::add($arArticleMenu, 'name', 'Последние статьи');
+            $arArticleMenu = Arr::add($arArticleMenu, 'elements', []);
         }
 
-        return 123;
+        foreach ($articlesMenu as $element) {
+            $arArticleMenu['elements'][] = array(
+                'id' => $element->id,
+                'name' => $element->title,
+                'url' => $element->type . '/' . $element->code . '/',
+                'link_type' => 'route',
+            );
+        }
+
+        $menu[] = $arNewsMenu;
+        $menu[] = $arArticleMenu;
+
+        return array('data' => $menu);
     }
 }
