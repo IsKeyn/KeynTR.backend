@@ -28,14 +28,14 @@ class AdminArticlePagesController extends Controller {
 
         Article::create($params);
 
-        return redirect()->route('articles.index');
+        return redirect()->route('admin.articles.index');
     }
 
     public function update(Request $request, Article $article) {
         $params = $request->all();
 
         $article->update($params);
-        return redirect()->route('articles.index');
+        return redirect()->route('admin.articles.index');
 
 //        if ($id) {
 //            if ($article = $this->model::where('id', $id)->first()) {
