@@ -3,6 +3,7 @@
 <head>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/app.css" rel="stylesheet">
+    <meta name="robots" content="noindex, nofollow"/>
 </head>
 <body>
 <div class="main">
