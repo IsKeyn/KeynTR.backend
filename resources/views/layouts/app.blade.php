@@ -18,6 +18,7 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <meta name="robots" content="noindex, nofollow"/>
 </head>
 <body>
     <div id="app">
