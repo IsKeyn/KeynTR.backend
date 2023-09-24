@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminArticlePagesController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminErrorsPagesController;
 use App\Http\Controllers\Admin\AdminMenuPagesController;
 use App\Http\Controllers\Admin\AdminMenuTypesPagesController;
 use App\Http\Controllers\Admin\YouTubePageController;
@@ -36,8 +37,9 @@ Route::middleware('auth')->middleware('is_admin')->group(function () {
             Route::get('/fetch-last-videos-from-youtube', [YouTubeController::class, 'getLastVideosFromApi'])->name('fetch-last-videos-from-youtube');
         });
 
-        Route::resource('menu', AdminMenuPagesController::class);
         Route::resource('menu-types', AdminMenuTypesPagesController::class);
+        Route::resource('menu', AdminMenuPagesController::class);
+        Route::resource('errors', AdminErrorsPagesController::class);
 
 //        Route::prefix('article')->group(function () {
 //            Route::get('', [App\Http\Controllers\Admin\AdminArticlePagesController::class, 'articleMain'])->name('admin.article');
