@@ -3,6 +3,7 @@
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\ErrorController;
+use App\Http\Controllers\FormResultController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\YouTubeController;
@@ -48,5 +49,9 @@ Route::name('api.')->group(function() {
     Route::name('error')->prefix('error/')->group(function() {
         Route::post('set', [ErrorController::class, 'set'])->name('set');
         Route::post('get', [ErrorController::class, 'get'])->name('get');
+    });
+
+    Route::name('form')->prefix('form/')->group(function() {
+        Route::post('set', [FormResultController::class, 'set'])->name('set');
     });
 });
