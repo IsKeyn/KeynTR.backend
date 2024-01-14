@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
+use App\Http\Controllers\GameController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\YouTubeController;
@@ -22,16 +25,23 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
 
 Route::name('api.')->group(function() {
+//    Route::name('guest.')->middleware('guest:api')->group(function () {
+    Route::name('auth.')->prefix('auth/')->group(function() {
+        Route::post('login', [LoginController::class, 'login'])->middleware('guest:api')->name('login');
+    });
+//    });
+
     Route::get('article/get', [ArticleController::class, 'get']);
-    Route::post('article/get', [ArticleController::class, 'getByFilter']);
+    Route::post('article/get', [ArticleController::class, 'getByFilter'])->name('getByFilter');
 
     Route::post('comment/getList', [CommentsController::class, 'getList']);
     Route::post('comment/add', [CommentsController::class, 'add']);
+
+    Route::resource('game', GameController::class);
+    Route::post('game/list', [GameController::class, 'getList']);
+    Route::post('game/{query}', [GameController::class, 'getGame']);
 
     Route::post('subscription/add', [SubscriptionController::class, 'add']);
 

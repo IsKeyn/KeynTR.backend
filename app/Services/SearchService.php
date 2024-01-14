@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Http\Resources\SearchArticleResource;
 use App\Http\Resources\SearchYouTubeResource;
 use App\Models\SearchLog;
+use Google\Service\Blogger\Page;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -61,36 +63,41 @@ class SearchService
     public static function searchInTable($query, $tableKey, $request) {
         $arParams = self::$arSearchTables[$tableKey];
 
-        $search = DB::table($arParams['tableName']);
+        $params = array(
+            'arParams' => $arParams,
+            'query' => $query,
+        );
 
-        if (!empty($arParams['selectedColumns'])) {
-            $search->select($arParams['selectedColumns']);
-        }
+        $search = DB::table($arParams['tableName'])
+            ->when($params, function (Builder $builder, $params) {
+                if (!empty($params['arParams']['selectedColumns'])) {
+                    $builder->select($params['arParams']['selectedColumns']);
+                }
 
-        if (count($arParams['searchableColumns']) > 1) {
-            foreach ($arParams['searchableColumns'] as $key => $searchableColumn) {
-                if ($key === 0)
-                    $search->where($searchableColumn, 'like', '%' . $query . '%');
-                else
-                    $search->orWhere($searchableColumn, 'like', '%' . $query . '%');
-            }
-        } else {
-            $search->where($arParams['searchableColumns'][0], 'like', '%' . $query . '%');
-        }
+                if (count($params['arParams']['searchableColumns']) > 1) {
+                    foreach ($params['arParams']['searchableColumns'] as $key => $searchableColumn) {
+                        if ($key === 0)
+                            $builder->where($searchableColumn, 'like', '%' . $params['query'] . '%');
+                        else
+                            $builder->orWhere($searchableColumn, 'like', '%' . $params['query'] . '%');
+                    }
+                } else {
+                    $builder->where($params['arParams']['searchableColumns'][0], 'like', '%' . $params['query'] . '%');
+                }
+            })->paginate(6);
 
-        $total = $search->count();
-
-        $search
-            ->limit($request->get('limit', 5))
-            ->offset($request->get('limit', 5) * ($request->get('page', 1) - 1));
-
-        $searchRes = $search->get();
 
         if (isset($arParams['resource'])) {
-            $returnData['data'] = $arParams['resource']::collection($searchRes);
-            $returnData['pagination'] = array('total' => $total);
+            $returnData['data'] = $arParams['resource']::collection($search);
+            $returnData['pagination'] = array(
+                'total' => $search->total(),
+                'count' => $search->count(),
+                'per_page' => $search->perPage(),
+                'current_page' => $search->currentPage(),
+                'last_page' => $search->lastPage(),
+            );
         } else {
-            foreach ($searchRes as $value) {
+            foreach ($search as $value) {
                 $returnData[] = $value;
             }
         }

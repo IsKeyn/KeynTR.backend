@@ -26,7 +26,7 @@ class ArticleResource extends JsonResource
             'code' => '/' . $type . '/' . $this->code,
             'title' => $this->title,
             'text_full' => $this->text_full,
-            'image' => $this->image,
+            'image' => $this->titleImage->first()->url,
             'tags' => $this->tags,
             'created_at' => Carbon::parse($this->created_at)->formatLocalized('%d %B %Y') . ' г.',
             'comments_count' => $this->comments->count(),

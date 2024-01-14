@@ -28,4 +28,14 @@ class Article extends Model
     {
         return $this->morphMany(Comments::class, 'entity');
     }
+
+    public function media()
+    {
+        return $this->morphToMany(Media::class, 'media_bind');
+    }
+
+    public function titleImage()
+    {
+        return $this->morphToMany(Media::class, 'media_bind');
+    }
 }

@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\AdminArticlePagesController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminEntityController;
 use App\Http\Controllers\Admin\AdminErrorsPagesController;
+use App\Http\Controllers\Admin\AdminMediaPagesController;
 use App\Http\Controllers\Admin\AdminMenuPagesController;
 use App\Http\Controllers\Admin\AdminMenuTypesPagesController;
 use App\Http\Controllers\Admin\YouTubePageController;
@@ -23,7 +25,6 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-
 /* Страницы админки */
 Route::middleware('auth')->middleware('is_admin')->group(function () {
     Route::name('admin.')->prefix('admin')->group(function () {
@@ -40,6 +41,22 @@ Route::middleware('auth')->middleware('is_admin')->group(function () {
         Route::resource('menu-types', AdminMenuTypesPagesController::class);
         Route::resource('menu', AdminMenuPagesController::class);
         Route::resource('errors', AdminErrorsPagesController::class);
+        Route::resource('media', AdminMediaPagesController::class);
+
+        Route::name('entity.')
+            ->prefix('entity')
+            ->controller(AdminEntityController::class)
+            ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('{entityName}', 'detail');
+            Route::get('{entityName}/add', 'add')->name('add-element');
+            Route::get('{entityName}/{id}/edit','edit')->name('edit-element');
+            Route::post('{entityName}/store', 'store')->name('store-element');
+            Route::post('{entityName}/{id}/update', 'update')->name('update-element');
+            Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
+            Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
+            Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
+        });
 
 //        Route::prefix('article')->group(function () {
 //            Route::get('', [App\Http\Controllers\Admin\AdminArticlePagesController::class, 'articleMain'])->name('admin.article');
