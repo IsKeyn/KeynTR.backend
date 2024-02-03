@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserActionLog;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
@@ -40,49 +41,81 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
     }
 
+    public function login(Request $request)
+    {
+        $this->validateLogin($request);
+
+        // If the class is using the ThrottlesLogins trait, we can automatically throttle
+        // the login attempts for this application. We'll key this by the username and
+        // the IP address of the client making these requests into this application.
+        if (method_exists($this, 'hasTooManyLoginAttempts') &&
+            $this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
+        }
+
+        if ($request->email) {
+            $user = User::query()->where('email', $request->email)->first();
+        }
+
+        if ($this->attemptLogin($request)) {
+            if ($request->hasSession()) {
+                $request->session()->put('auth.password_confirmed_at', time());
+            }
+
+            $UserActionLogParams = [
+                'message' => 'Успешная авторизация',
+                'created_by' => $user->id
+            ];
+
+            UserActionLog::create($UserActionLogParams);
+
+            return $this->sendLoginResponse($request);
+        }
+
+        // If the login attempt was unsuccessful we will increment the number of attempts
+        // to login and redirect the user back to the login form. Of course, when this
+        // user surpasses their maximum number of attempts they will get locked out.
+        $this->incrementLoginAttempts($request);
+        $UserActionLogParams = [];
+
+        $UserActionLogParams['message'] = [
+            'message' => 'Провал авторизации',
+            'email' => $request->email,
+            'password' => $request->password,
+        ];
+
+        if ($user) {
+            $UserActionLogParams['created_by'] = $user->id;
+        }
+
+        UserActionLog::create($UserActionLogParams);
+
+        // TODO проверять, что конкретно не подошло пароль или логин
+        return $this->sendFailedLoginResponse($request);
+    }
+
     protected function sendLoginResponse(Request $request, $url = null)
     {
         $user = $request->user();
 
-        return $user;
+        if ($user) {
+            $user->tokens()->delete(); // TODO несколько токенов для авторизации на нескольких устройствах
+            $token = $user->createToken('api')->plainTextToken;
 
-//        foreach ($user->tokens as $token) {
-//            dump($token);
-//        }
-
-//        $token = $request->user()->createToken('asdasd');
-
-//        dd($user->tokens);
-//
-//        return ['token' => $token->plainTextToken];
-
-//        dd($user);
-//
-//        return $user->tokens;
-
-//        foreach ($user->tokens as $token) {
-//            //
-//        }
-
-//        $this->clearLoginAttempts($request);
-
-//        $token = (string)$this->guard()->getToken();
-//        $expiration = $this->guard()->getPayload()->get('exp');
-//
-//        /** @var User|null $user */
-//        $user = $request->user();
-//
-//        if ($user) {
-//            $user->update([
+            // Сделать таблицу действий пользователя
+            //            $user->update([
 //                'latest_login_at' => now(),
 //            ]);
 //        }
-//
-//        return response()->json([
-//            'token' => $token,
-//            'token_type' => 'bearer',
-//            'expires_in' => $expiration - time(),
-//            'url' => $url,
-//        ]);
+
+            return response()->json([
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'expires' => time() + 360 * 24 * 60 * 60,
+//                'url' => $url,
+            ]);
+        }
     }
 }
