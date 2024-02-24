@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Str;
+use Illuminate\Auth\Notifications\ResetPassword;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -25,6 +28,18 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+//        ResetPassword::createUrlUsing(function ($user, string $token) {
+//            return config('publicApp.public_url') . '/reset-password?token=' . $token . '&email=' . $user->email;
+//        });
+
+        VerifyEmail::toMailUsing(function ($notifiable, $url) {
+            if (config('publicApp.public_url') && config('app.url')) {
+                $url = Str::replace('api/', '', Str::replace(config('app.url'), config('publicApp.public_url'), $url));
+            }
+
+            return (new MailMessage)
+                ->subject(__('notification.account_verification_theme'))
+                ->markdown('mails.ru.verify_email', ['url' => $url]);
+        });
     }
 }

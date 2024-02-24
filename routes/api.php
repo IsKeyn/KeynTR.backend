@@ -2,7 +2,8 @@
 
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
@@ -11,7 +12,6 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\YouTubeController;
 use App\Services\SearchService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,11 +27,16 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::name('api.')->group(function() {
-//    Route::name('guest.')->middleware('guest:api')->group(function () {
-    Route::name('auth.')->prefix('auth/')->group(function() {
-        Route::post('login', [LoginController::class, 'login'])->middleware('guest:api')->name('login');
+    Route::get('csrf', function () {
+        return csrf_token();
     });
-//    });
+
+    Route::name('auth.')->prefix('auth/')->middleware('guest:api')->group(function() {
+        Route::post('login', [LoginController::class, 'login'])->name('login');
+        Route::post('register', [RegisterController::class, 'register'])->name('register');
+        Route::post('forgot-password', [ResetPasswordController::class, 'sendResetLink'])->name('password.email');
+        Route::post('reset-password', [ResetPasswordController::class, 'resetPassword'])->name('password.update');
+    });
 
     Route::get('article/get', [ArticleController::class, 'get']);
     Route::post('article/get', [ArticleController::class, 'getByFilter'])->name('getByFilter');

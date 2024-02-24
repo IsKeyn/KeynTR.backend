@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\UserActionLog;
 use App\Providers\RouteServiceProvider;
+use App\Services\UserActionLogService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 
@@ -65,11 +65,11 @@ class LoginController extends Controller
             }
 
             $UserActionLogParams = [
-                'message' => 'Успешная авторизация',
+                'message' => __('user_action_log.success_auth'),
                 'created_by' => $user->id
             ];
 
-            UserActionLog::create($UserActionLogParams);
+            UserActionLogService::set($request, $UserActionLogParams);
 
             return $this->sendLoginResponse($request);
         }
@@ -78,19 +78,20 @@ class LoginController extends Controller
         // to login and redirect the user back to the login form. Of course, when this
         // user surpasses their maximum number of attempts they will get locked out.
         $this->incrementLoginAttempts($request);
-        $UserActionLogParams = [];
 
-        $UserActionLogParams['message'] = [
-            'message' => 'Провал авторизации',
-            'email' => $request->email,
-            'password' => $request->password,
+        $userActionLogParams = [
+            'message' => [
+                'message' => __('user_action_log.auth_fail'),
+                'email' => $request->email,
+                'password' => $request->password,
+            ]
         ];
 
         if ($user) {
-            $UserActionLogParams['created_by'] = $user->id;
+            $userActionLogParams['created_by'] = $user->id;
         }
 
-        UserActionLog::create($UserActionLogParams);
+        UserActionLogService::set($request, $userActionLogParams);
 
         // TODO проверять, что конкретно не подошло пароль или логин
         return $this->sendFailedLoginResponse($request);
@@ -101,7 +102,9 @@ class LoginController extends Controller
         $user = $request->user();
 
         if ($user) {
-            $user->tokens()->delete(); // TODO несколько токенов для авторизации на нескольких устройствах
+            //$user->tokens()->delete(); // TODO несколько токенов для авторизации на нескольких устройствах
+            // TODO удалять старые токены через определённое время, например через год, комманда
+
             $token = $user->createToken('api')->plainTextToken;
 
             // Сделать таблицу действий пользователя
@@ -117,5 +120,31 @@ class LoginController extends Controller
 //                'url' => $url,
             ]);
         }
+    }
+
+    public function logout(Request $request)
+    {
+        auth()->guard('web')->logout();
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        // Удаление текущего токена пользователя
+        $request->user()->currentAccessToken()->delete();
+
+        // Запись логов
+        $userActionLogParams = [
+            'message' => [
+                'message' => __('user_action_log.logout'),
+            ]
+        ];
+
+        if ($request->user()) {
+            $userActionLogParams['created_by'] = $request->user()->id;
+        }
+
+        UserActionLogService::set($request, $userActionLogParams);
+
+        return true;
     }
 }

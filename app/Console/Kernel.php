@@ -21,7 +21,8 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('YouTube:FetchLastVideos')->daily();
+        $schedule->command('YouTube:FetchLastVideos')->daily(); // Запрос новый видео с канала каждый день
+        $schedule->command('auth:clear-resets')->everyFifteenMinutes(); // Сброс истекших токенов сброса пароля
         // $schedule->command('log:set')->everyMinute();
         // $schedule->command('inspire')->hourly();
     }

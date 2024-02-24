@@ -17,4 +17,9 @@ class UserActionLog extends Model
     protected $casts = [
         'message' => 'array',
     ];
+
+    public function userAgentData()
+    {
+        return $this->morphMany(UserAgentData::class, 'entity');
+    }
 }

@@ -12,4 +12,13 @@ class UserController extends Controller
 
         return $user;
     }
+
+    public function sendVerificationNotification(Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+
+        return [
+            'status_code' => 'notifications.account_verification',
+            'status' => __('notifications.account_verification'),
+        ];
+    }
 }

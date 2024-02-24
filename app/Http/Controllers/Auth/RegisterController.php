@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -69,5 +70,28 @@ class RegisterController extends Controller
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+    }
+
+    protected function registered(Request $request, $user)
+    {
+        if ($user) {
+            //$user->tokens()->delete(); // TODO несколько токенов для авторизации на нескольких устройствах
+            // TODO удалять старые токены через определённое время, например через год, комманда
+
+            $token = $user->createToken('api')->plainTextToken;
+
+            // Сделать таблицу действий пользователя
+            //            $user->update([
+//                'latest_login_at' => now(),
+//            ]);
+//        }
+
+            return response()->json([
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'expires' => time() + 360 * 24 * 60 * 60,
+//                'url' => $url,
+            ]);
+        }
     }
 }
