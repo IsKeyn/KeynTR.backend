@@ -18,10 +18,26 @@ class Media extends Model
         'file_name',
         'mime_type',
         'size',
+        'created_by',
     ];
+
+    public function getModelAttribute()
+    {
+        return get_class($this);
+    }
 
     public function getUrlAttribute()
     {
-        return '/storage/media/' . $this->id . '/' . $this->file_name;
+        return config('app.url') . '/storage/media/' . $this->id . '/' . $this->file_name;
+    }
+
+    public function tags()
+    {
+        return $this->morphToMany(Tag::class, 'tag_binds');
+    }
+
+    public function comments()
+    {
+        return $this->morphMany(Comments::class, 'entity');
     }
 }

@@ -19,7 +19,17 @@ class CheckIsAdmin
     {
         $user = Auth::user();
 
-        if ($user && $user->isAdmin()) {
+        $testPassed = false;
+
+        if ($user) {
+            foreach ($user->roles as $role) {
+                if ($role->system_name === 'admin') {
+                    $testPassed = true;
+                }
+            }
+        }
+
+        if ($testPassed) {
             return $next($request);
         } else {
             session()->flash('warning', 'У вас нет прав администратора');

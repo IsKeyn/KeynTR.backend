@@ -48,7 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Отправить пользователю уведомление о сбросе пароля.
+     * Отправить пользователю уведомление о сбросе пароля.is_admin
      *
      * @param  string  $token
      * @return void
@@ -56,5 +56,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    /**
+     * Роли, принадлежащие пользователю.
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
     }
 }

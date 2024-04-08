@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CommentResource;
 use App\Models\Comments;
+use App\Services\UserAgentService;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
 
 class CommentsController extends Controller
 {
@@ -12,30 +15,33 @@ class CommentsController extends Controller
 
     public function getList(Request $request) {
 
-        $comments = $this->model::
-            where('entity_type', '=', $request->payload['entity'])
-            ->where('entity_id', '=', $request->payload['entityId'])
-            ->get();
+        $comments = $this->model::query()
+            ->where('entity_type', '=', $request->entityType)
+            ->where('entity_id', '=', $request->entityId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($request->perPage ? $request->perPage : 10);
 
-        $returnData = array();
 
-        foreach ($comments as $comment) {
-            $returnData[] = CommentResource::make($comment);
-        }
-
-        return $returnData;
+        return CommentResource::collection($comments);
     }
 
     public function add(Request $request) {
+        $newComment = $request->validate([
+            'name' => 'sometimes',
+            'email' => 'sometimes|email',
+            'message' => 'required|min:2',
+            'entity_type' => 'required',
+            'entity_id' => 'required',
+        ]);
 
-        $arInsert = [
-            'author_name'   => $request->payload['name'],
-            'email'         => $request->payload['email'],
-            'message'       => $request->payload['message'],
-            'entity_type'   => $request->payload['entity'],
-            'entity_id'     => $request->payload['entityId'],
-        ];
+        if ($user = $request->user()) {
+            $newComment['created_by'] = $user->id;
+        }
 
-        return $this->model::create($arInsert);
+        if ($comment = $this->model::create($newComment)) {
+            UserAgentService::setData($request, $comment);
+
+            return response($comment, Response::HTTP_CREATED);
+        }
     }
 }

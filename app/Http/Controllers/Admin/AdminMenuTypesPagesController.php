@@ -9,10 +9,14 @@ use Illuminate\Http\Request;
 class AdminMenuTypesPagesController extends Controller {
     protected $model = MenuType::class;
 
-    public function index(MenuType $menuType) {
+    public function index(Request $request, MenuType $menuType) {
         $menuTypes = $menuType::all();
 
-        return view('admin.menu-types.index', compact('menuTypes'));
+        if ($request->getPathInfo() === "/admin/menu-types") {
+            return view('admin.menu-types.index', compact('menuTypes'));
+        } else {
+            return $menuTypes;
+        }
     }
 
     public function create() {
@@ -23,20 +27,23 @@ class AdminMenuTypesPagesController extends Controller {
     {
         $params = $request->all();
 
-        MenuType::create($params);
-
-        return redirect()->route('admin.menu-types.index');
+        return MenuType::create($params);
     }
 
     public function update(Request $request, MenuType $menuType) {
         $params = $request->all();
 
-        $menuType->update($params);
-        return redirect()->route('admin.menu-types.index');
+        return $menuType->update($params);
+//        return redirect()->route('admin.menu-types.index');
     }
 
     public function edit(MenuType $menuType)
     {
-        return view('admin.menu-types.form', compact('menuType'));
+        return $menuType;
+//        return view('admin.menu-types.form', compact('menuType'));
+    }
+
+    public function destroy(MenuType $menuType) {
+        return $menuType->delete();
     }
 }

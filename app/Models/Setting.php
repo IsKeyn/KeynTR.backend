@@ -5,20 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Menu extends Model
+class Setting extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'site_id',
         'name',
-        'url',
-        'target',
-        'menu_type_id',
-        'link_type',
+        'code',
+        'value',
     ];
-
-    public function type()
-    {
-        return $this->belongsTo(MenuType::class);
-    }
 }

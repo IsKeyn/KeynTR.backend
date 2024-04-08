@@ -10,9 +10,7 @@ class AdminMenuPagesController extends Controller {
     protected $model = Menu::class;
 
     public function index(Menu $menu) {
-        $menuElements = $menu::all();
-
-        return view('admin.menu.index', compact('menuElements'));
+        return $menu::all();
     }
 
     public function create() {
@@ -25,20 +23,21 @@ class AdminMenuPagesController extends Controller {
     {
         $params = $request->all();
 
-        Menu::create($params);
-
-        return redirect()->route('admin.menu.index');
+        return Menu::create($params);
     }
 
     public function update(Request $request, Menu $menu) {
         $params = $request->all();
 
-        $menu->update($params);
-        return redirect()->route('admin.menu.index');
+        return $menu->update($params);
     }
 
     public function edit(Menu $menu)
     {
-        return view('admin.menu.form', compact('menu'));
+        return $menu;
+    }
+
+    public function destroy(Menu $menu) {
+        return $menu->delete();
     }
 }

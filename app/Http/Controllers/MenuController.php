@@ -47,7 +47,7 @@ class MenuController extends Controller
             $arNewsMenu['elements'][] = array(
                 'id' => $element->id,
                 'name' => $element->title,
-                'url' => $element->type . '/' . $element->code . '/',
+                'url' => '/' . $element->type . '/' . $element->code . '/',
                 'link_type' => 'route',
             );
         }
@@ -66,7 +66,7 @@ class MenuController extends Controller
             $arArticleMenu['elements'][] = array(
                 'id' => $element->id,
                 'name' => $element->title,
-                'url' => $element->type . '/' . $element->code . '/',
+                'url' => '/' . $element->type . '/' . $element->code . '/',
                 'link_type' => 'route',
             );
         }

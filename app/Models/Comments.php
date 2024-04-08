@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Comments extends Model
@@ -11,15 +12,26 @@ class Comments extends Model
     use HasFactory;
 
     protected $fillable = [
-        'author_name',
+        'name',
         'email',
         'message',
         'entity_type',
         'entity_id',
+        'created_by',
     ];
 
     public function entity()
     {
         return $this->morphTo();
+    }
+
+    public function userAgentData()
+    {
+        return $this->morphMany(UserAgentData::class, 'entity');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

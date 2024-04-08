@@ -13,9 +13,9 @@ class AdminArticlePagesController extends Controller {
     protected $model = Article::class;
 
     public function index(Article $article) {
-        $articles = $article::all();
+        return $article::all();
 
-        return view('admin.articles.index', compact('articles'));
+//        return view('admin.articles.index', compact('articles'));
     }
 
     public function create() {
@@ -26,16 +26,16 @@ class AdminArticlePagesController extends Controller {
     {
         $params = $request->all();
 
-        Article::create($params);
+        return Article::create($params);
 
-        return redirect()->route('admin.articles.index');
+//        return redirect()->route('admin.articles.index');
     }
 
     public function update(Request $request, Article $article) {
         $params = $request->all();
 
-        $article->update($params);
-        return redirect()->route('admin.articles.index');
+        return $article->update($params);
+//        return redirect()->route('admin.articles.index');
 
 //        if ($id) {
 //            if ($article = $this->model::where('id', $id)->first()) {
@@ -50,6 +50,7 @@ class AdminArticlePagesController extends Controller {
 
     public function edit(Article $article)
     {
-        return view('admin.articles.form', compact('article'));
+        return $article;
+//        return view('admin.articles.form', compact('article'));
     }
 }

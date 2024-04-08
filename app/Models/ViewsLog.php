@@ -5,20 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Menu extends Model
+class ViewsLog extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'url',
-        'target',
-        'menu_type_id',
-        'link_type',
+        'entity_type',
+        'entity_id',
+        'created_by',
     ];
 
-    public function type()
+    public function userAgentData()
     {
-        return $this->belongsTo(MenuType::class);
+        return $this->morphMany(UserAgentData::class, 'entity');
     }
 }

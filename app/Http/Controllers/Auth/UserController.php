@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -10,7 +11,7 @@ class UserController extends Controller
     public function authUser(Request $request) {
         $user = $request->user();
 
-        return $user;
+        return UserResource::make($user);
     }
 
     public function sendVerificationNotification(Request $request) {
