@@ -17,7 +17,7 @@ class MenuController extends Controller
         $types = array();
 
         if ($request->arTypes) {
-            foreach ($request->arTypes as $type) {
+            foreach (json_decode($request->arTypes) as $type) {
                 $types[] = $type;
             }
 

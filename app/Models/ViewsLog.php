@@ -12,6 +12,7 @@ class ViewsLog extends Model
     protected $fillable = [
         'entity_type',
         'entity_id',
+        'was_counted',
         'created_by',
     ];
 

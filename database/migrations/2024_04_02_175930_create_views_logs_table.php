@@ -17,6 +17,7 @@ class CreateViewsLogsTable extends Migration
             $table->id();
             $table->string('entity_type');
             $table->string('entity_id');
+            $table->boolean('was_counted')->default(0);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

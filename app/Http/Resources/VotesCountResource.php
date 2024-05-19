@@ -2,10 +2,9 @@
 
 namespace App\Http\Resources;
 
-use App\Services\CommentService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CommentResource extends JsonResource
+class VotesCountResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,10 +16,12 @@ class CommentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->created_by ? $this->user->name : $this->name,
-            'message' => $this->message,
-            'answers' => $this->answers ? CommentResource::collection($this->answers) : null,
-            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i') : '',
+            'entity_type' => $this->entity_type,
+            'entity_id' => $this->entity_id,
+            'vote_type' => $this->vote_type,
+            'value' => $this->value,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

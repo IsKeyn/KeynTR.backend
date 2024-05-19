@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SearchLog extends Model
+class ViewsCount extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'query',
-        'created_by',
+        'value',
+        'entity_type',
+        'entity_id',
     ];
 }

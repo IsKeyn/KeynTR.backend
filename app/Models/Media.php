@@ -40,4 +40,14 @@ class Media extends Model
     {
         return $this->morphMany(Comments::class, 'entity');
     }
+
+    public function views()
+    {
+        return $this->morphOne(ViewsCount::class, 'entity');
+    }
+
+    public function likes()
+    {
+        return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
+    }
 }

@@ -15,15 +15,12 @@ class CreateArticlesTable extends Migration
     {
         Schema::create('articles', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('code');
-            $table->string('title');
-            $table->text('tags')->nullable();
+            $table->string('name');
+            $table->string('slug')->unique();
             $table->text('text_preview')->nullable();
             $table->text('text_full');
-            $table->integer('image')->nullable();
-            $table->string('type')->nullable();
-            $table->integer('vote_up')->default(0);
-            $table->integer('vote_down')->default(0);
+            $table->string('image')->nullable();
+            $table->integer('type')->default(0);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->softDeletes();
             $table->timestamps();

@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Admin;
 
+use App\Http\Resources\MediaResource;
+use App\Http\Resources\TagResource;
 use App\Models\Article;
 use App\Models\Media;
 use App\Models\VotesLog;
 use App\Services\VotesService;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Carbon;
 
-class ArticleListResource extends JsonResource
+class ArticleResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -26,15 +27,16 @@ class ArticleListResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'text_preview' => $this->text_preview,
+            'text_full' => $this->text_full,
             'image' => $image ? MediaResource::make($image) : null,
-            'type' => $this->ArticleType,
+            'type' => $this->type,
             'tags' => TagResource::collection($this->tags),
             'views' => $this->views ? $this->views->value : null,
             'likes' => $this->likes ? $this->likes->value : null,
-            'already_voted' => VotesService::alreadyVoted($this->model, $this->id, VotesLog::LIKE, $request->user() ? $request->user()->id : null),
             'comments_count' => $this->comments->count(),
             'entity_type' => Article::class,
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

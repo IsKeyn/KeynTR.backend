@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSearchLogsTable extends Migration
+class UpdateArticlesTable2 extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,8 @@ class CreateSearchLogsTable extends Migration
      */
     public function up()
     {
-        Schema::create('search_logs', function (Blueprint $table) {
-            $table->id();
-            $table->text('query');
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamps();
+        Schema::table('articles', function (Blueprint $table) {
+            $table->integer('type')->change();
         });
     }
 
@@ -28,6 +25,6 @@ class CreateSearchLogsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('search_logs');
+        //
     }
 }

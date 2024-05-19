@@ -2,7 +2,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\ArticleResource;
 use App\Models\Article;
+use App\Models\Media;
+use App\Models\Tag;
+use App\Services\TagService;
 use Illuminate\Http\Request;
 
 class AdminArticlePagesController extends Controller {
@@ -24,17 +28,58 @@ class AdminArticlePagesController extends Controller {
 
     public function store(Request $request)
     {
-        $params = $request->all();
+        $fields = $request->validate([
+            'name' => 'required',
+            'slug' => 'required',
+            'text_preview' => 'required',
+            'text_full' => 'required',
+            'image' => 'sometimes',
+            'type' => 'sometimes',
+            'tags' => 'sometimes',
+        ]);
 
-        return Article::create($params);
+        $fields['created_by'] = $request->user()->id;
 
-//        return redirect()->route('admin.articles.index');
+        if ($article = Article::create($fields)) {
+
+            if ($fields['image']) {
+                $media = Media::query()->where('id', $fields['image'])->first();
+                $article->media()->syncWithPivotValues($media->id, ['type' => 1], false);
+            }
+
+            if (isset($fields['tags'])) {
+                TagService::attacheTagsToEntity($article, $fields['tags']);
+            }
+
+            return $article;
+        }
     }
 
     public function update(Request $request, Article $article) {
-        $params = $request->all();
+        $fields = $request->validate([
+            'name' => 'required',
+            'slug' => 'required',
+            'text_preview' => 'required',
+            'text_full' => 'required',
+            'image' => 'sometimes',
+            'type' => 'sometimes',
+            'tags' => 'sometimes',
+        ]);
 
-        return $article->update($params);
+        if (!isset($fields['type'])) {
+            $fields['type'] = 0;
+        }
+
+        if ($fields['image']) {
+            $media = Media::query()->where('id', $fields['image'])->first();
+            $article->media()->syncWithPivotValues($media->id, ['type' => 1]);
+        }
+
+        if (isset($fields['tags'])) {
+            TagService::attacheTagsToEntity($article, $fields['tags']);
+        }
+
+        return $article->update($fields);
 //        return redirect()->route('admin.articles.index');
 
 //        if ($id) {
@@ -50,7 +95,7 @@ class AdminArticlePagesController extends Controller {
 
     public function edit(Article $article)
     {
-        return $article;
+        return ArticleResource::make($article);
 //        return view('admin.articles.form', compact('article'));
     }
 }

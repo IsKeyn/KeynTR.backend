@@ -31,7 +31,7 @@ Route::name('api.')->group(function() {
         Route::post('verification-notification', [UserController::class, 'sendVerificationNotification'])->middleware(['throttle:6,1'])->name('verification.send');;
     });
 
-    Route::name('admin.')->prefix('admin/')->middleware('auth:sanctum, is_admin')->group(function() {
+    Route::name('admin.')->prefix('admin/')->middleware(['auth:sanctum', 'is_admin'])->group(function() {
         Route::name('entity.')
             ->prefix('entity')
             ->controller(AdminEntityController::class)

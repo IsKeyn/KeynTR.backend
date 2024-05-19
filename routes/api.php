@@ -45,9 +45,6 @@ Route::name('api.')->group(function() {
         Route::post('reset-password', [ResetPasswordController::class, 'resetPassword'])->name('password.update');
     });
 
-    Route::get('article/get', [ArticleController::class, 'get']);
-    Route::post('article/get', [ArticleController::class, 'getByFilter'])->name('getByFilter');
-
     Route::get('comment/getList', [CommentsController::class, 'getList']);
     Route::post('comment/add', [CommentsController::class, 'add']);
 
@@ -60,13 +57,12 @@ Route::name('api.')->group(function() {
     Route::post('youtube/lastVideo', [YouTubeController::class, 'getLastVideos']);
 
     Route::name('menu.')->prefix('menu/')->group(function() {
-        Route::post('get', [MenuController::class, 'getMenuElements']);
-        Route::post('getArticlesMenu', [MenuController::class, 'getArticlesMenu']);
+        Route::get('get', [MenuController::class, 'getMenuElements']);
+        Route::get('getArticlesMenu', [MenuController::class, 'getArticlesMenu']);
     });
 
     Route::name('search.')->prefix('search/')->group(function() {
         Route::get('{query}', [SearchService::class, 'search']);
-        Route::POST('{query}', [SearchService::class, 'search']);
     });
 
     Route::name('error')->prefix('error/')->group(function() {
@@ -82,8 +78,14 @@ Route::name('api.')->group(function() {
         Route::get('get', [SettingController::class, 'get'])->name('get');
     });
 
+
+    Route::name('article')->prefix('article/')->group(function() {
+        Route::post('get', [ArticleController::class, 'getList']);
+        Route::get('get/{slug}', [ArticleController::class, 'getBySlug'])->name('getBySlug');
+    });
+
     Route::name('media')->prefix('media/')->group(function() {
-        Route::post('get', [MediaController::class, 'mediaByFilter'])->name('getFilterList');
+        Route::post('get', [MediaController::class, 'getByFilter'])->name('getByFilter');
         Route::get('get/{media}', [MediaController::class, 'mediaById'])->name('getDetail');
     });
 
@@ -92,7 +94,8 @@ Route::name('api.')->group(function() {
     });
 
     Route::name('vote')->prefix('vote/')->group(function() {
-        Route::post('set-like', [VotesLogController::class, 'setLike'])->name('set-like');
+        Route::post('set', [VotesLogController::class, 'setLike'])->name('set-like');
+        Route::post('unset', [VotesLogController::class, 'unsetLike'])->name('unset-like');
     });
 
     Route::name('views')->prefix('views/')->group(function() {

@@ -2,28 +2,25 @@
 
 namespace App\Services;
 
-use App\Http\Resources\SearchArticleResource;
+use App\Http\Resources\ArticleListResource;
 use App\Http\Resources\SearchYouTubeResource;
+use App\Models\Article;
 use App\Models\SearchLog;
-use Google\Service\Blogger\Page;
-use Illuminate\Database\Query\Builder;
+use App\Models\YoutubeVideo;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class SearchService
 {
     public static $arSearchTables = array(
         [
-            'tableName' => 'youtube_videos',
-            'selectedColumns' => [],
+            'entity' => YoutubeVideo::class,
             'searchableColumns' => ['title'],
             'resource' => SearchYouTubeResource::class,
         ],
         [
-            'tableName' => 'articles',
-            'selectedColumns' => [],
-            'searchableColumns' => ['title', 'text_full'],
-            'resource' => SearchArticleResource::class,
+            'entity' => Article::class,
+            'searchableColumns' => ['name', 'text_full'],
+            'resource' => ArticleListResource::class,
         ]
     );
 
@@ -31,26 +28,34 @@ class SearchService
         $searchReturnData = array();
 
         if ($query) {
-            SearchLog::create(['query' => $query]);
+            // Запись логов поиска
+            $searchLog = ['query' => $query];
 
+            if ($user = $request->user()) {
+                $searchLog['created_by'] = $user->id;
+            }
+
+            SearchLog::create($searchLog);
+
+            // Формирование результатов пиоска
             $searchReturnData = array();
 
-            if ($searchAbleTable = $request->get('table')) {
-                $tableKey = null;
+            if ($searchAbleEntity = $request->get('entity')) {
+                $entityKey = null;
 
                 foreach (self::$arSearchTables as $key => $table) {
-                    if ($table['tableName'] === $searchAbleTable) {
-                        $tableKey = $key;
+                    if ($table['entity'] === $searchAbleEntity) {
+                        $entityKey = $key;
                         break;
                     }
                 }
 
-                if ($tableKey !== null) {
-                    $searchReturnData = self::searchInTable($query, $tableKey, $request);
+                if ($entityKey !== null) {
+                    $searchReturnData = self::searchInTable($query, $entityKey, $request);
                 }
             } else {
                 foreach (self::$arSearchTables as $key => $table) {
-                    $searchReturnData[$table['tableName']] = self::searchInTable($query, $key, $request);
+                    $searchReturnData[$table['entity']] = self::searchInTable($query, $key, $request);
                 }
             }
         } else {
@@ -60,32 +65,27 @@ class SearchService
         return $searchReturnData;
     }
 
-    public static function searchInTable($query, $tableKey, $request) {
-        $arParams = self::$arSearchTables[$tableKey];
+    public static function searchInTable($query, $entityKey) {
+        $arParams = self::$arSearchTables[$entityKey];
 
         $params = array(
             'arParams' => $arParams,
             'query' => $query,
         );
 
-        $search = DB::table($arParams['tableName'])
-            ->when($params, function (Builder $builder, $params) {
-                if (!empty($params['arParams']['selectedColumns'])) {
-                    $builder->select($params['arParams']['selectedColumns']);
-                }
-
+        $search = $arParams['entity']::query()
+            ->when($params, function ($query) use ($params) {
                 if (count($params['arParams']['searchableColumns']) > 1) {
                     foreach ($params['arParams']['searchableColumns'] as $key => $searchableColumn) {
                         if ($key === 0)
-                            $builder->where($searchableColumn, 'like', '%' . $params['query'] . '%');
+                            $query->where($searchableColumn, 'like', '%' . $params['query'] . '%');
                         else
-                            $builder->orWhere($searchableColumn, 'like', '%' . $params['query'] . '%');
+                            $query->orWhere($searchableColumn, 'like', '%' . $params['query'] . '%');
                     }
                 } else {
-                    $builder->where($params['arParams']['searchableColumns'][0], 'like', '%' . $params['query'] . '%');
+                    $query->where($params['arParams']['searchableColumns'][0], 'like', '%' . $params['query'] . '%');
                 }
             })->paginate(6);
-
 
         if (isset($arParams['resource'])) {
             $returnData['data'] = $arParams['resource']::collection($search);

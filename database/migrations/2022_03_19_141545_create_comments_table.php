@@ -18,8 +18,10 @@ class CreateCommentsTable extends Migration
             $table->string('author_name')->nullable();
             $table->string('email')->nullable();
             $table->text('message');
-            $table->string('ip')->nullable();;
-            $table->string('user_agent')->nullable();;
+            $table->integer('answer_to')->nullable();
+            $table->integer('first_parent')->nullable();
+            $table->string('ip')->nullable();
+            $table->string('user_agent')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('entity_type');
             $table->string('entity_id');

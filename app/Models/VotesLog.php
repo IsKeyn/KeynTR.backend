@@ -18,6 +18,7 @@ class VotesLog extends Model
         'vote_value',
         'entity_type',
         'entity_id',
+        'created_by',
     ];
 
     public function userAgentData()

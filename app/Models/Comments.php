@@ -15,6 +15,8 @@ class Comments extends Model
         'name',
         'email',
         'message',
+        'first_parent',
+        'answer_to',
         'entity_type',
         'entity_id',
         'created_by',

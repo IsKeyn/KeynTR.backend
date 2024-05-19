@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateVotesLogsTable extends Migration
+class UpdateSearchLogsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,8 @@ class CreateVotesLogsTable extends Migration
      */
     public function up()
     {
-        Schema::create('votes_logs', function (Blueprint $table) {
-            $table->id();
-            $table->string('entity_type');
-            $table->string('entity_id');
-            $table->integer('vote_type');
-            $table->integer('vote_value');
-            $table->boolean('was_counted')->default(0);
+        Schema::table('search_logs', function (Blueprint $table) {
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamps();
         });
     }
 
@@ -32,6 +25,8 @@ class CreateVotesLogsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('votes_logs');
+        Schema::table('search_logs', function (Blueprint $table) {
+            $table->dropColumn('created_by');
+        });
     }
 }
