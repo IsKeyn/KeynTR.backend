@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Http\Resources\ArticleListResource;
-use App\Http\Resources\SearchYouTubeResource;
+use App\Http\Resources\YouTubeResource;
 use App\Models\Article;
 use App\Models\SearchLog;
 use App\Models\YoutubeVideo;
@@ -15,7 +15,7 @@ class SearchService
         [
             'entity' => YoutubeVideo::class,
             'searchableColumns' => ['title'],
-            'resource' => SearchYouTubeResource::class,
+            'resource' => YouTubeResource::class,
         ],
         [
             'entity' => Article::class,
@@ -51,11 +51,11 @@ class SearchService
                 }
 
                 if ($entityKey !== null) {
-                    $searchReturnData = self::searchInTable($query, $entityKey, $request);
+                    $searchReturnData = self::searchInTable($query, $entityKey, $request->get('perPage'));
                 }
             } else {
                 foreach (self::$arSearchTables as $key => $table) {
-                    $searchReturnData[$table['entity']] = self::searchInTable($query, $key, $request);
+                    $searchReturnData[$table['entity']] = self::searchInTable($query, $key, $request->get('perPage'));
                 }
             }
         } else {
@@ -65,7 +65,7 @@ class SearchService
         return $searchReturnData;
     }
 
-    public static function searchInTable($query, $entityKey) {
+    public static function searchInTable($query, $entityKey, $perPage = 10) {
         $arParams = self::$arSearchTables[$entityKey];
 
         $params = array(
@@ -85,7 +85,7 @@ class SearchService
                 } else {
                     $query->where($params['arParams']['searchableColumns'][0], 'like', '%' . $params['query'] . '%');
                 }
-            })->paginate(6);
+            })->paginate($perPage);
 
         if (isset($arParams['resource'])) {
             $returnData['data'] = $arParams['resource']::collection($search);

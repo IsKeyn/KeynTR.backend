@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class AdminArticlePagesController extends Controller {
     /*
-     * Котроллер для создания страниц в админке, управления статей
+     * Котроллер для создания страниц в админке, управления статьями
      */
 
     protected $model = Article::class;
@@ -42,7 +42,7 @@ class AdminArticlePagesController extends Controller {
 
         if ($article = Article::create($fields)) {
 
-            if ($fields['image']) {
+            if (isset($fields['image'])) {
                 $media = Media::query()->where('id', $fields['image'])->first();
                 $article->media()->syncWithPivotValues($media->id, ['type' => 1], false);
             }
@@ -70,7 +70,7 @@ class AdminArticlePagesController extends Controller {
             $fields['type'] = 0;
         }
 
-        if ($fields['image']) {
+        if (isset($fields['image'])) {
             $media = Media::query()->where('id', $fields['image'])->first();
             $article->media()->syncWithPivotValues($media->id, ['type' => 1]);
         }

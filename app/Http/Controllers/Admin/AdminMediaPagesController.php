@@ -69,7 +69,7 @@ class AdminMediaPagesController extends Controller
             }
         }
 
-        $name = $fileArray['src']->hashName();
+        $name = $fileArray['src']->getClientOriginalName();
         $path = $fileArray['src']->storeAs(
             'media/' . $media->id,
             $name,

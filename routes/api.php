@@ -3,7 +3,6 @@
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\ErrorController;
@@ -19,6 +18,12 @@ use App\Http\Controllers\VotesLogController;
 use App\Http\Controllers\YouTubeController;
 use App\Services\SearchService;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminArticlePagesController;
+use App\Http\Controllers\Admin\AdminEntityController;
+use App\Http\Controllers\Admin\AdminMediaPagesController;
+use App\Http\Controllers\Admin\AdminSlideController;
+use App\Http\Resources\UserResource;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,74 +36,158 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+/*
+ * Подтверждение регистрации
+ */
+
 Route::name('api.')->group(function() {
-    Route::get('user', [UserController::class, 'authUser'])->name('user');
+    // Общие
+    Route::get('csrf', function () { return csrf_token(); });
 
-    Route::get('csrf', function () {
-        return csrf_token();
-    });
 
-    Route::name('auth.')->prefix('auth/')->middleware('guest:api')->group(function() {
+
+    // Авторизация и стандартные действия не авторизированного пользователя
+    Route::prefix('auth/')->name('auth.')->middleware('guest:api')->group(function() {
         Route::post('login', [LoginController::class, 'login'])->name('login');
-        Route::post('register', [RegisterController::class, 'register'])->name('register');
-        Route::post('forgot-password', [ResetPasswordController::class, 'sendResetLink'])->name('password.email');
-        Route::post('reset-password', [ResetPasswordController::class, 'resetPassword'])->name('password.update');
+
+        Route::controller(RegisterController::class)->group(function() {
+            Route::post('register', 'register')->name('register');
+            Route::post('forgot-password', 'sendResetLink')->name('send-reset-link');
+            Route::post('reset-password', 'resetPassword')->name('reset-password');
+        });
     });
 
-    Route::get('comment/getList', [CommentsController::class, 'getList']);
-    Route::post('comment/add', [CommentsController::class, 'add']);
+//    Route::get('user', [UserController::class, 'authUser'])->name('user'); // TODO где используется данный роут?
 
+
+    // Действия авторизированного пользователя
+    Route::prefix('auth/')->name('auth.')->middleware('auth:sanctum')->group(function() {
+        Route::get('logout', [LoginController::class, 'logout'])->name('logout');
+
+        Route::controller(UserController::class)->group(function() {
+            Route::get('user', 'authUser')->name('user');
+            Route::post('verification-notification', 'sendVerificationNotification')
+                ->middleware(['throttle:6,1'])->name('verification.send');
+        });
+    });
+
+
+    // Ошибки
+    Route::prefix('error/')->controller(ErrorController::class)->name('error')->group(function() {
+        Route::post('set', 'set')->name('set');
+        Route::post('get', 'get')->name('get');
+    });
+
+    // Настройки сайта
+    Route::prefix('site-settings/')->controller(SettingController::class)->name('site-settings')->group(function() {
+        Route::get('get', 'get')->name('get');
+    });
+
+
+
+    // Работа с меню
+    Route::prefix('menu/')->controller(MenuController::class)->name('menu.')->group(function() {
+        Route::get('get', 'getMenuElements')->name('get-menu-elements');
+        Route::get('getArticlesMenu', 'getArticlesMenu')->name('get-articles-menu');
+    });
+
+    // Поиск
+    Route::prefix('search/')->controller(SearchService::class)->name('search.')->group(function() {
+        Route::get('{query}', 'search')->name('search');
+    });
+
+    // Комментарии
+    Route::prefix('comment/')->controller(CommentsController::class)->name('comment.')->group(function() {
+        Route::get('getList', 'getList')->name('get-list');
+        Route::post('add', 'add')->name('add');
+    });
+
+    // Подписки
+    Route::prefix('subscription/')->controller(SubscriptionController::class)->name('subscription')->group(function() {
+        Route::post('add', 'add')->name('add');
+    });
+
+    // Формы
+    Route::prefix('form/')->controller(FormResultController::class)->name('form')->group(function() {
+        Route::post('set', 'set')->name('set');
+    });
+
+
+
+    // Работа с сущностью media
+    Route::prefix('media/')->controller(MediaController::class)->name('media')->group(function() {
+        Route::post('get', 'getByFilter')->name('get-by-filter');
+        Route::get('get/{media}', 'mediaById')->name('get-detail');
+    });
+
+    // Работа с сущностю tag
+    Route::prefix('tag/')->controller(TagsController::class)->name('tag')->group(function() {
+        Route::get('get/{type}', 'index')->name('get');
+    });
+
+    // Работа с сущностью vote
+    Route::prefix('vote/')->controller(VotesLogController::class)->name('vote')->group(function() {
+        Route::post('set', 'setLike')->name('set-like');
+        Route::post('unset', 'unsetLike')->name('unset-like');
+    });
+
+    // Работа с сущностью views
+    Route::prefix('views/')->controller(ViewsLogController::class)->name('views')->group(function() {
+        Route::post('set', 'setView')->name('set-view');
+    });
+
+
+
+    // Работа с сущностью article
+    Route::prefix('article/')->controller(ArticleController::class)->name('article')->group(function() {
+        Route::post('get', 'getList')->name('get-list');
+        Route::get('get/{slug}', 'getBySlug')->name('get-by-slug');
+    });
+
+    // Работа с сущностью game
     Route::resource('game', GameController::class);
-    Route::post('game/list', [GameController::class, 'getList']);
-    Route::post('game/{query}', [GameController::class, 'getGame']);
-
-    Route::post('subscription/add', [SubscriptionController::class, 'add']);
-
-    Route::post('youtube/lastVideo', [YouTubeController::class, 'getLastVideos']);
-
-    Route::name('menu.')->prefix('menu/')->group(function() {
-        Route::get('get', [MenuController::class, 'getMenuElements']);
-        Route::get('getArticlesMenu', [MenuController::class, 'getArticlesMenu']);
+    Route::prefix('game/')->controller(GameController::class)->name('.game')->group(function() {
+        Route::post('list', 'getList')->name('game-list');
+        Route::post('{query}', 'getGame')->name('get-game');
     });
 
-    Route::name('search.')->prefix('search/')->group(function() {
-        Route::get('{query}', [SearchService::class, 'search']);
-    });
-
-    Route::name('error')->prefix('error/')->group(function() {
-        Route::post('set', [ErrorController::class, 'set'])->name('set');
-        Route::post('get', [ErrorController::class, 'get'])->name('get');
-    });
-
-    Route::name('form')->prefix('form/')->group(function() {
-        Route::post('set', [FormResultController::class, 'set'])->name('set');
-    });
-
-    Route::name('site-settings')->prefix('site-settings/')->group(function() {
-        Route::get('get', [SettingController::class, 'get'])->name('get');
+    // Работа с сущностью youtube
+    Route::prefix('youtube/')->controller(YouTubeController::class)->name('.youtube')->group(function() {
+        Route::post('lastVideo', 'getLastVideos')->name('get-last-videos');
     });
 
 
-    Route::name('article')->prefix('article/')->group(function() {
-        Route::post('get', [ArticleController::class, 'getList']);
-        Route::get('get/{slug}', [ArticleController::class, 'getBySlug'])->name('getBySlug');
-    });
+    // Действия в админке
+    Route::prefix('admin/')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])->group(function() {
+        Route::prefix('entity')->controller(AdminEntityController::class)->name('entity.')->group(function () {
+            Route::get('{entityName}', 'index')->name('index');
+            Route::post('{entityName}', 'store')->name('store');
+            Route::put('{entityName}/{id}', 'update')->name('update');
+            Route::delete('{entityName}/{id}', 'destroy')->name('destroy');
+            Route::get('{entityName}/{id}/edit','edit')->name('edit');
 
-    Route::name('media')->prefix('media/')->group(function() {
-        Route::post('get', [MediaController::class, 'getByFilter'])->name('getByFilter');
-        Route::get('get/{media}', [MediaController::class, 'mediaById'])->name('getDetail');
-    });
+            Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
+            Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
+            Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
+        });
 
-    Route::name('tag')->prefix('tag/')->group(function() {
-        Route::get('get/{type}', [TagsController::class, 'index'])->name('get');
-    });
+        Route::resource('media', AdminMediaPagesController::class);
+        Route::prefix('media/')->controller(AdminMediaPagesController::class)->name('media.')->group(function() {
+            Route::post('multi-store', 'multiStore')->name('multi-store');
+        });
 
-    Route::name('vote')->prefix('vote/')->group(function() {
-        Route::post('set', [VotesLogController::class, 'setLike'])->name('set-like');
-        Route::post('unset', [VotesLogController::class, 'unsetLike'])->name('unset-like');
-    });
-
-    Route::name('views')->prefix('views/')->group(function() {
-        Route::post('set', [ViewsLogController::class, 'setView'])->name('set-view');
+        Route::resource('articles', AdminArticlePagesController::class);
+        Route::resource('slides', AdminSlideController::class);
     });
 });
+
+Route::get('/auth/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
+    $user = $request->user();
+
+    return UserResource::make($user);
+})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
+
+//Route::get('/user', function (Request $request) {
+//    return $request->user();
+//})->middleware('auth:sanctum');
