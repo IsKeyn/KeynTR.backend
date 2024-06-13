@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminGameController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -178,6 +179,9 @@ Route::name('api.')->group(function() {
 
         Route::resource('articles', AdminArticlePagesController::class);
         Route::resource('slides', AdminSlideController::class);
+
+        Route::get('game/get-additional-data', [AdminGameController::class, 'getAdditionalData'])->name('game.get-additional-data');
+        Route::resource('game', AdminGameController::class);
     });
 });
 

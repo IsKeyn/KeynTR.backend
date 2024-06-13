@@ -33,7 +33,7 @@ class AdminArticlePagesController extends Controller {
             'slug' => 'required',
             'text_preview' => 'required',
             'text_full' => 'required',
-            'image' => 'sometimes',
+            'title_image' => 'sometimes',
             'type' => 'sometimes',
             'tags' => 'sometimes',
         ]);
@@ -42,8 +42,8 @@ class AdminArticlePagesController extends Controller {
 
         if ($article = Article::create($fields)) {
 
-            if (isset($fields['image'])) {
-                $media = Media::query()->where('id', $fields['image'])->first();
+            if (isset($fields['title_image'])) {
+                $media = Media::query()->where('id', $fields['title_image'])->first();
                 $article->media()->syncWithPivotValues($media->id, ['type' => 1], false);
             }
 
@@ -61,7 +61,7 @@ class AdminArticlePagesController extends Controller {
             'slug' => 'required',
             'text_preview' => 'required',
             'text_full' => 'required',
-            'image' => 'sometimes',
+            'title_image' => 'sometimes',
             'type' => 'sometimes',
             'tags' => 'sometimes',
         ]);
@@ -70,8 +70,8 @@ class AdminArticlePagesController extends Controller {
             $fields['type'] = 0;
         }
 
-        if (isset($fields['image'])) {
-            $media = Media::query()->where('id', $fields['image'])->first();
+        if (isset($fields['title_image'])) {
+            $media = Media::query()->where('id', $fields['title_image'])->first();
             $article->media()->syncWithPivotValues($media->id, ['type' => 1]);
         }
 

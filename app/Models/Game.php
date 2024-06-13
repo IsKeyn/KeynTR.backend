@@ -76,8 +76,23 @@ class Game extends Model
         return $this->morphToMany(Media::class, 'media_bind');
     }
 
+    public function tags()
+    {
+        return $this->morphToMany(Tag::class, 'tag_binds');
+    }
+
     public function titleImage()
     {
-        return $this->morphToMany(Media::class, 'media_bind');
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
+    }
+
+    public function dates()
+    {
+        return $this->morphToMany(Date::class, 'date_bind')->withPivot('type');
+    }
+
+    public function gamePlatform()
+    {
+        return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind');
     }
 }

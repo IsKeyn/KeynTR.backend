@@ -2,15 +2,15 @@
 
 namespace App\Http\Resources\Admin;
 
+use App\Http\Resources\Admin\ReleaseDateResource;
+use App\Http\Resources\GamingPlatformResource;
 use App\Http\Resources\MediaResource;
 use App\Http\Resources\TagResource;
-use App\Models\Article;
+use App\Models\GamingPlatform;
 use App\Models\Media;
-use App\Models\VotesLog;
-use App\Services\VotesService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ArticleResource extends JsonResource
+class GameResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -26,15 +26,16 @@ class ArticleResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'text_preview' => $this->text_preview,
-            'text_full' => $this->text_full,
+            'platforms' => $this->platforms,
+            'description' => $this->description,
+            'release_dates' => ReleaseDateResource::collection($this->dates),
             'title_image' => $image ? MediaResource::make($image) : null,
-            'type' => $this->type,
+
+//            'url' => $this->url,
+//            'type' => $this->type,
+//            'active' => $this->active,
             'tags' => TagResource::collection($this->tags),
-            'views' => $this->views ? $this->views->value : null,
-            'likes' => $this->likes ? $this->likes->value : null,
-            'comments_count' => $this->comments->count(),
-            'entity_type' => Article::class,
+            'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

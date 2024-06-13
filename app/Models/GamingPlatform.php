@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class GamingPlatform extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'release_date',
+    ];
+
 }
