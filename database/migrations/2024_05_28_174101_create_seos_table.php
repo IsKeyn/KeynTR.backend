@@ -15,10 +15,12 @@ class CreateSeosTable extends Migration
     {
         Schema::create('seos', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('description');
-            $table->string('keywords');
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
+            $table->string('keywords')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('entity_type');
+            $table->integer('entity_id');
             $table->timestamps();
         });
     }

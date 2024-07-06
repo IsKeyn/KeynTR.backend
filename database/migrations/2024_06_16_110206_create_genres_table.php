@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class UpdateSearchLogsTable extends Migration
+class CreateGenresTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,12 @@ class UpdateSearchLogsTable extends Migration
      */
     public function up()
     {
-        Schema::table('search_logs', function (Blueprint $table) {
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+        Schema::create('genres', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug')->nullable();
+            $table->text('description')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -25,8 +29,6 @@ class UpdateSearchLogsTable extends Migration
      */
     public function down()
     {
-        Schema::table('search_logs', function (Blueprint $table) {
-            $table->dropColumn('created_by');
-        });
+        Schema::dropIfExists('genres');
     }
 }

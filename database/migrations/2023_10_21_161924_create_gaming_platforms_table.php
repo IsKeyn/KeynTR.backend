@@ -16,6 +16,7 @@ class CreateGamingPlatformsTable extends Migration
         Schema::create('gaming_platforms', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug')->nullable();
             $table->text('description')->nullable();
             $table->date('release_date')->nullable();
             $table->timestamps();

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class UpdateCommentsTable extends Migration
+class CreateBlocksTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,11 @@ class UpdateCommentsTable extends Migration
      */
     public function up()
     {
-        Schema::table('comments', function (Blueprint $table) {
-            $table->renameColumn('author_name', 'name');
+        Schema::create('blocks', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->json('structure');
+            $table->timestamps();
         });
     }
 
@@ -25,8 +28,6 @@ class UpdateCommentsTable extends Migration
      */
     public function down()
     {
-        Schema::table('comments', function (Blueprint $table) {
-            $table->renameColumn('name', 'author_name');
-        });
+        Schema::dropIfExists('blocks');
     }
 }

@@ -5,16 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Seo extends Model
+class Block extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'title',
-        'description',
-        'keywords',
-        'created_by',
-        'entity_type',
-        'entity_id',
+        'name',
+        'structure',
+    ];
+
+    protected $casts = [
+        'structure' => 'array',
     ];
 }

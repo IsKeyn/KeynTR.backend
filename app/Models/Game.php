@@ -15,65 +15,26 @@ class Game extends Model
 {
     use HasFactory;
 
-    public const EDITABLE_FIELDS = [
-        [
-            'description' => 'Наименование',
-            'name' => 'name',
-            'type' => 'input'
-        ],
-        [
-            'description' => 'Slug',
-            'name' => 'slug',
-            'type' => 'input'
-        ],
-        [
-            'description' => 'Описание',
-            'name' => 'description',
-            'type' => 'input'
-        ],
-        [
-            'description' => 'Дополнительные поля',
-            'name' => 'fields',
-            'type' => 'additional_fields',
-            'array_fields' => [
-                [
-                    'description' => 'Название поля',
-                    'name' => 'name',
-                    'type' => 'input'
-                ],
-                [
-                    'description' => 'Значение поля',
-                    'name' => 'value',
-                    'type' => 'input'
-                ],
-                [
-                    'description' => 'Сортировка',
-                    'name' => 'sort',
-                    'type' => 'input'
-                ],
-            ],
-        ],
-    ];
-
     protected $fillable = [
         'name',
         'slug',
         'description',
+        'created_at',
     ];
+
+    public function getModelAttribute()
+    {
+        return get_class($this);
+    }
 
     public function platforms()
     {
         return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind');
     }
 
-    public function fields()
+    public function additionalFields()
     {
         return $this->morphMany(AdditionalField::class, 'entity');
-    }
-
-    public function media()
-    {
-        return $this->morphToMany(Media::class, 'media_bind');
     }
 
     public function tags()
@@ -81,9 +42,19 @@ class Game extends Model
         return $this->morphToMany(Tag::class, 'tag_binds');
     }
 
-    public function titleImage()
+    public function media()
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
+    }
+
+    public function titleImage()
+    {
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type')->wherePivot('type', '=', Media::TITLE_TYPE);
+    }
+
+    public function cover()
+    {
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type')->wherePivot('type', '=', Media::COVER_TYPE);
     }
 
     public function dates()
@@ -94,5 +65,44 @@ class Game extends Model
     public function gamePlatform()
     {
         return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind');
+    }
+
+    public function genres()
+    {
+        return $this->morphToMany(Genre::class, 'genre_bind');
+    }
+
+    public function company()
+    {
+        return $this->morphToMany(Company::class, 'company_bind');
+    }
+
+    public function link()
+    {
+        return $this->morphToMany(Link::class, 'link_bind');
+    }
+
+    public function comments()
+    {
+        return $this->morphMany(Comments::class, 'entity');
+    }
+
+    public function views()
+    {
+        return $this->morphOne(ViewsCount::class, 'entity');
+    }
+
+    public function likes()
+    {
+        return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
+    }
+
+    public function menu() {
+        return $this->morphMany(MenuType::class, 'menu_type_bind');
+    }
+
+    public function seo()
+    {
+        return $this->morphOne(Seo::class, 'entity');
     }
 }

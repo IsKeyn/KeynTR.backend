@@ -7,7 +7,6 @@ use App\Models\Media;
 use App\Models\VotesLog;
 use App\Services\VotesService;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Carbon;
 
 class ArticleResource extends JsonResource
 {
@@ -34,6 +33,7 @@ class ArticleResource extends JsonResource
             'already_voted' => VotesService::alreadyVoted($this->model, $this->id, VotesLog::LIKE, $request->user() ? $request->user()->id : null),
             'comments_count' => $this->comments->count(),
             'entity_type' => Article::class,
+            'blocks' => BlockResource::collection($this->blocks),
             'created_at' => $this->created_at,
         ];
     }

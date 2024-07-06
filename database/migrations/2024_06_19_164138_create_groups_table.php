@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDateBindsTable extends Migration
+class CreateGroupsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreateDateBindsTable extends Migration
      */
     public function up()
     {
-        Schema::create('date_binds', function (Blueprint $table) {
+        Schema::create('groups', function (Blueprint $table) {
             $table->id();
-            $table->integer('date_id');
-            $table->integer('date_bind_id');
-            $table->string('date_bind_type');
-            $table->integer('type')->nullable();
+            $table->string('name');
+            $table->string('slug')->nullable();
+            $table->text('description')->nullable();
+            $table->string('entity_type');
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ class CreateDateBindsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('date_binds');
+        Schema::dropIfExists('groups');
     }
 }

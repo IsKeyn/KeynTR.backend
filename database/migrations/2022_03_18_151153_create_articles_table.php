@@ -18,7 +18,7 @@ class CreateArticlesTable extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('text_preview')->nullable();
-            $table->text('text_full');
+            $table->text('text_full')->nullable();
             $table->string('image')->nullable();
             $table->integer('type')->default(0);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

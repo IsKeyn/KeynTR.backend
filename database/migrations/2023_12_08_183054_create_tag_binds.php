@@ -16,9 +16,9 @@ class CreateTagBinds extends Migration
         Schema::create('tag_binds', function (Blueprint $table) {
             $table->id();
             $table->integer('tag_id');
-            $table->integer('tag_bind_id');
-            $table->string('tag_bind_type');
-            $table->integer('type');
+            $table->integer('tag_binds_id');
+            $table->string('tag_binds_type');
+            $table->string('type')->nullable();
             $table->timestamps();
         });
     }

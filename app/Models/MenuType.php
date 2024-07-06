@@ -11,7 +11,10 @@ class MenuType extends Model
 
     protected $fillable = [
         'name',
-        'code'
+        'code',
+        'group',
+        'menu_type_bind_id',
+        'menu_type_bind_type',
     ];
 
     public function elements()

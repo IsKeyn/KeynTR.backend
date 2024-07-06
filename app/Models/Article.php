@@ -60,4 +60,9 @@ class Article extends Model
     {
         return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
     }
+
+    public function blocks()
+    {
+        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type');
+    }
 }

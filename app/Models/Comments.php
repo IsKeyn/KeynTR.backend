@@ -14,12 +14,16 @@ class Comments extends Model
     protected $fillable = [
         'name',
         'email',
+        'url', // Поле пришедшее из WordPress, хранит url (сайт пользователя), оставленный при отправке комментария
         'message',
         'first_parent',
         'answer_to',
         'entity_type',
         'entity_id',
         'created_by',
+        'created_at_gmt',
+        'created_at',
+        'active',
     ];
 
     public function entity()

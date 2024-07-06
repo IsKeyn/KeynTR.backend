@@ -106,7 +106,7 @@ class AdminEntityController extends Controller {
             if ($element = $model::where('id', $id)->first()) {
                 $params = $request->all();
 
-                $element->fields()->create($params);
+                $element->additionalFields()->create($params);
             } else {
                 echo 'Такой сущности нет'; // TODO Сделать общий вывод ошибок, типа error();
             }
@@ -125,7 +125,7 @@ class AdminEntityController extends Controller {
             if ($element = $model::where('id', $id)->first()) {
                 $params = $request->all();
 
-                $element->fields()->where('id', $params['id'])->first()->update($params);
+                $element->additionalFields()->where('id', $params['id'])->first()->update($params);
             } else {
                 echo 'Такой сущности нет'; // TODO Сделать общий вывод ошибок, типа error();
             }
@@ -144,7 +144,7 @@ class AdminEntityController extends Controller {
             if ($element = $model::where('id', $id)->first()) {
                 $params = $request->all();
 
-                $element->fields()->where('id', $params['id'])->first()->delete();
+                $element->additionalFields()->where('id', $params['id'])->first()->delete();
             } else {
                 echo 'Такой сущности нет'; // TODO Сделать общий вывод ошибок, типа error();
             }

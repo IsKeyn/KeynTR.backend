@@ -145,12 +145,14 @@ Route::name('api.')->group(function() {
         Route::get('get/{slug}', 'getBySlug')->name('get-by-slug');
     });
 
+
     // Работа с сущностью game
     Route::resource('game', GameController::class);
     Route::prefix('game/')->controller(GameController::class)->name('.game')->group(function() {
         Route::post('list', 'getList')->name('game-list');
-        Route::post('{query}', 'getGame')->name('get-game');
+        Route::get('{game:slug}', 'getGame')->name('get-game');
     });
+
 
     // Работа с сущностью youtube
     Route::prefix('youtube/')->controller(YouTubeController::class)->name('.youtube')->group(function() {

@@ -17,7 +17,7 @@ class CreateAdditionalFieldsTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->nullable();
-            $table->text('value');
+            $table->text('value')->nullable();
             $table->integer('sort')->nullable();
             $table->string('entity_type');
             $table->string('entity_id');

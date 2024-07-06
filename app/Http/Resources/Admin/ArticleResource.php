@@ -2,12 +2,11 @@
 
 namespace App\Http\Resources\Admin;
 
+use App\Http\Resources\BlockResource;
 use App\Http\Resources\MediaResource;
 use App\Http\Resources\TagResource;
 use App\Models\Article;
 use App\Models\Media;
-use App\Models\VotesLog;
-use App\Services\VotesService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ArticleResource extends JsonResource
@@ -35,6 +34,7 @@ class ArticleResource extends JsonResource
             'likes' => $this->likes ? $this->likes->value : null,
             'comments_count' => $this->comments->count(),
             'entity_type' => Article::class,
+            'blocks' => BlockResource::collection($this->blocks),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

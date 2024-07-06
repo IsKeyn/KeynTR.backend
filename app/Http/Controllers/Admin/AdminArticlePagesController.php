@@ -6,6 +6,7 @@ use App\Http\Resources\Admin\ArticleResource;
 use App\Models\Article;
 use App\Models\Media;
 use App\Models\Tag;
+use App\Services\BlockService;
 use App\Services\TagService;
 use Illuminate\Http\Request;
 
@@ -31,8 +32,8 @@ class AdminArticlePagesController extends Controller {
         $fields = $request->validate([
             'name' => 'required',
             'slug' => 'required',
-            'text_preview' => 'required',
-            'text_full' => 'required',
+            'text_preview' => 'sometimes',
+            'text_full' => 'sometimes',
             'title_image' => 'sometimes',
             'type' => 'sometimes',
             'tags' => 'sometimes',
@@ -59,11 +60,12 @@ class AdminArticlePagesController extends Controller {
         $fields = $request->validate([
             'name' => 'required',
             'slug' => 'required',
-            'text_preview' => 'required',
-            'text_full' => 'required',
+            'text_preview' => 'sometimes',
+            'text_full' => 'sometimes',
             'title_image' => 'sometimes',
             'type' => 'sometimes',
             'tags' => 'sometimes',
+            'blocks' => 'sometimes',
         ]);
 
         if (!isset($fields['type'])) {
@@ -77,6 +79,10 @@ class AdminArticlePagesController extends Controller {
 
         if (isset($fields['tags'])) {
             TagService::attacheTagsToEntity($article, $fields['tags']);
+        }
+
+        if (isset($fields['blocks'])) {
+            BlockService::set($article, $fields['blocks']);
         }
 
         return $article->update($fields);

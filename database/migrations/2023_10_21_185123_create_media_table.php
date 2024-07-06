@@ -18,9 +18,9 @@ class CreateMediaTable extends Migration
             $table->string('name')->nullable();
             $table->text('description')->nullable();
             $table->integer('type')->nullable();
-            $table->string('file_name');
-            $table->string('mime_type');
-            $table->string('size');
+            $table->string('file_name')->nullable();
+            $table->string('mime_type')->nullable();
+            $table->string('size')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

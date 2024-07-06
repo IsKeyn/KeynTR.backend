@@ -10,6 +10,7 @@ class Media extends Model
     use HasFactory;
 
     const TITLE_TYPE = 1;
+    const COVER_TYPE = 2;
 
     protected $fillable = [
         'name',

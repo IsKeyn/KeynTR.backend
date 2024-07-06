@@ -2,11 +2,9 @@
 
 namespace App\Http\Resources\Admin;
 
-use App\Http\Resources\Admin\ReleaseDateResource;
-use App\Http\Resources\GamingPlatformResource;
 use App\Http\Resources\MediaResource;
+use App\Http\Resources\SeoResource;
 use App\Http\Resources\TagResource;
-use App\Models\GamingPlatform;
 use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,6 +19,7 @@ class GameResource extends JsonResource
     public function toArray($request)
     {
         $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
+        $covers = $this->media()->wherePivot('type', '=', Media::COVER_TYPE)->get();
 
         return [
             'id' => $this->id,
@@ -30,13 +29,15 @@ class GameResource extends JsonResource
             'description' => $this->description,
             'release_dates' => ReleaseDateResource::collection($this->dates),
             'title_image' => $image ? MediaResource::make($image) : null,
-
-//            'url' => $this->url,
-//            'type' => $this->type,
-//            'active' => $this->active,
+            'covers' => $covers ? MediaResource::collection($covers) : null,
             'tags' => TagResource::collection($this->tags),
+            'genres' => GenreResource::collection($this->genres),
+            'companies' => CompanyResource::collection($this->company),
+            'links' => LinkResource::collection($this->link),
+            'additional_fields' => $this->additionalFields,
+            'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
             'created_by' => $this->created_by,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at,
         ];
     }

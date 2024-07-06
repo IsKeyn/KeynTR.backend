@@ -17,6 +17,9 @@ class CreateMenuTypesTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('code');
+            $table->boolean('group');
+            $table->integer('menu_type_bind_id');
+            $table->string('menu_type_bind_type');
             $table->timestamps();
         });
     }

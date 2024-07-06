@@ -9,14 +9,19 @@ use Jenssegers\Agent\Agent;
 class UserAgentService
 {
     public static function setData(Request $request, $entity) {
-        $userAgentData = array();
-        $userAgentData = Arr::add($userAgentData, 'ip', $request->ip());
+        self::create($request->ip(), $request->get('referer'), $request->header('User-Agent'), $entity);
+    }
 
-        if ($httpReferer = $request->get('referer')) {
-            $userAgentData = Arr::add($userAgentData, 'http_referer', $httpReferer);
+    public static function create($ip, $referer, $userAgent, $entity)
+    {
+        $userAgentData = array();
+        $userAgentData = Arr::add($userAgentData, 'ip', $ip);
+
+        if ($referer) {
+            $userAgentData = Arr::add($userAgentData, 'http_referer', $referer);
         }
 
-        if ($userAgent = $request->header('User-Agent')) {
+        if ($userAgent) {
             $userAgentData = Arr::add($userAgentData, 'user_agent', $userAgent);
 
             $agent = new Agent();

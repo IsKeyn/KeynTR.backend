@@ -15,17 +15,18 @@ class CreateCommentsTable extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('author_name')->nullable();
+            $table->string('name')->nullable();
             $table->string('email')->nullable();
+            $table->string('url')->nullable();
             $table->text('message');
             $table->integer('answer_to')->nullable();
             $table->integer('first_parent')->nullable();
-            $table->string('ip')->nullable();
-            $table->string('user_agent')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('entity_type');
-            $table->string('entity_id');
+            $table->integer('entity_id');
+            $table->boolean('active')->default(true);
             $table->softDeletes();
+            $table->timestamp('created_at_gmt')->nullable();
             $table->timestamps();
         });
     }
