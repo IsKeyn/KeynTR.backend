@@ -19,6 +19,7 @@
         "laravel/ui": "^3.4"
     },
     "require-dev": {
+        "beyondcode/laravel-dump-server": "^2.0",
         "facade/ignition": "^2.5",
         "fakerphp/faker": "^1.9.1",
         "laravel/sail": "^1.0.1",

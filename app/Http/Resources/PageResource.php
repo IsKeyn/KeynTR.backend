@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class SeoResource extends JsonResource
+class PageResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,27 +14,14 @@ class SeoResource extends JsonResource
      */
     public function toArray($request)
     {
-        $keywords = '';
-
-        if ($this->keywords) {
-            $keywords = $this->keywords;
-        } else {
-            if ($this->entity->tags) {
-                foreach ($this->entity->tags as $tag) {
-                    if ($keywords) {
-                        $keywords .= ', ';
-                    }
-
-                    $keywords .= $tag->name;
-                }
-            }
-        }
-
         return [
             'id' => $this->id,
-            'title' => $this->title,
+            'name' => $this->name,
             'description' => $this->description,
-            'keywords' => $keywords,
+            'path' => $this->path,
+            'type' => $this->type,
+            'entity_type' => $this->entity_type,
+            'entity_id' => $this->entity_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

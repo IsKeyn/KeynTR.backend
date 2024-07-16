@@ -19,6 +19,7 @@ class Game extends Model
         'name',
         'slug',
         'description',
+        'created_by',
         'created_at',
     ];
 

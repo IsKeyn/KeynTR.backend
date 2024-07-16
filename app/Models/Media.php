@@ -11,6 +11,7 @@ class Media extends Model
 
     const TITLE_TYPE = 1;
     const COVER_TYPE = 2;
+    const MEDIA_GROUP = 3;
 
     protected $fillable = [
         'name',
@@ -50,5 +51,10 @@ class Media extends Model
     public function likes()
     {
         return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
+    }
+
+    public function group()
+    {
+        return $this->morphedByMany(MediaGroup::class, 'media_bind');
     }
 }

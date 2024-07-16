@@ -4,6 +4,7 @@ namespace App\Http\Resources\Admin;
 
 use App\Http\Resources\BlockResource;
 use App\Http\Resources\MediaResource;
+use App\Http\Resources\SeoResource;
 use App\Http\Resources\TagResource;
 use App\Models\Article;
 use App\Models\Media;
@@ -35,7 +36,8 @@ class ArticleResource extends JsonResource
             'comments_count' => $this->comments->count(),
             'entity_type' => Article::class,
             'blocks' => BlockResource::collection($this->blocks),
-            'created_at' => $this->created_at,
+            'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at,
         ];
     }

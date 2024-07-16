@@ -22,6 +22,12 @@ class MediaController extends Controller
         $mediaQuery = Media::query()->with(['views', 'likes']);
 
         if ($filter = $request->filter) {
+            $mediaQuery->when(isset($filter['group_id']), function ($query) use ($filter, $request) {
+                $query->whereHas('group', function ($q) use ($filter) {
+                    $q->where('media_groups.id', $filter['group_id']);
+                });
+            });
+
             $mediaQuery->when(isset($filter['tags']), function ($query) use ($filter, $request) {
                 $query->whereHas('tags', function ($q) use ($filter, $request) {
                     $q->whereIn('name', $filter['tags']);
@@ -44,13 +50,18 @@ class MediaController extends Controller
                 // Нааиболее обсуждаемые
             });
 
-            $mediaQuery->whereHas('views', function($query) use ($filter)
-            {
-                $query->orderBy('value');
-            });
+            // Выьирает только с просмотрами
+//            $mediaQuery->whereHas('views', function($query) use ($filter)
+//            {
+//                $query->orderBy('value');
+//            });
+
+            $mediaQuery->orderBy('created_at', 'desc');
         } else {
             $mediaQuery->orderBy('created_at', 'desc');
         }
+
+//        dd($mediaQuery);
 
 //        $mediaQuery->orderBy(VotesCount::select('value')
 //            ->whereColumn('votes_counts.entity_id', 'media.id')
@@ -61,7 +72,23 @@ class MediaController extends Controller
 //        $mediaQuery->inRandomOrder();
 
         $result = $mediaQuery->paginate($request->perPage ?? 4);
+//        $result = $mediaQuery->get();
 
+
+//        dd($result->count());
+
+
+//        $perPage = $request->perPage ?? 4;
+//        $offsetPages = $request->input('page', 1) - 1;
+
+//        dd($result->toArray());
+
+//        $result = array_slice(
+//            $result->toArray(),
+//            $offsetPages * $perPage,
+//            $perPage
+//        );
+//
         return MediaResource::collection($result);
     }
 

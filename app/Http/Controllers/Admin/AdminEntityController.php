@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -26,17 +27,31 @@ class AdminEntityController extends Controller {
         $model = 'App\Models\\' . $entityName;
         $params = $request->all();
 
-        return $model::create($params);
+        $entity = $model::create($params);
+
+//        $mediaService = new MediaService();
+
+//        if (isset($params['gallery'])) {
+//            $mediaService->setGallery($entity, $params['gallery']);
+//        }
+
+        return $entity;
     }
 
     public function update($entityName, $id, Request $request) {
         $model = 'App\Models\\' . $entityName;
 
         if ($id) {
-            if ($element = $model::where('id', $id)->first()) {
+            if ($entity = $model::where('id', $id)->first()) {
                 $params = $request->all();
 
-                return $element->update($params);
+//                $mediaService = new MediaService();
+//
+//                if (isset($params['gallery'])) {
+//                    $mediaService->setGallery($entity, $params['gallery']);
+//                }
+
+                return $entity->update($params);
             } else {
                 echo 'Такой сущности нет'; // TODO Сделать общий вывод ошибок, типа error();
             }

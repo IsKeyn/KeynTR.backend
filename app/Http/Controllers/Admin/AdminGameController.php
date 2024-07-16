@@ -36,79 +36,38 @@ class AdminGameController extends Controller {
 
     public function store(Request $request)
     {
-        $fields = $request->validate([
-            'name' => 'required|string',
-            'slug' => Rule::unique('games', 'slug'),
-            'description' => 'sometimes|string',
-            'active' => 'sometimes',
-            'title_image' => 'sometimes',
-            'covers' => 'sometimes',
-            'additional_fields' => 'sometimes',
-            'genres' => 'sometimes',
-            'companies' => 'sometimes',
-            'tags' => 'sometimes',
-            'seo' => 'sometimes',
-            'links' => 'sometimes',
-            'release_dates' => 'sometimes',
-            'created_at' => 'sometimes',
-        ]);
+        $validated = $this->validateFields($request);
 
-        $fields['created_by'] = $request->user()->id;
-        $fields['active'] = true;
+        $validated['created_by'] = $validated['created_by'] ? $validated['created_by'] : $request->user()->id;
+        $validated['active'] = true;
 
-        if ($game = Game::create($fields)) {
-            $mediaService = new MediaService();
+        if (!$validated['created_at']) {
+            unset($validated['created_at']);
+        }
 
-            if (isset($fields['title_image'])) {
-                $mediaService->setTitleImage($game, $fields['title_image']);
-            }
-
-            if (isset($fields['covers'])) {
-                $mediaService->setCovers($game, $fields['covers']);
-            }
-
-            if (isset($fields['additional_fields'])) {
-                $additionalFieldsService = new AdditionalFieldsService();
-                $additionalFieldsService->sync($game, $fields['additional_fields']);
-            }
-
-            if (isset($fields['genres'])) {
-                GenreService::set($game, $fields['genres']);
-            }
-
-            if (isset($fields['companies'])) {
-                CompanyService::set($game, $fields['companies']);
-            }
-
-            if (isset($fields['tags'])) {
-                TagService::attacheTagsToEntity($game, $fields['tags']);
-            }
-
-            if (isset($fields['seo']) && $fields['seo']) {
-                if ($game->seo) {
-                    $game->seo()->update($fields['seo']);
-                } else {
-                    $meta = new Seo($fields['seo']);
-                    $game->seo()->save($meta);
-                }
-            }
-
-            if (isset($fields['links'])) {
-                LinkService::set($game, $fields['links']);
-            }
-
-            if (isset($fields['release_dates'])) {
-                GameService::setReleaseDates($game, $fields['release_dates']);
-            }
-
+        if ($game = Game::create($validated)) {
+            $this->setAdditionalFields($game, $validated);
             return $game;
         }
     }
 
     public function update(Request $request, Game $game) {
-        $fields = $request->validate([
+        $validated = $this->validateFields($request);
+
+        $this->setAdditionalFields($game, $validated);
+
+        return $game->update($validated);
+    }
+
+    public function edit(Game $game)
+    {
+        return GameResource::make($game);
+    }
+
+    public function validateFields($request) {
+        return $request->validate([
             'name' => 'required|string',
-            'slug' => Rule::unique('games', 'slug')->ignore($request->get('id')),
+            'slug' => Rule::unique('games', 'slug')->ignore($request->get('id')), // Может сломать store
             'description' => 'sometimes|string',
             'active' => 'sometimes',
             'title_image' => 'sometimes',
@@ -120,59 +79,54 @@ class AdminGameController extends Controller {
             'seo' => 'sometimes',
             'links' => 'sometimes',
             'release_dates' => 'sometimes',
-            'created_at' => 'sometimes',
+            'created_at' => 'nullable',
         ]);
+    }
 
+    public function setAdditionalFields($model, $validated) {
         $mediaService = new MediaService();
 
-        if (isset($fields['title_image'])) {
-            $mediaService->setTitleImage($game, $fields['title_image']);
+        if (isset($validated['title_image'])) {
+            $mediaService->setTitleImage($model, $validated['title_image']);
         }
 
-        if (isset($fields['covers'])) {
-            $mediaService->setCovers($game, $fields['covers']);
+        if (isset($validated['covers'])) {
+            $mediaService->setCovers($model, $validated['covers']);
         }
 
-        if (isset($fields['additional_fields'])) {
+        if (isset($validated['additional_fields'])) {
             $additionalFieldsService = new AdditionalFieldsService();
-            $additionalFieldsService->sync($game, $fields['additional_fields']);
+            $additionalFieldsService->sync($model, $validated['additional_fields']);
         }
 
-        if (isset($fields['genres'])) {
-            GenreService::set($game, $fields['genres']);
+        if (isset($validated['genres'])) {
+            GenreService::set($model, $validated['genres']);
         }
 
-        if (isset($fields['companies'])) {
-            CompanyService::set($game, $fields['companies']);
+        if (isset($validated['companies'])) {
+            CompanyService::set($model, $validated['companies']);
         }
 
-        if (isset($fields['tags'])) {
-            TagService::attacheTagsToEntity($game, $fields['tags']);
+        if (isset($validated['tags'])) {
+            TagService::attacheTagsToEntity($model, $validated['tags']);
         }
 
-        if (isset($fields['seo']) && $fields['seo']) {
-            if ($game->seo) {
-                $game->seo()->update($fields['seo']);
+        if (isset($validated['seo']) && $validated['seo']) {
+            if ($model->seo) {
+                $model->seo()->update($validated['seo']);
             } else {
-                $meta = new Seo($fields['seo']);
-                $game->seo()->save($meta);
+                $meta = new Seo($validated['seo']);
+                $model->seo()->save($meta);
             }
         }
 
-        if (isset($fields['release_dates'])) {
-            GameService::setReleaseDates($game, $fields['release_dates']);
+        if (isset($validated['release_dates'])) {
+            GameService::setReleaseDates($model, $validated['release_dates']);
         }
 
-        if (isset($fields['links'])) {
-            LinkService::set($game, $fields['links']);
+        if (isset($validated['links'])) {
+            LinkService::set($model, $validated['links']);
         }
-
-        return $game->update($fields);
-    }
-
-    public function edit(Game $game)
-    {
-        return GameResource::make($game);
     }
 
     public function getAdditionalData() {

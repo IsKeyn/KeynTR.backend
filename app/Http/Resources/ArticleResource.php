@@ -34,6 +34,7 @@ class ArticleResource extends JsonResource
             'comments_count' => $this->comments->count(),
             'entity_type' => Article::class,
             'blocks' => BlockResource::collection($this->blocks),
+            'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
             'created_at' => $this->created_at,
         ];
     }

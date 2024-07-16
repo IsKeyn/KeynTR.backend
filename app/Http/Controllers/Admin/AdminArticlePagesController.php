@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\ArticleResource;
 use App\Models\Article;
 use App\Models\Media;
+use App\Models\Seo;
 use App\Models\Tag;
 use App\Services\BlockService;
 use App\Services\TagService;
@@ -29,63 +30,26 @@ class AdminArticlePagesController extends Controller {
 
     public function store(Request $request)
     {
-        $fields = $request->validate([
-            'name' => 'required',
-            'slug' => 'required',
-            'text_preview' => 'sometimes',
-            'text_full' => 'sometimes',
-            'title_image' => 'sometimes',
-            'type' => 'sometimes',
-            'tags' => 'sometimes',
-        ]);
+        $validated = $this->validateFields($request);
 
-        $fields['created_by'] = $request->user()->id;
+        $validated['created_by'] = $validated['created_by'] ? $validated['created_by'] : $request->user()->id;
 
-        if ($article = Article::create($fields)) {
+        if (!$validated['created_at']) {
+            unset($validated['created_at']);
+        }
 
-            if (isset($fields['title_image'])) {
-                $media = Media::query()->where('id', $fields['title_image'])->first();
-                $article->media()->syncWithPivotValues($media->id, ['type' => 1], false);
-            }
+        if ($article = Article::create($validated)) {
 
-            if (isset($fields['tags'])) {
-                TagService::attacheTagsToEntity($article, $fields['tags']);
-            }
-
+            $this->setAdditionalFields($article, $validated);
             return $article;
         }
     }
 
     public function update(Request $request, Article $article) {
-        $fields = $request->validate([
-            'name' => 'required',
-            'slug' => 'required',
-            'text_preview' => 'sometimes',
-            'text_full' => 'sometimes',
-            'title_image' => 'sometimes',
-            'type' => 'sometimes',
-            'tags' => 'sometimes',
-            'blocks' => 'sometimes',
-        ]);
+        $validated = $this->validateFields($request);
 
-        if (!isset($fields['type'])) {
-            $fields['type'] = 0;
-        }
-
-        if (isset($fields['title_image'])) {
-            $media = Media::query()->where('id', $fields['title_image'])->first();
-            $article->media()->syncWithPivotValues($media->id, ['type' => 1]);
-        }
-
-        if (isset($fields['tags'])) {
-            TagService::attacheTagsToEntity($article, $fields['tags']);
-        }
-
-        if (isset($fields['blocks'])) {
-            BlockService::set($article, $fields['blocks']);
-        }
-
-        return $article->update($fields);
+        $this->setAdditionalFields($article, $validated);
+        return $article->update($validated);
 //        return redirect()->route('admin.articles.index');
 
 //        if ($id) {
@@ -97,6 +61,49 @@ class AdminArticlePagesController extends Controller {
 //        } else {
 //            echo 'Не получен ID статьи'; // TODO Сделать общий вывод ошибок, типа error();
 //        }
+    }
+
+    public function validateFields($request) {
+        return $request->validate([
+            'name' => 'required',
+            'slug' => 'required',
+            'text_preview' => 'sometimes',
+            'text_full' => 'sometimes',
+            'title_image' => 'sometimes',
+            'type' => 'sometimes',
+            'tags' => 'sometimes',
+            'seo' => 'sometimes',
+            'blocks' => 'sometimes',
+            'created_at' => 'nullable',
+        ]);
+    }
+
+    public function setAdditionalFields($model, $validated) {
+        if (!isset($validated['type'])) {
+            $validated['type'] = 0;
+        }
+
+        if (isset($validated['title_image'])) {
+            $media = Media::query()->where('id', $validated['title_image'])->first();
+            $model->media()->syncWithPivotValues($media->id, ['type' => 1]);
+        }
+
+        if (isset($validated['tags'])) {
+            TagService::attacheTagsToEntity($model, $validated['tags']);
+        }
+
+        if (isset($validated['blocks'])) {
+            BlockService::set($model, $validated['blocks']);
+        }
+
+        if (isset($validated['seo']) && $validated['seo']) {
+            if ($model->seo) {
+                $model->seo()->update($validated['seo']);
+            } else {
+                $meta = new Seo($validated['seo']);
+                $model->seo()->save($meta);
+            }
+        }
     }
 
     public function edit(Article $article)

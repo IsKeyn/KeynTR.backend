@@ -20,6 +20,8 @@ class Article extends Model
         'text_full',
         'image',
         'type',
+        'created_by',
+        'created_at',
     ];
 
     public function getModelAttribute()
@@ -64,5 +66,10 @@ class Article extends Model
     public function blocks()
     {
         return $this->morphToMany(Block::class, 'block_bind')->withPivot('type');
+    }
+
+    public function seo()
+    {
+        return $this->morphOne(Seo::class, 'entity');
     }
 }

@@ -31,4 +31,20 @@ class MediaService
 
         return $entity->cover()->syncWithPivotValues($arCoversIds, ['type' => Media::COVER_TYPE]);
     }
+
+    public function setMediaGroup($entity, $galleryArray)
+    {
+        $arGalleryIds = [];
+
+        foreach ($galleryArray as $gallery) {
+            if (isset($gallery['id'])) {
+                $mediaObj = Media::query()->where('id', $gallery['id'])->first();
+
+
+                $arGalleryIds[] = $mediaObj->id;
+            }
+        }
+
+        return $entity->mediaGroup()->syncWithPivotValues($arGalleryIds, ['type' => Media::MEDIA_GROUP]);
+    }
 }

@@ -22,6 +22,8 @@ class CreateArticlesTable extends Migration
             $table->string('image')->nullable();
             $table->integer('type')->default(0);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('entity_type')->nullable();
+            $table->integer('entity_id')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

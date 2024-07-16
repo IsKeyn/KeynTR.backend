@@ -5,21 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Seo extends Model
+class Page extends Model
 {
     use HasFactory;
 
+    const PAGE_TO_ENTITY = [
+        'game' => Game::class,
+    ];
+
+    const SIMPLE_PAGE = 1;
+    const BLOCK_PAGE = 2;
+    const MEDIA_PAGE = 3;
+
     protected $fillable = [
-        'title',
+        'name',
         'description',
-        'keywords',
-        'created_by',
+        'path',
+        'type',
         'entity_type',
         'entity_id',
     ];
-
-    public function entity()
-    {
-        return $this->morphTo();
-    }
 }

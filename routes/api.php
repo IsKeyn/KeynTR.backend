@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminGameController;
+use App\Http\Controllers\Admin\AdminMediaGroupController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\FormResultController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\PageController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TagsController;
@@ -138,6 +140,12 @@ Route::name('api.')->group(function() {
     });
 
 
+    // Работа с сущность page
+    Route::prefix('page/')->controller(PageController::class)->name('page')->group(function() {
+        Route::post('get', 'getList')->name('get-list');
+        Route::get('get/getByPath', 'getByPath')->name('get-by-path');
+    });
+
 
     // Работа с сущностью article
     Route::prefix('article/')->controller(ArticleController::class)->name('article')->group(function() {
@@ -184,6 +192,7 @@ Route::name('api.')->group(function() {
 
         Route::get('game/get-additional-data', [AdminGameController::class, 'getAdditionalData'])->name('game.get-additional-data');
         Route::resource('game', AdminGameController::class);
+        Route::resource('media-group', AdminMediaGroupController::class);
     });
 });
 
