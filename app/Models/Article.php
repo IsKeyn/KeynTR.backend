@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Article extends Model
 {
@@ -20,7 +21,12 @@ class Article extends Model
         'text_full',
         'image',
         'type',
+        'entity_id',
+        'entity_type',
         'created_by',
+        'editor',
+        'show_author',
+        'show_editor',
         'created_at',
     ];
 
@@ -65,11 +71,21 @@ class Article extends Model
 
     public function blocks()
     {
-        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type');
+        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type')->orderBy('position', 'asc');
     }
 
     public function seo()
     {
         return $this->morphOne(Seo::class, 'entity');
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function articleEditor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'editor');
     }
 }

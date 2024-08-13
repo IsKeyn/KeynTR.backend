@@ -74,7 +74,13 @@ class AdminArticlePagesController extends Controller {
             'tags' => 'sometimes',
             'seo' => 'sometimes',
             'blocks' => 'sometimes',
+            'entity_type' => 'nullable|string',
+            'entity_id' => 'nullable|integer',
             'created_at' => 'nullable',
+            'created_by' => 'nullable',
+            'editor' => 'nullable',
+            'show_author' => 'nullable',
+            'show_editor' => 'nullable',
         ]);
     }
 

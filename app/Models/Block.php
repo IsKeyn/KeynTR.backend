@@ -12,6 +12,7 @@ class Block extends Model
     protected $fillable = [
         'name',
         'structure',
+        'position',
     ];
 
     protected $casts = [

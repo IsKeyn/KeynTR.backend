@@ -35,6 +35,10 @@ class ArticleResource extends JsonResource
             'entity_type' => Article::class,
             'blocks' => BlockResource::collection($this->blocks),
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
+            'author' => UserResource::make($this->author),
+            'editor' => UserResource::make($this->articleEditor),
+            'show_author' => $this->show_author,
+            'show_editor' => $this->show_editor,
             'created_at' => $this->created_at,
         ];
     }

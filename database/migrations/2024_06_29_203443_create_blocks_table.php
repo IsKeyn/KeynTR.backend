@@ -17,6 +17,7 @@ class CreateBlocksTable extends Migration
             $table->id();
             $table->string('name');
             $table->json('structure');
+            $table->integer('position');
             $table->timestamps();
         });
     }

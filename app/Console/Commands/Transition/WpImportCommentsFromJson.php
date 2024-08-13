@@ -16,51 +16,55 @@ class WpImportCommentsFromJson extends Command
 
     public function handle()
     {
-        $adminEmail = 'keyn-artur@yandex.ru';
-        $adminId = 2;
+        if ($this->argument('entityType') && $this->argument('entityId')) {
+            $adminEmail = 'keyn-artur@yandex.ru';
+            $adminId = 2;
 
-        $this->line('НАЧАЛО загрузки комментариев в сущность ' . $this->argument('entityType') . 'c' . 'ID:' . $this->argument('entityId'));
+            $this->line('НАЧАЛО загрузки комментариев в сущность ' . $this->argument('entityType') . 'c' . 'ID:' . $this->argument('entityId'));
 
-        $wpComments = json_decode(Storage::disk('json')->get('comments.json'));
+            $wpComments = json_decode(Storage::disk('json')->get('comments.json'));
 
-        $thunderComments = [];
-        $count = 0;
+            $thunderComments = [];
+            $count = 0;
 
-        foreach ($wpComments as $wpComment) {
-            $thunderComment = [
-                'name' => $wpComment->comment_author,
-                'email' => $wpComment->comment_author_email,
-                'url' => $wpComment->comment_author_url,
-                'message' => $wpComment->comment_content,
-                'created_at_gmt' => $wpComment->comment_date_gmt,
-            ];
+            foreach ($wpComments as $wpComment) {
+                $thunderComment = [
+                    'name' => $wpComment->comment_author,
+                    'email' => $wpComment->comment_author_email,
+                    'url' => $wpComment->comment_author_url,
+                    'message' => $wpComment->comment_content,
+                    'created_at_gmt' => $wpComment->comment_date_gmt,
+                ];
 
-            if ($wpComment->comment_date) {
-                $thunderComment['created_at'] = $wpComment->comment_date;
+                if ($wpComment->comment_date) {
+                    $thunderComment['created_at'] = $wpComment->comment_date;
+                }
+
+                if (strtolower($wpComment->comment_author_email) === strtolower($adminEmail)) {
+                    $thunderComment['created_by'] = $adminId;
+                }
+
+                $thunderComment['entity_type'] = $this->argument('entityType');
+                $thunderComment['entity_id'] = $this->argument('entityId');
+
+                $userAgentData = [
+                    'ip' => $wpComment->comment_author_IP,
+                    'user_agent' => $wpComment->comment_agent,
+                ];
+
+                if ($comment = Comments::create($thunderComment)) {
+                    UserAgentService::create($userAgentData['ip'], '', $userAgentData['user_agent'], $comment);
+                }
+
+                $count++;
+                $this->setOldSiteMember($wpComment);
             }
 
-            if (strtolower($wpComment->comment_author_email) === strtolower($adminEmail)) {
-                $thunderComment['created_by'] = $adminId;
-            }
-
-            $thunderComment['entity_type'] = $this->argument('entityType');
-            $thunderComment['entity_id'] = $this->argument('entityId');
-
-            $userAgentData = [
-                'ip' => $wpComment->comment_author_IP,
-                'user_agent' => $wpComment->comment_agent,
-            ];
-
-            if ($comment = Comments::create($thunderComment)) {
-                UserAgentService::create($userAgentData['ip'], '', $userAgentData['user_agent'], $comment);
-            }
-
-            $count++;
-            $this->setOldSiteMember($wpComment);
+            $this->line('КОНЕЦ загрузки комментариев, добавлено ' . $count . ' комментариев');
+            return Command::SUCCESS;
+        } else {
+            $this->line('Необходимо указать entityType и entityId');
         }
-
-        $this->line('КОНЕЦ загрузки комментариев, добавлено ' . $count . ' комментариев');
-        return Command::SUCCESS;
     }
 
     public function setOldSiteMember($wpComment)

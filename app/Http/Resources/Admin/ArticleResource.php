@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Admin;
 
+use App\Http\Resources\Admin\SeoResource;
 use App\Http\Resources\BlockResource;
 use App\Http\Resources\MediaResource;
-use App\Http\Resources\SeoResource;
 use App\Http\Resources\TagResource;
 use App\Models\Article;
 use App\Models\Media;
@@ -34,9 +34,15 @@ class ArticleResource extends JsonResource
             'views' => $this->views ? $this->views->value : null,
             'likes' => $this->likes ? $this->likes->value : null,
             'comments_count' => $this->comments->count(),
-            'entity_type' => Article::class,
+            // В данном случае entity_type и entity_id это сущность к которой привязана статья
+            'entity_type' => $this->entity_type,
+            'entity_id' => $this->entity_id,
             'blocks' => BlockResource::collection($this->blocks),
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
+            'created_by' => $this->created_by,
+            'editor' => $this->editor,
+            'show_author' => $this->show_author,
+            'show_editor' => $this->show_editor,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at,
         ];

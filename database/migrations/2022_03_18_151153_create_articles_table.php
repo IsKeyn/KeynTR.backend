@@ -22,6 +22,9 @@ class CreateArticlesTable extends Migration
             $table->string('image')->nullable();
             $table->integer('type')->default(0);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('editor')->nullable()->constrained('users')->nullOnDelete();
+            $table->boolean('show_author')->default(false);
+            $table->boolean('show_editor')->default(false);
             $table->string('entity_type')->nullable();
             $table->integer('entity_id')->nullable();
             $table->softDeletes();

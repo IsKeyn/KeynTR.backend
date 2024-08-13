@@ -10,11 +10,12 @@ class BlockService
     {
         $arItemsIds = [];
 
-        foreach ($data as $item) {
+        foreach ($data as $position => $item) {
             if (isset($item['name']) && isset($item['structure'])) {
                 $arItem = [
                     'name' => $item['name'],
                     'structure' => $item['structure'],
+                    'position' => $position,
                 ];
 
                 if (isset($item['id'])) {
