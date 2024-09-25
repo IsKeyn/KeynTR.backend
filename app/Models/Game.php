@@ -28,7 +28,7 @@ class Game extends Model
         return get_class($this);
     }
 
-    public function platforms()
+    public function platforms() // TODO где используется? В основном на сайте gamePlatform
     {
         return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind');
     }
@@ -65,7 +65,7 @@ class Game extends Model
 
     public function gamePlatform()
     {
-        return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind');
+        return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind')->withPivot('additional_info');
     }
 
     public function genres()
@@ -98,7 +98,8 @@ class Game extends Model
         return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
     }
 
-    public function menu() {
+    public function menu()
+    {
         return $this->morphMany(MenuType::class, 'menu_type_bind');
     }
 

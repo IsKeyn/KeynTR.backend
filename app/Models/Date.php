@@ -15,7 +15,7 @@ class Date extends Model
 
     public function gamePlatform()
     {
-        return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind');
+        return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind')->withPivot('additional_info');
     }
 
     public function games()

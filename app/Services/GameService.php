@@ -38,12 +38,12 @@ class GameService extends ServiceProvider
                     $dateEntity = Date::create(['date' => $item['date']]);
                 }
 
-                $arDatesIds[] = $dateEntity->id;
+                $arDatesIds[$dateEntity->id] = [];
 
                 if ($gamePlatformEntity) {
                     if ($dateEntity) {
-                        $dateEntity->gamePlatform()->sync($gamePlatformEntity->id);
-                        $arGamingPlatformsIds[] = $gamePlatformEntity->id;
+                        $dateEntity->gamePlatform()->syncWithPivotValues($gamePlatformEntity->id, ['additional_info' => $item['addInfo']]);
+                        $arGamingPlatformsIds[$gamePlatformEntity->id] = [];
                     }
                 }
             }

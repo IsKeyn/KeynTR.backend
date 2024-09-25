@@ -151,13 +151,14 @@ Route::name('api.')->group(function() {
     Route::prefix('article/')->controller(ArticleController::class)->name('article')->group(function() {
         Route::post('get', 'getList')->name('get-list');
         Route::get('get/{slug}', 'getBySlug')->name('get-by-slug');
+        Route::get('get/id/{id}', 'getById')->name('get-by-id');
     });
 
 
     // Работа с сущностью game
-    Route::resource('game', GameController::class);
+//    Route::resource('game', GameController::class);
     Route::prefix('game/')->controller(GameController::class)->name('.game')->group(function() {
-        Route::post('list', 'getList')->name('game-list');
+        Route::get('list', 'getList')->name('game-list');
         Route::get('{game:slug}', 'getGame')->name('get-game');
     });
 

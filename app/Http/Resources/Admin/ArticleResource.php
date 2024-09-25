@@ -41,9 +41,9 @@ class ArticleResource extends JsonResource
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
             'created_by' => $this->created_by,
             'editor' => $this->editor,
-            'show_author' => $this->show_author,
-            'show_editor' => $this->show_editor,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'show_author' => boolval($this->show_author),
+            'show_editor' => boolval($this->show_editor),
+            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at,
         ];
     }

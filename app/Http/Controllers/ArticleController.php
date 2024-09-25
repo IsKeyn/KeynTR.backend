@@ -33,8 +33,15 @@ class ArticleController extends Controller
         return ArticleListResource::collection($result);
     }
 
-    public function getBySlug(Request $request, $slug) {
+    public function getById(Request $request, $id) {
+        return $this->getArticle($request, $id, 'id');
+    }
 
+    public function getBySlug(Request $request, $slug) {
+        return $this->getArticle($request, $slug, 'slug');
+    }
+
+    public function getArticle($request, $param, $type) {
         $validated = $request->validate([
             'type' => 'nullable|int',
             'entity_type' => 'nullable|string',
@@ -42,33 +49,37 @@ class ArticleController extends Controller
             'full_path' => 'nullable|string',
         ]);
 
-        if ($slug) {
+        if ($param) {
             $query = Article::query();
 
             if (isset($request->type)) {
                 $query->where('type', $request->type);
-            }
+            } else {
 
-            if (isset($validated['full_path'])) {
-                $delimitedString = explode('/', trim($validated['full_path'], '/'));
+                if (isset($validated['full_path'])) {
+                    $delimitedString = explode('/', trim($validated['full_path'], '/'));
 
-                if (isset($delimitedString[0]) && $delimitedString[1] && isset(Page::PAGE_TO_ENTITY[$delimitedString[0]])) {
-                    $entity = Page::PAGE_TO_ENTITY[$delimitedString[0]];
-                    $entityField = $entity::where('slug', $delimitedString[1])->select('id')->first();
+                    if (isset($delimitedString[0]) && $delimitedString[1] && isset(Page::PAGE_TO_ENTITY[$delimitedString[0]])) {
+                        $entity = Page::PAGE_TO_ENTITY[$delimitedString[0]];
+                        $entityField = $entity::where('slug', $delimitedString[1])->select('id')->first();
 
-                    if ($entityField->id) {
-                        $query->where('entity_type', $entity)->where('entity_id', $entityField->id);
+                        if ($entityField->id) {
+                            $query->where('entity_type', $entity)->where('entity_id', $entityField->id);
+                        } else {
+                            return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+                        }
                     } else {
                         return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
                     }
                 } else {
-                    return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+                    if (isset($validated['entity_type']) && isset($validated['entity_id'])) {
+                        $query->where('entity_type', $validated['entity_type'])->where('entity_id',
+                            $validated['entity_id']);
+                    }
                 }
-            } else if (isset($validated['entity_type']) && isset($validated['entity_id'])) {
-                $query->where('entity_type', $validated['entity_type'])->where('entity_id', $validated['entity_id']);
             }
 
-            $query->where('slug', $slug);
+            $query->where($type, $param);
 
             $article = $query->first();
 

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class WpImportCommentsFromJson extends Command
 {
-    protected $signature = 'wp:importCommentsFromJson {entityType} {entityId}';
+    protected $signature = 'wp:importCommentsFromJson {entityType} {entityId} {fileName}';
     protected $description = 'Команда позволяет импортировать комментария из WordPress, комманда принимает entityType и entityId';
 
     public function handle()
@@ -22,7 +22,7 @@ class WpImportCommentsFromJson extends Command
 
             $this->line('НАЧАЛО загрузки комментариев в сущность ' . $this->argument('entityType') . 'c' . 'ID:' . $this->argument('entityId'));
 
-            $wpComments = json_decode(Storage::disk('json')->get('comments.json'));
+            $wpComments = json_decode(Storage::disk('json')->get($this->argument('fileName')));
 
             $thunderComments = [];
             $count = 0;

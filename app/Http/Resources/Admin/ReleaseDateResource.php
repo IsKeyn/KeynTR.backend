@@ -19,6 +19,7 @@ class ReleaseDateResource extends JsonResource
         return [
             'date' => $this->date,
             'gaming_platform' => $gamePlatform ? $gamePlatform->id : null,
+            'addInfo' => $gamePlatform ? $gamePlatform->pivot->additional_info : null,
         ];
     }
 }

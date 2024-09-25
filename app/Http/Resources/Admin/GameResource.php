@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Admin;
 
 use App\Http\Resources\MediaResource;
+use App\Http\Resources\MenuTypeResource;
 use App\Http\Resources\SeoResource;
 use App\Http\Resources\TagResource;
 use App\Models\Media;
@@ -36,6 +37,7 @@ class GameResource extends JsonResource
             'links' => LinkResource::collection($this->link),
             'additional_fields' => $this->additionalFields,
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
+            'menu' => MenuTypeResource::collection($this->menu),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at,

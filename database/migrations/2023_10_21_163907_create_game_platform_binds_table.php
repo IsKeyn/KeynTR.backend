@@ -18,6 +18,7 @@ class CreateGamePlatformBindsTable extends Migration
             $table->integer('gaming_platform_id');
             $table->integer('gaming_platform_bind_id');
             $table->string('gaming_platform_bind_type');
+            $table->string('additional_info')->nullable();
             $table->timestamps();
         });
     }

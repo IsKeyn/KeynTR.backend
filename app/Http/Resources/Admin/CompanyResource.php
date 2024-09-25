@@ -14,6 +14,8 @@ class CompanyResource extends JsonResource
      */
     public function toArray($request)
     {
+        $group = null;
+
         if ($game = $this->game()->first()) {
             $group = $this->group($game->id, get_class($game))->first();
         }

@@ -16,7 +16,7 @@ class Article extends Model
 
     protected $fillable = [
         'name',
-        'slug',
+        'slug', // TODO slug Должен быть уникальным, если entity_type пуст и также уникальным, при при одинаково заполненных entity_type и entity_id
         'text_preview',
         'text_full',
         'image',

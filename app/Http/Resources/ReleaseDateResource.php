@@ -20,6 +20,7 @@ class ReleaseDateResource extends JsonResource
             'id' => $this->id,
             'date' => $this->date,
             'game_platform' => $gamePlatform ? GamingPlatformResource::make($gamePlatform) : null,
+            'addInfo' => $gamePlatform ? $gamePlatform->pivot->additional_info : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

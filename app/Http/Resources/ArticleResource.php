@@ -24,6 +24,7 @@ class ArticleResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'text_preview' => $this->text_preview,
             'text_full' => $this->text_full,
             'image' => $image ? MediaResource::make($image) : null,
             'type' => $this->ArticleType,
