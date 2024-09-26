@@ -102,6 +102,10 @@ class AdminMediaPagesController extends Controller
 //        Storage::disk('public')->delete('media/' . $medium->id . '/' . $medium->file_name);
         Storage::disk('public')->deleteDirectory('media/' . $medium->id . '/');
 
+        foreach ($medium->tags as $tag) { // TODO возможно стоит перенести на наблюдателя
+            $medium->tags()->detach($tag);
+        }
+
         return $medium->delete();
     }
 
