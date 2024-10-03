@@ -54,29 +54,26 @@ class ArticleController extends Controller
 
             if (isset($request->type)) {
                 $query->where('type', $request->type);
-            } else {
+            }
 
-                if (isset($validated['full_path'])) {
-                    $delimitedString = explode('/', trim($validated['full_path'], '/'));
+            if (isset($validated['full_path'])) {
+                $delimitedString = explode('/', trim($validated['full_path'], '/'));
 
-                    if (isset($delimitedString[0]) && $delimitedString[1] && isset(Page::PAGE_TO_ENTITY[$delimitedString[0]])) {
-                        $entity = Page::PAGE_TO_ENTITY[$delimitedString[0]];
-                        $entityField = $entity::where('slug', $delimitedString[1])->select('id')->first();
+                if (isset($delimitedString[0]) && $delimitedString[1] && isset(Page::PAGE_TO_ENTITY[$delimitedString[0]])) {
+                    $entity = Page::PAGE_TO_ENTITY[$delimitedString[0]];
+                    $entityField = $entity::where('slug', $delimitedString[1])->select('id')->first();
 
-                        if ($entityField->id) {
-                            $query->where('entity_type', $entity)->where('entity_id', $entityField->id);
-                        } else {
-                            return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
-                        }
+                    if ($entityField->id) {
+                        $query->where('entity_type', $entity)->where('entity_id', $entityField->id);
                     } else {
                         return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
                     }
                 } else {
-                    if (isset($validated['entity_type']) && isset($validated['entity_id'])) {
-                        $query->where('entity_type', $validated['entity_type'])->where('entity_id',
-                            $validated['entity_id']);
-                    }
+                    return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
                 }
+            } elseif (isset($validated['entity_type']) && isset($validated['entity_id'])) {
+                $query->where('entity_type', $validated['entity_type'])->where('entity_id',
+                    $validated['entity_id']);
             }
 
             $query->where($type, $param);

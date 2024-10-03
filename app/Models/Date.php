@@ -22,4 +22,9 @@ class Date extends Model
     {
         return $this->morphedByMany(Game::class, 'date_bind');
     }
+
+    public function gamesAnons()
+    {
+        return $this->morphedByMany(Game::class, 'date_bind')->wherePivot('type', '=', Game::DATE_ANONS_TYPE);
+    }
 }

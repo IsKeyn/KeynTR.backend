@@ -2,18 +2,14 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\AnonsDateResource;
-use App\Http\Resources\CompanyResource;
-use App\Http\Resources\GenreResource;
 use App\Http\Resources\Admin\LinkResource;
-use App\Http\Resources\ReleaseDateResource;
-use App\Models\Game;
 use App\Models\Media;
+use App\Models\Movie;
 use App\Models\VotesLog;
 use App\Services\VotesService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameResource extends JsonResource
+class MovieResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -28,17 +24,14 @@ class GameResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'entity_type' => Game::class,
+            'entity_type' => Movie::class,
             'name' => $this->name,
             'slug' => $this->slug,
-            'platforms' => $this->platforms,
             'description' => $this->description,
             'release_dates' => ReleaseDateResource::collection($this->dates),
-            'anons_dates' => AnonsDateResource::collection($this->anonsDates),
             'title_image' => $image ? MediaResource::make($image) : null,
             'covers' => $covers ? MediaResource::collection($covers) : null,
             'tags' => TagResource::collection($this->tags),
-            'groups' => GroupResource::collection($this->groups),
             'genres' => GenreResource::collection($this->genres),
             'companies' => CompanyResource::collection($this->company),
             'links' => LinkResource::collection($this->link),

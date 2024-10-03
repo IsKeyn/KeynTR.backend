@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,14 +15,7 @@ class GroupResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
-            'type' => $this->type,
-            'sort' => $this->sort,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'group' => $this->id,
         ];
     }
 }

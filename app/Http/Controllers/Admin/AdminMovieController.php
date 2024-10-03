@@ -2,22 +2,19 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Admin\GameResource;
+use App\Http\Resources\Admin\MovieResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\GroupResource;
-use App\Http\Resources\GamingPlatformResource;
 use App\Http\Resources\GenreResource;
 use App\Models\Company;
-use App\Models\Game;
-use App\Models\GamingPlatform;
 use App\Models\Genre;
 use App\Models\Group;
+use App\Models\Movie;
 use App\Models\Seo;
 use App\Services\AdditionalFieldsService;
 use App\Services\CompanyService;
 use App\Services\GameService;
 use App\Services\GenreService;
-use App\Services\GroupService;
 use App\Services\LinkService;
 use App\Services\MediaService;
 use App\Services\TagService;
@@ -25,10 +22,10 @@ use App\Services\TagService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class AdminGameController extends Controller {
-    public function index(Game $game)
+class AdminMovieController extends Controller {
+    public function index(Movie $movie)
     {
-        return $game::all();
+        return $movie::all();
     }
 
     public function store(Request $request)
@@ -42,23 +39,23 @@ class AdminGameController extends Controller {
             unset($validated['created_at']);
         }
 
-        if ($game = Game::create($validated)) {
-            $this->setAdditionalFields($game, $validated);
-            return $game;
+        if ($movie = Movie::create($validated)) {
+            $this->setAdditionalFields($movie, $validated);
+            return $movie;
         }
     }
 
-    public function update(Request $request, Game $game) {
+    public function update(Request $request, Movie $movie) {
         $validated = $this->validateFields($request);
 
-        $this->setAdditionalFields($game, $validated);
+        $this->setAdditionalFields($movie, $validated);
 
-        return $game->update($validated);
+        return $movie->update($validated);
     }
 
-    public function edit(Game $game)
+    public function edit(Movie $movie)
     {
-        return GameResource::make($game);
+        return MovieResource::make($movie);
     }
 
     public function validateFields($request) {
@@ -70,13 +67,11 @@ class AdminGameController extends Controller {
             'title_image' => 'sometimes',
             'covers' => 'sometimes',
             'additional_fields' => 'sometimes',
-            'groups' => 'sometimes',
             'genres' => 'sometimes',
             'companies' => 'sometimes',
             'tags' => 'sometimes',
             'seo' => 'sometimes',
             'links' => 'sometimes',
-            'anons_dates' => 'sometimes',
             'release_dates' => 'sometimes',
             'created_at' => 'nullable',
         ]);
@@ -96,10 +91,6 @@ class AdminGameController extends Controller {
         if (isset($validated['additional_fields'])) {
             $additionalFieldsService = new AdditionalFieldsService();
             $additionalFieldsService->sync($model, $validated['additional_fields']);
-        }
-
-        if (isset($validated['groups'])) {
-            GroupService::set($model, $validated['groups']);
         }
 
         if (isset($validated['genres'])) {
@@ -123,13 +114,9 @@ class AdminGameController extends Controller {
             }
         }
 
-//        if (isset($validated['anons_dates'])) {
-//            GameService::setAnonsDates($model, $validated['anons_dates']);
+//        if (isset($validated['release_dates'])) {
+//            GameService::setReleaseDates($model, $validated['release_dates']);
 //        }
-
-        if (isset($validated['release_dates'])) {
-            GameService::setReleaseDates($model, $validated['release_dates']);
-        }
 
         if (isset($validated['links'])) {
             LinkService::set($model, $validated['links']);
@@ -138,8 +125,6 @@ class AdminGameController extends Controller {
 
     public function getAdditionalData() {
         return [
-            'group' => GroupResource::collection(Group::where('entity_type', 'App\Models\Game')->where('type', Game::SERIES_TYPE)->get()),
-            'gaming_platform' => GamingPlatformResource::collection(GamingPlatform::all()),
             'genre' => GenreResource::collection(Genre::all()),
             'company' => CompanyResource::collection(Company::all()),
             'company_role' => GroupResource::collection(Group::where('entity_type', 'App\Models\Company')->get()),

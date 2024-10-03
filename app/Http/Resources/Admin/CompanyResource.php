@@ -15,9 +15,18 @@ class CompanyResource extends JsonResource
     public function toArray($request)
     {
         $group = null;
+        $entity = null;
 
-        if ($game = $this->game()->first()) {
+        if ($this->pivot) {
+            $entity = $this->pivot->company_bind_type;
+        }
+
+        if ($entity === 'App\Models\Game' && $game = $this->game()->first()) {
             $group = $this->group($game->id, get_class($game))->first();
+        }
+
+        if ($entity === 'App\Models\Movie' && $movie = $this->movie()->first()) {
+            $group = $this->group($movie->id, get_class($movie))->first();
         }
 
         return [

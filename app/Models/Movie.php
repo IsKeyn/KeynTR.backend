@@ -5,19 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * Class Game
- * @package App\Models
- * @property-read Game[]|array $fields
- */
-
-class Game extends Model
+class Movie extends Model
 {
     use HasFactory;
-
-    const SERIES_TYPE = 1;
-
-    const DATE_ANONS_TYPE = 1;
 
     protected $fillable = [
         'name',
@@ -30,11 +20,6 @@ class Game extends Model
     public function getModelAttribute()
     {
         return get_class($this);
-    }
-
-    public function platforms() // TODO где используется? В основном на сайте gamePlatform
-    {
-        return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind');
     }
 
     public function additionalFields()
@@ -65,21 +50,6 @@ class Game extends Model
     public function dates()
     {
         return $this->morphToMany(Date::class, 'date_bind')->withPivot('type');
-    }
-
-    public function anonsDates()
-    {
-        return $this->morphToMany(Date::class, 'date_bind')->withPivot('type')->wherePivot('type', '=', Game::DATE_ANONS_TYPE);
-    }
-
-    public function gamePlatform()
-    {
-        return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind')->withPivot('additional_info');
-    }
-
-    public function groups()
-    {
-        return $this->morphToMany(Group::class, 'group_bind')->withPivot('type')->wherePivot('type', '=', Game::SERIES_TYPE);
     }
 
     public function genres()

@@ -21,6 +21,11 @@ class Company extends Model
         return $this->morphedByMany(Game::class, 'company_bind');
     }
 
+    public function movie()
+    {
+        return $this->morphedByMany(Movie::class, 'company_bind');
+    }
+
     public function group($id = null, $type = null)
     {
         return $this->morphToMany(Group::class, 'group_bind')

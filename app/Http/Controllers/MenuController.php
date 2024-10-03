@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\MenuResource;
 use App\Models\Article;
-use App\Models\Menu;
+use App\Models\Game;
 use App\Models\MenuType;
+use App\Models\Movie;
+use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
@@ -33,8 +35,49 @@ class MenuController extends Controller
 
         $menu = [];
 
+        // Извлекаем игры
+        $gameQuery = Game::query();
+        $gameQuery->whereHas('groups', function ($q)  {
+            $q->where('groups.slug', 'main-series-games');
+        });
+
+        $gameMenu = $gameQuery->orderBy('id', 'asc')->get();
+        $arGameMenu = [];
+
+        if (count($gameMenu) > 0) {
+            $arGameMenu = Arr::add($arGameMenu, 'name', 'Игры серии');
+            $arGameMenu = Arr::add($arGameMenu, 'elements', []);
+        }
+
+        foreach ($gameMenu as $element) {
+            $arGameMenu['elements'][] = array(
+                'id' => $element->id,
+                'name' => $element->name,
+                'url' => "/game/{$element->slug}/",
+                'link_type' => 'route',
+            );
+        }
+
+        // Извлекаем фильмы
+        $movieMenu = Movie::query()->get();
+        $arMovieMenu = [];
+
+        if (count($gameMenu) > 0) {
+            $arMovieMenu = Arr::add($arMovieMenu, 'name', 'Фильмы');
+            $arMovieMenu = Arr::add($arMovieMenu, 'elements', []);
+        }
+
+        foreach ($movieMenu as $element) {
+            $arMovieMenu['elements'][] = array(
+                'id' => $element->id,
+                'name' => $element->name,
+                'url' => "/movie/{$element->slug}/",
+                'link_type' => 'route',
+            );
+        }
+
         // Извлекаем меню новостей
-        $newsMenu = Article::latest()->where('type', 'news')->limit(5)->get();
+        $newsMenu = Article::latest()->where('type', Article::NEWS_TYPE)->orderBy('created_at', 'desc')->limit(5)->get();
 
         $arNewsMenu = [];
 
@@ -46,14 +89,14 @@ class MenuController extends Controller
         foreach ($newsMenu as $element) {
             $arNewsMenu['elements'][] = array(
                 'id' => $element->id,
-                'name' => $element->title,
-                'url' => '/' . $element->type . '/' . $element->code . '/',
+                'name' => $element->name,
+                'url' => $this->getArticleUrl($element),
                 'link_type' => 'route',
             );
         }
 
         // Извлекаем меню статей
-        $articlesMenu = Article::query()->where('type', 'article')->limit(5)->get();
+        $articlesMenu = Article::query()->where('type', Article::ARTICLE_TYPE)->orderBy('created_at', 'desc')->limit(5)->get();
 
         $arArticleMenu = [];
 
@@ -65,15 +108,43 @@ class MenuController extends Controller
         foreach ($articlesMenu as $element) {
             $arArticleMenu['elements'][] = array(
                 'id' => $element->id,
-                'name' => $element->title,
-                'url' => '/' . $element->type . '/' . $element->code . '/',
+                'name' => $element->name,
+                'url' => $this->getArticleUrl($element),
                 'link_type' => 'route',
             );
         }
 
+        $menu[] = $arGameMenu;
+        $menu[] = $arMovieMenu;
         $menu[] = $arNewsMenu;
         $menu[] = $arArticleMenu;
 
         return array('data' => $menu);
+    }
+
+    private function getArticleUrl($element) {
+        if ($element->type) {
+            switch ($element->type) {
+                case Article::NEWS_TYPE:
+                    $typeSlug = 'news';
+                    break;
+
+                case Article::PROGRAM_TYPE:
+                    $typeSlug = 'program';
+                    break;
+            }
+
+            return "/{$typeSlug}/{$element->slug}/";
+
+        } elseif ($element->entity_type && isset($element->entity_id)) {
+            $pageSlug = array_search($element->entity_type, Page::PAGE_TO_ENTITY);
+            $entitySlug = $element->entity_type::query()->where('id', $element->entity_id)->first()->slug;
+
+            if ($pageSlug && $entitySlug && $element->slug) {
+                return "/{$pageSlug}/{$entitySlug}/{$element->slug}";
+            }
+        } else {
+            return "/article/{$element->slug}";
+        }
     }
 }

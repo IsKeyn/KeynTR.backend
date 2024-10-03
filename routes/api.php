@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminGameController;
 use App\Http\Controllers\Admin\AdminMediaGroupController;
+use App\Http\Controllers\Admin\AdminMovieController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\FormResultController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubscriptionController;
@@ -116,7 +118,6 @@ Route::name('api.')->group(function() {
     });
 
 
-
     // Работа с сущностью media
     Route::prefix('media/')->controller(MediaController::class)->name('media')->group(function() {
         Route::post('get', 'getByFilter')->name('get-by-filter');
@@ -162,6 +163,12 @@ Route::name('api.')->group(function() {
         Route::get('{game:slug}', 'getGame')->name('get-game');
     });
 
+    // Работа с сущностью movie
+    Route::prefix('movie/')->controller(MovieController::class)->name('.movie')->group(function() {
+        Route::get('list', 'getList')->name('movie-list');
+        Route::get('{movie:slug}', 'getMovie')->name('get-movie');
+    });
+
 
     // Работа с сущностью youtube
     Route::prefix('youtube/')->controller(YouTubeController::class)->name('.youtube')->group(function() {
@@ -192,7 +199,9 @@ Route::name('api.')->group(function() {
         Route::resource('slides', AdminSlideController::class);
 
         Route::get('game/get-additional-data', [AdminGameController::class, 'getAdditionalData'])->name('game.get-additional-data');
+        Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');
         Route::resource('game', AdminGameController::class);
+        Route::resource('movie', AdminMovieController::class);
         Route::resource('media-group', AdminMediaGroupController::class);
     });
 });

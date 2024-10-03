@@ -1,19 +1,15 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Admin;
 
-use App\Http\Resources\AnonsDateResource;
-use App\Http\Resources\CompanyResource;
-use App\Http\Resources\GenreResource;
-use App\Http\Resources\Admin\LinkResource;
-use App\Http\Resources\ReleaseDateResource;
-use App\Models\Game;
+use App\Http\Resources\MediaResource;
+use App\Http\Resources\MenuTypeResource;
+use App\Http\Resources\SeoResource;
+use App\Http\Resources\TagResource;
 use App\Models\Media;
-use App\Models\VotesLog;
-use App\Services\VotesService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameResource extends JsonResource
+class MovieResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -28,29 +24,21 @@ class GameResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'entity_type' => Game::class,
             'name' => $this->name,
             'slug' => $this->slug,
-            'platforms' => $this->platforms,
             'description' => $this->description,
             'release_dates' => ReleaseDateResource::collection($this->dates),
-            'anons_dates' => AnonsDateResource::collection($this->anonsDates),
             'title_image' => $image ? MediaResource::make($image) : null,
             'covers' => $covers ? MediaResource::collection($covers) : null,
             'tags' => TagResource::collection($this->tags),
-            'groups' => GroupResource::collection($this->groups),
             'genres' => GenreResource::collection($this->genres),
             'companies' => CompanyResource::collection($this->company),
             'links' => LinkResource::collection($this->link),
             'additional_fields' => $this->additionalFields,
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
-            'views' => $this->views ? $this->views->value : null,
-            'likes' => $this->likes ? $this->likes->value : null,
             'menu' => MenuTypeResource::collection($this->menu),
-            'already_voted' => VotesService::alreadyVoted($this->model, $this->id, VotesLog::LIKE, $request->user() ? $request->user()->id : null),
-            'comments_count' => $this->comments->count(),
             'created_by' => $this->created_by,
-            'created_at' => $this->created_at,
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at,
         ];
     }

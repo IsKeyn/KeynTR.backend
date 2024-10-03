@@ -18,6 +18,8 @@ class CreateGroupsTable extends Migration
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
+            $table->integer('type')->nullable();
+            $table->integer('sort')->nullable();
             $table->string('entity_type');
             $table->timestamps();
         });
