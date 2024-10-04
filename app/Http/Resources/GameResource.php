@@ -47,6 +47,7 @@ class GameResource extends JsonResource
             'views' => $this->views ? $this->views->value : null,
             'likes' => $this->likes ? $this->likes->value : null,
             'menu' => MenuTypeResource::collection($this->menu),
+            'blocks' => BlockResource::collection($this->blocks),
             'already_voted' => VotesService::alreadyVoted($this->model, $this->id, VotesLog::LIKE, $request->user() ? $request->user()->id : null),
             'comments_count' => $this->comments->count(),
             'created_by' => $this->created_by,

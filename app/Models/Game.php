@@ -121,4 +121,9 @@ class Game extends Model
     {
         return $this->morphOne(Seo::class, 'entity');
     }
+
+    public function blocks()
+    {
+        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type')->orderBy('position', 'asc');
+    }
 }

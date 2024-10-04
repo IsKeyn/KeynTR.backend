@@ -14,6 +14,7 @@ use App\Models\Genre;
 use App\Models\Group;
 use App\Models\Seo;
 use App\Services\AdditionalFieldsService;
+use App\Services\BlockService;
 use App\Services\CompanyService;
 use App\Services\GameService;
 use App\Services\GenreService;
@@ -78,6 +79,7 @@ class AdminGameController extends Controller {
             'links' => 'sometimes',
             'anons_dates' => 'sometimes',
             'release_dates' => 'sometimes',
+            'blocks' => 'sometimes',
             'created_at' => 'nullable',
         ]);
     }
@@ -133,6 +135,10 @@ class AdminGameController extends Controller {
 
         if (isset($validated['links'])) {
             LinkService::set($model, $validated['links']);
+        }
+
+        if (isset($validated['blocks'])) {
+            BlockService::set($model, $validated['blocks']);
         }
     }
 

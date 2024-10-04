@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Admin;
 
+use App\Http\Resources\BlockResource;
 use App\Http\Resources\MediaResource;
 use App\Http\Resources\MenuTypeResource;
 use App\Http\Resources\SeoResource;
@@ -40,6 +41,7 @@ class GameResource extends JsonResource
             'additional_fields' => $this->additionalFields,
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
             'menu' => MenuTypeResource::collection($this->menu),
+            'blocks' => BlockResource::collection($this->blocks),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at,
