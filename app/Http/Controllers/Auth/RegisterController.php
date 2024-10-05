@@ -87,7 +87,7 @@ class RegisterController extends Controller
 //        }
 
             return response()->json([
-                'token' => $token,
+                // 'token' => $token,
                 'token_type' => 'Bearer',
                 'expires' => time() + 360 * 24 * 60 * 60,
 //                'url' => $url,
