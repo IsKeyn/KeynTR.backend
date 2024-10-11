@@ -40,6 +40,7 @@ class ArticleResource extends JsonResource
             'editor' => UserResource::make($this->articleEditor),
             'show_author' => $this->show_author,
             'show_editor' => $this->show_editor,
+            'published_at' => $this->published_at,
             'created_at' => $this->created_at,
         ];
     }

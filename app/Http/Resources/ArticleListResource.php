@@ -34,6 +34,7 @@ class ArticleListResource extends JsonResource
             'already_voted' => VotesService::alreadyVoted($this->model, $this->id, VotesLog::LIKE, $request->user() ? $request->user()->id : null),
             'comments_count' => $this->comments->count(),
             'entity_type' => Article::class,
+            'published_at' => $this->published_at,
             'created_at' => $this->created_at,
         ];
     }

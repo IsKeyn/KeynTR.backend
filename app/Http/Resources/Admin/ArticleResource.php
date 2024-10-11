@@ -43,6 +43,8 @@ class ArticleResource extends JsonResource
             'editor' => $this->editor,
             'show_author' => boolval($this->show_author),
             'show_editor' => boolval($this->show_editor),
+            'active' => $this->active,
+            'published_at' => $this->published_at,
             'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $this->updated_at,
         ];

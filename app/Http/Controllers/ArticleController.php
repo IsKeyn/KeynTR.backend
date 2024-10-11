@@ -23,9 +23,17 @@ class ArticleController extends Controller
             $articlesQuery->when(isset($filter['type']), function ($query) use ($filter, $request) {
                 $query->where('type', $filter['type']);
             });
-        } else {
-            $articlesQuery->orderBy('created_at', 'desc');
+
+            $articlesQuery->when(isset($filter['entity_type']), function ($query) use ($filter, $request) {
+                $query->where('entity_type', $filter['entity_type']);
+            });
+
+            $articlesQuery->when(isset($filter['entity_id']), function ($query) use ($filter, $request) {
+                $query->where('entity_id', $filter['entity_id']);
+            });
         }
+
+        $articlesQuery->where('active', true);
 
         $articlesQuery->orderBy('created_at', 'desc');
         $result = $articlesQuery->paginate($request->perPage ?? 4);

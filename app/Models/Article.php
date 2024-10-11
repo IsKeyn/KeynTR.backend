@@ -27,6 +27,8 @@ class Article extends Model
         'editor',
         'show_author',
         'show_editor',
+        'active',
+        'published_at',
         'created_at',
     ];
 
@@ -62,6 +64,11 @@ class Article extends Model
     public function titleImage()
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
+    }
+
+    public function views()
+    {
+        return $this->morphOne(ViewsCount::class, 'entity');
     }
 
     public function likes()
