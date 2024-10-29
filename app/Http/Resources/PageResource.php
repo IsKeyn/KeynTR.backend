@@ -14,12 +14,15 @@ class PageResource extends JsonResource
      */
     public function toArray($request)
     {
+        $mediaGroup = $this->mediaGroup->first();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
             'path' => $this->path,
             'type' => $this->type,
+            'mediaGroup' => $mediaGroup ? $mediaGroup->id : null,
             'entity_type' => $this->entity_type,
             'entity_id' => $this->entity_id,
             'created_at' => $this->created_at,

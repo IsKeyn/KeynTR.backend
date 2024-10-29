@@ -20,6 +20,8 @@ class MediaGroupResource extends JsonResource
     {
         $mediaGroup = $this->mediaGroup()->get();
 
+        $page = $this->page->first();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -27,6 +29,7 @@ class MediaGroupResource extends JsonResource
             'description' => $this->description,
             'media_group' => $mediaGroup ? MediaResource::collection($mediaGroup) : null,
             'active' => $this->active,
+            'page' => $page ? $page->id : null,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at,

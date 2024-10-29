@@ -4,9 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\MediaResource;
 use App\Models\Media;
-use App\Models\Tag;
-use App\Models\ViewsLog;
-use App\Models\VotesCount;
 use App\Services\ViewsLogService;
 use Illuminate\Http\Request;
 

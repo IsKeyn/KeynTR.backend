@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\User;
 use App\Models\VotesLog;
+use App\Services\MediaService;
 use App\Services\VotesService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,6 +18,8 @@ class MediaResource extends JsonResource
      */
     public function toArray($request)
     {
+        $mediaService = new MediaService();
+
         return [
             'id' => $this->id,
             'entity_type' => $this->model,
@@ -25,6 +28,8 @@ class MediaResource extends JsonResource
             'mime_type' => $this->mime_type,
             'size' => $this->size,
             'src' => $this->url,
+            'webp' => $mediaService->getWebp($this),
+            'resized' => $mediaService->getResizes($this),
             'type' => $this->type,
             'tags' => TagResource::collection($this->tags),
             'user_info' => UserLightResource::make(User::query()->where('id', $this->created_by)->first()),

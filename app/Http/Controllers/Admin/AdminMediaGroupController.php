@@ -40,13 +40,15 @@ class AdminMediaGroupController extends Controller {
         }
     }
 
-    public function update(Request $request, MediaGroup $mediaGroup) {
+    public function update(Request $request, MediaGroup $mediaGroup)
+    {
         $fields = $request->validate([
             'name' => 'required|string',
             'slug' => Rule::unique('games', 'slug'),
             'description' => 'sometimes|string',
             'active' => 'sometimes',
             'media_group' => 'sometimes',
+            'page' => 'sometimes',
             'created_at' => 'sometimes',
         ]);
 
@@ -54,6 +56,10 @@ class AdminMediaGroupController extends Controller {
 
         if (isset($fields['media_group'])) {
             $mediaService->setMediaGroup($mediaGroup, $fields['media_group']);
+        }
+
+        if (isset($fields['page'])) {
+            $mediaGroup->page()->sync($fields['page']);
         }
 
         return $mediaGroup->update($fields);

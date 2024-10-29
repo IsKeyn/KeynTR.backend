@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminGameController;
 use App\Http\Controllers\Admin\AdminMediaGroupController;
 use App\Http\Controllers\Admin\AdminMovieController;
+use App\Http\Controllers\Admin\AdminPageController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -195,6 +196,7 @@ Route::name('api.')->group(function() {
             Route::post('multi-store', 'multiStore')->name('multi-store');
         });
 
+        Route::resource('pages', AdminPageController::class);
         Route::resource('articles', AdminArticlePagesController::class);
         Route::resource('slides', AdminSlideController::class);
 

@@ -21,7 +21,7 @@ class PageController extends Controller {
         ]);
 
         if (isset($validated['full_path'])) {
-            $page = Page::where('path', $validated['full_path'])->first();
+            $page = Page::where('path', trim($validated['full_path'], '/'))->first();
 
             if ($page) {
                 return response()->json(PageResource::make($page))->setStatusCode(Response::HTTP_OK);

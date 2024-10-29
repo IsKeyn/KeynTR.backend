@@ -25,4 +25,9 @@ class Page extends Model
         'entity_type',
         'entity_id',
     ];
+
+    public function mediaGroup()
+    {
+        return $this->morphedByMany(MediaGroup::class, 'page_bind');
+    }
 }
