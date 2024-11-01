@@ -18,6 +18,7 @@ use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\System\ParamController;
 use App\Http\Controllers\TagsController;
 use App\Http\Controllers\ViewsLogController;
 use App\Http\Controllers\VotesLogController;
@@ -205,6 +206,8 @@ Route::name('api.')->group(function() {
         Route::resource('game', AdminGameController::class);
         Route::resource('movie', AdminMovieController::class);
         Route::resource('media-group', AdminMediaGroupController::class);
+
+        Route::get('param-value/{paramName}', [ParamController::class, 'getPhpParamValue'])->name('param.value');
     });
 });
 

@@ -57,6 +57,11 @@ class MediaService
         $originalPath = "media/$media->id/$media->file_name";
         $webpPath = str_replace($media->mime_type, 'webp', $originalPath);
 
+        /* Проверяем, что файл, который мы собираемся обрабатывать существуе */
+        if (!Storage::disk('public')->exists($originalPath)) {
+            return false;
+        }
+
         if (!Storage::disk('public')->exists($webpPath)) {
             $image = Image::read(storage_path("app/public/$originalPath"));
             $image->encode(new WebpEncoder(80))->save(storage_path("app/public/$webpPath"));
@@ -67,6 +72,11 @@ class MediaService
 
     public function getResizes(MediaResource $media) {
         $originalPath = "media/$media->id/$media->file_name";
+
+        /* Проверяем, что файл, который мы собираемся обрабатывать существуе */
+        if (!Storage::disk('public')->exists($originalPath)) {
+            return false;
+        }
 
         $resizesList = [
             300 => [],
@@ -80,7 +90,7 @@ class MediaService
 
             if (!Storage::disk('public')->exists($resize['path'])) {
                 $resize['image'] = Image::read(storage_path("app/public/$originalPath"));
-                
+
                 $resize['image']->scale($resizeWidth)->save(storage_path('app/public/' . $resize['path']));
             }
 

@@ -7,7 +7,6 @@ use App\Models\Media;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-//use Intervention\Image\Facades\Image;
 
 class AdminMediaPagesController extends Controller
 {
