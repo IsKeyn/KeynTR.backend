@@ -13,6 +13,7 @@ use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\MediaGroupController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
@@ -124,6 +125,11 @@ Route::name('api.')->group(function() {
     Route::prefix('media/')->controller(MediaController::class)->name('media')->group(function() {
         Route::post('get', 'getByFilter')->name('get-by-filter');
         Route::get('get/{media}', 'mediaById')->name('get-detail');
+    });
+
+    // Работа с сущностью mediaGroup
+    Route::prefix('media-group/')->controller(MediaGroupController::class)->name('media-group')->group(function() {
+        Route::post('get', 'getByFilter')->name('get-by-filter');
     });
 
     // Работа с сущностю tag

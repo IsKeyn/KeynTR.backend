@@ -20,7 +20,7 @@ class MediaController extends Controller
 
         if ($filter = $request->filter) {
             $mediaQuery->when(isset($filter['group_id']), function ($query) use ($filter, $request) {
-                $query->whereHas('group', function ($q) use ($filter) {
+                $query->whereHas('groups', function ($q) use ($filter) {
                     $q->where('media_groups.id', $filter['group_id']);
                 });
             });

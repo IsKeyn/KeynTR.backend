@@ -19,6 +19,7 @@ class CreateMediaBindsTable extends Migration
             $table->integer('media_bind_id');
             $table->string('media_bind_type');
             $table->integer('type')->nullable();
+            $table->bigInteger('sort')->default(0);
             $table->timestamps();
         });
     }

@@ -37,6 +37,7 @@ class MediaResource extends JsonResource
             'likes' => $this->likes ? $this->likes->value : null,
             'already_voted' => VotesService::alreadyVoted($this->model, $this->id, VotesLog::LIKE, $request->user() ? $request->user()->id : null),
             'comments_count' => $this->comments->count(),
+            'sort' => $this->pivot ? $this->pivot->sort : '',
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

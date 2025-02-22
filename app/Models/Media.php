@@ -53,8 +53,8 @@ class Media extends Model
         return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
     }
 
-    public function group()
+    public function groups()
     {
-        return $this->morphedByMany(MediaGroup::class, 'media_bind');
+        return $this->morphedByMany(MediaGroup::class, 'media_bind')->withPivot(['type', 'sort']);
     }
 }

@@ -18,7 +18,7 @@ class MediaGroupResource extends JsonResource
      */
     public function toArray($request)
     {
-        $mediaGroup = $this->mediaGroup()->get();
+        $mediaGroup = $this->mediaGroup()->orderBy('sort')->get();
 
         $page = $this->page->first();
 

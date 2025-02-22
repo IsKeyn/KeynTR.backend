@@ -44,12 +44,16 @@ class MediaService
             if (isset($gallery['id'])) {
                 $mediaObj = Media::query()->where('id', $gallery['id'])->first();
 
-
-                $arGalleryIds[] = $mediaObj->id;
+                if ($mediaObj) {
+                    $arGalleryIds[$mediaObj->id] = array(
+                        'type' => Media::MEDIA_GROUP,
+                        'sort' => intval($gallery['sort']),
+                    );
+                }
             }
         }
 
-        return $entity->mediaGroup()->syncWithPivotValues($arGalleryIds, ['type' => Media::MEDIA_GROUP]);
+        return $entity->mediaGroup()->sync($arGalleryIds);
     }
 
     public function getWebp(MediaResource $media)

@@ -18,7 +18,7 @@ class MediaGroup extends Model
 
     public function mediaGroup()
     {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type')->wherePivot('type', '=', Media::MEDIA_GROUP);
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot(['type', 'sort'])->wherePivot('type', '=', Media::MEDIA_GROUP);
     }
 
     public function page()
