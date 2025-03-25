@@ -5,6 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/*
+ * field theme values
+ * 0 - waterfall
+ * 1 - simple
+ */
+
 class MediaGroup extends Model
 {
     use HasFactory;
@@ -13,6 +19,7 @@ class MediaGroup extends Model
         'name',
         'slug',
         'description',
+        'theme',
         'active'
     ];
 

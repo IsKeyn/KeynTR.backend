@@ -18,6 +18,7 @@ class CreateMediaGroupsTable extends Migration
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
+            $table->integer('theme')->default(0);
             $table->boolean('active')->default(true);
             $table->softDeletes();
             $table->timestamps();

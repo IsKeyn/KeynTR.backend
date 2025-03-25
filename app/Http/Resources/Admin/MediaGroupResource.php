@@ -30,6 +30,7 @@ class MediaGroupResource extends JsonResource
             'media_group' => $mediaGroup ? MediaResource::collection($mediaGroup) : null,
             'active' => $this->active,
             'page' => $page ? $page->id : null,
+            'theme' => $this->theme,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at,

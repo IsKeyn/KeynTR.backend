@@ -23,6 +23,7 @@ class PageResource extends JsonResource
             'path' => $this->path,
             'type' => $this->type,
             'mediaGroup' => $mediaGroup ? $mediaGroup->id : null,
+            'theme' => $mediaGroup ? $mediaGroup->theme : null,
             'entity_type' => $this->entity_type,
             'entity_id' => $this->entity_id,
             'created_at' => $this->created_at,

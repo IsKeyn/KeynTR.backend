@@ -23,6 +23,8 @@ class AdminMediaGroupController extends Controller {
             'description' => 'sometimes|string',
             'active' => 'sometimes',
             'media_group' => 'sometimes',
+            'page' => 'sometimes',
+            'theme' => 'sometimes|number',
             'created_at' => 'sometimes',
         ]);
 
@@ -49,6 +51,7 @@ class AdminMediaGroupController extends Controller {
             'active' => 'sometimes',
             'media_group' => 'sometimes',
             'page' => 'sometimes',
+            'theme' => 'sometimes',
             'created_at' => 'sometimes',
         ]);
 
