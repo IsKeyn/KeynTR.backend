@@ -5,22 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Menu extends Model
+class Social extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
+        'slug',
         'url',
-        'target',
-        'menu_type_id',
-        'link_type',
         'icon',
         'active',
+        'created_by',
     ];
-
-    public function type()
-    {
-        return $this->belongsTo(MenuType::class);
-    }
 }

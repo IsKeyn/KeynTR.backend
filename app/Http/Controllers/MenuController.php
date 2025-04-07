@@ -55,6 +55,7 @@ class MenuController extends Controller
                 'name' => $element->name,
                 'url' => "/game/{$element->slug}/",
                 'link_type' => 'route',
+                'icon' => $element->icon,
             );
         }
 
@@ -73,6 +74,7 @@ class MenuController extends Controller
                 'name' => $element->name,
                 'url' => "/movie/{$element->slug}/",
                 'link_type' => 'route',
+                'icon' => $element->icon,
             );
         }
 
@@ -92,6 +94,7 @@ class MenuController extends Controller
                 'name' => $element->name,
                 'url' => $this->getArticleUrl($element),
                 'link_type' => 'route',
+                'icon' => $element->icon,
             );
         }
 
@@ -111,6 +114,7 @@ class MenuController extends Controller
                 'name' => $element->name,
                 'url' => $this->getArticleUrl($element),
                 'link_type' => 'route',
+                'icon' => $element->icon,
             );
         }
 

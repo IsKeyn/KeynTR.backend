@@ -18,6 +18,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SocialController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\System\ParamController;
 use App\Http\Controllers\TagsController;
@@ -163,9 +164,14 @@ Route::name('api.')->group(function() {
         Route::get('get/id/{id}', 'getById')->name('get-by-id');
     });
 
+    // Работа с сущностью social
+    Route::prefix('social/')->controller(SocialController::class)->name('.social')->group(function() {
+        Route::get('list', 'getList')->name('social-list');
+        Route::get('{game:slug}', 'getSocial')->name('get-social');
+    });
 
     // Работа с сущностью game
-//    Route::resource('game', GameController::class);
+    //    Route::resource('game', GameController::class);
     Route::prefix('game/')->controller(GameController::class)->name('.game')->group(function() {
         Route::get('list', 'getList')->name('game-list');
         Route::get('{game:slug}', 'getGame')->name('get-game');

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateMenusTable extends Migration
+class CreateSocialsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,14 @@ class CreateMenusTable extends Migration
      */
     public function up()
     {
-        Schema::create('menus', function (Blueprint $table) {
-            $table->bigIncrements('id');
+        Schema::create('socials', function (Blueprint $table) {
+            $table->id();
             $table->string('name');
-            $table->string('url')->nullable();
-            $table->string('target')->nullable();
-            $table->foreignId('menu_type_id')->nullable();
-            $table->string('link_type')->nullable();
+            $table->string('slug')->nullable();
+            $table->text('url')->nullable();
             $table->string('icon')->nullable();
             $table->boolean('active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -33,6 +32,6 @@ class CreateMenusTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('menus');
+        Schema::dropIfExists('socials');
     }
 }
