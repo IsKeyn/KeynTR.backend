@@ -35,7 +35,7 @@ class AdminSlideController extends Controller {
 
             if (isset($fields['media_id'])) {
                 $media = Media::query()->where('id', $fields['media_id'])->first();
-                $slide->media()->syncWithPivotValues($media->id, ['type' => 1], false);
+                $slide->media()->syncWithPivotValues($media->id, ['type' => 1]);
             }
 
             if (isset($fields['tags'])) {
@@ -58,7 +58,7 @@ class AdminSlideController extends Controller {
 
         if (isset($fields['media_id'])) {
             $media = Media::query()->where('id', $fields['media_id'])->first();
-            $slide->media()->syncWithPivotValues($media->id, ['type' => 1], false);
+            $slide->media()->syncWithPivotValues($media->id, ['type' => 1]);
         }
 
         if (isset($fields['tags'])) {

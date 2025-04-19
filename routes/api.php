@@ -18,6 +18,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SlideController;
 use App\Http\Controllers\SocialController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\System\ParamController;
@@ -168,6 +169,12 @@ Route::name('api.')->group(function() {
     Route::prefix('social/')->controller(SocialController::class)->name('.social')->group(function() {
         Route::get('list', 'getList')->name('social-list');
         Route::get('{game:slug}', 'getSocial')->name('get-social');
+    });
+
+    Route::prefix('slide/')->controller(SlideController::class)->name('.slide')->group(function() {
+//        Route::get('list', 'getList')->name('slide-list');
+        Route::get('listByType', 'getSlideByType')->name('slide-list-by-type');
+//        Route::get('{slide:slug}', 'getSlide')->name('get-slide');
     });
 
     // Работа с сущностью game
