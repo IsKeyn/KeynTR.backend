@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
@@ -15,9 +16,12 @@ class UserResource extends JsonResource
 
     public function toArray($request)
     {
+        $image = $this->avatar()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'avatar' => $image ? MediaResource::make($image) : null,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at,
             'roles' => RoleResource::collection($this->roles),

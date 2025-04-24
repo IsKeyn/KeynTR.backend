@@ -65,4 +65,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Role::class);
     }
+
+    public function avatar()
+    {
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
+    }
 }
