@@ -11,6 +11,58 @@ use phpDocumentor\Reflection\Types\Boolean;
 
 class MediaService
 {
+    public function addMedia($fileArray, $user) {
+        $fileData = [];
+
+        if (isset($fileArray['name'])) $fileData['name'] = $fileArray['name'];
+        if (isset($fileArray['description'])) $fileData['name'] = $fileArray['description'];
+        if (isset($fileArray['type'])) $fileData['name'] = $fileArray['type'];
+
+        $fileData['created_by'] = $user->id;
+
+        $media = Media::create($fileData);
+
+        if (isset($fileArray['tags'])) {
+            foreach ($fileArray['tags'] as $tagName) {
+                $tag = $this->findOrCreateTag($tagName);
+                $media->tags()->save($tag);
+            }
+        }
+
+        $name = $fileArray['src']->getClientOriginalName();
+        $path = $fileArray['src']->storeAs(
+            'media/' . $media->id,
+            $name,
+            'public'
+        );
+
+//        $img = Image::make(config('app.url') . '/storage/' . $path);
+
+//        $img->resize(100, null, function ($constraint) {
+//            $constraint->aspectRatio();
+//        });
+
+        $fileData = [
+            'file_name' => $name,
+            'mime_type' => $fileArray['src']->extension(),
+            'size' => Storage::size('public/' . $path),
+        ];
+
+        $media->update($fileData);
+
+        return $media;
+    }
+
+    public function destroy(Media $medium) {
+        Storage::disk('public')->deleteDirectory('media/' . $medium->id . '/');
+
+        foreach ($medium->tags as $tag) { // TODO возможно стоит перенести на наблюдателя
+            $medium->tags()->detach($tag);
+        }
+
+        return $medium->delete();
+    }
+
     public function setTitleImage($entity, $mediaId)
     {
         $media = Media::query()->where('id', $mediaId)->first();
@@ -74,7 +126,8 @@ class MediaService
         return config('app.url') . "/storage/" . str_replace('\\', '/', $webpPath);
     }
 
-    public function getResizes(MediaResource $media) {
+    public function getResizes(MediaResource $media)
+    {
         $originalPath = "media/$media->id/$media->file_name";
 
         /* Проверяем, что файл, который мы собираемся обрабатывать существуе */

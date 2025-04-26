@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminBoardGameController;
 use App\Http\Controllers\Admin\AdminGameController;
 use App\Http\Controllers\Admin\AdminMediaGroupController;
 use App\Http\Controllers\Admin\AdminMovieController;
@@ -8,6 +9,12 @@ use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\BoardGame\BoardGameController;
+use App\Http\Controllers\BoardGame\BoardGameInventoryController;
+use App\Http\Controllers\BoardGame\BoardGamePlayerController;
+use App\Http\Controllers\BoardGame\LogController;
+use App\Http\Controllers\BoardGame\PositionController;
+use App\Http\Controllers\BoardGame\BoardGameItemController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
@@ -78,6 +85,7 @@ Route::name('api.')->group(function() {
             Route::get('user', 'authUser')->name('user');
             Route::post('verification-notification', 'sendVerificationNotification')
                 ->middleware(['throttle:6,1'])->name('verification.send');
+            Route::post('setAvatar', 'setAvatar')->name('set-avatar');
         });
     });
 
@@ -197,8 +205,57 @@ Route::name('api.')->group(function() {
     });
 
 
+    // Работа с сущностью board-game
+    Route::prefix('board-game/')->name('.board-game')->group(function() {
+        Route::get('get/{slug}', [BoardGameController::class, 'getBySlug'])->name('get-by-slug');
+        Route::get('getBoardInfo', [BoardGameController::class, 'getBoardInfo'])->name('get-board-info');
+        Route::get('getItemAndInventory', [BoardGameController::class, 'getItemAndInventory'])->name('get-item-and-inventory');
+
+        Route::prefix('player/')->controller(BoardGamePlayerController::class)->name('.player')->group(function() {
+            Route::get('list', 'list')->name('list');
+            Route::post('add', 'add')->name('add');
+        });
+
+        Route::prefix('log/')->controller(LogController::class)->name('.log')->group(function() {
+            Route::post('add', 'add')->name('add');
+            Route::get('list', 'getLogListById')->name('list');
+        });
+
+        Route::prefix('position/')->controller(PositionController::class)->name('.position')->group(function() {
+            Route::post('add', 'add')->name('add');
+        });
+
+        Route::prefix('items/')->controller(BoardGameItemController::class)->name('.items')->group(function() {
+            Route::get('list', 'list')->name('list');
+        });
+
+        Route::prefix('inventory/')->controller(BoardGameInventoryController::class)->name('.inventory')->group(function() {
+            Route::post('add', 'add')->name('add');
+            Route::post('list', 'list')->name('list');
+            Route::delete('destroy', 'destroy')->name('destroy');
+            Route::post('use', 'useItem')->name('use-item');
+        });
+    });
+
     // Действия в админке
     Route::prefix('admin/')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])->group(function() {
+        Route::prefix('BoardGame')->name('BoardGame.')->group(function () {
+            Route::resource('BoardGameItem', BoardGameItemController::class);
+            Route::resource('BoardGameInventory', BoardGameInventoryController::class);
+
+            Route::controller(AdminBoardGameController::class)->group(function () {
+                Route::get('{entityName}', 'index')->name('index');
+                Route::post('{entityName}', 'store')->name('store');
+                Route::put('{entityName}/{id}', 'update')->name('update');
+                Route::delete('{entityName}/{id}', 'destroy')->name('destroy');
+                Route::get('{entityName}/{id}/edit','edit')->name('edit');
+
+                Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
+                Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
+                Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
+            });
+        });
+
         Route::prefix('entity')->controller(AdminEntityController::class)->name('entity.')->group(function () {
             Route::get('{entityName}', 'index')->name('index');
             Route::post('{entityName}', 'store')->name('store');
