@@ -38,7 +38,8 @@ class AuthServiceProvider extends ServiceProvider
             }
 
             return (new MailMessage)
-                ->subject(__('notification.account_verification_theme'))
+//                ->subject(__('notification.account_verification_theme'))
+                ->subject('Подтверждение учетной записи на сайте ' . config('publicApp.public_url'))
                 ->markdown('mails.ru.verify_email', ['url' => $url]);
         });
     }
