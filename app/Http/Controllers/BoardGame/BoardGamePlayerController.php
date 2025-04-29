@@ -34,4 +34,21 @@ class BoardGamePlayerController extends Controller
 
         return BoardGamePlayerResource::make($currentPlayer);
     }
+
+    public function updatedPoints (Request $request, BoardGamePlayer $BoardGamePlayer)
+    {
+        $user = $request->user();
+
+        $currentPlayer = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $request->board_game_id)->first();
+
+        if ($currentPlayer) {
+            $fields = [
+                'points' => $request->points,
+            ];
+
+            return $currentPlayer->update($fields);
+        }
+
+        return false;
+    }
 }

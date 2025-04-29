@@ -21,6 +21,8 @@ class LogResource extends JsonResource
             'message' => $this->message,
             'board_game_id' => $this->board_game_id,
             'user' => UserLightResource::make($this->user),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

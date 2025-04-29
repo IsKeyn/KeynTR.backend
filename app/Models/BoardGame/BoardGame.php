@@ -18,6 +18,11 @@ class BoardGame extends Model
         'created_by',
     ];
 
+    public function getModelAttribute()
+    {
+        return get_class($this);
+    }
+
     public function titleImage()
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');

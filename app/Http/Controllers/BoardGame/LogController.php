@@ -30,7 +30,7 @@ class LogController extends Controller
 
     public function getLogListById(Request $request)
     {
-        $logs = BoardGameLog::query()->where('board_game_id', $request->boardGameId)->orderByDesc('id')->get();
+        $logs = BoardGameLog::query()->where('board_game_id', $request->boardGameId)->orderByDesc('id')->limit(100)->get();
 
         return LogResource::collection($logs);
     }

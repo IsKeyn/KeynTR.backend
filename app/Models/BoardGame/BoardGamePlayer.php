@@ -14,6 +14,7 @@ class BoardGamePlayer extends Model
     protected $fillable = [
         'user_id',
         'board_game_id',
+        'points',
         'created_by',
     ];
 

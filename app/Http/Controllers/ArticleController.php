@@ -84,7 +84,9 @@ class ArticleController extends Controller
                     $validated['entity_id']);
             }
 
-            $query->where($type, $param);
+            if ($param) {
+                $query->where($type, $param);
+            }
 
             $article = $query->first();
 

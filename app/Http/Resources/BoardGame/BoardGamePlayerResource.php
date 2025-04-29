@@ -2,7 +2,8 @@
 
 namespace App\Http\Resources\BoardGame;
 
-use App\Http\Resources\UserResource;
+use App\Http\Resources\UserPublicResource;
+use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,12 +18,22 @@ class BoardGamePlayerResource extends JsonResource
     public function toArray($request)
     {
         $user = User::where('id', $this->user_id)->first();
+        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->first();
+
+        $fullPoints = $this->points;
+
+        if ($position) {
+            $fullPoints += $position->position;
+        }
 
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
             'board_game_id' => $this->board_game_id,
-            'user' => UserResource::make($user),
+            'points' => $this->points,
+            'position' => $position ? $position->position : '',
+            'full_points' => $fullPoints,
+            'user' => UserPublicResource::make($user),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

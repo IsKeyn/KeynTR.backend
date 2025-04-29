@@ -214,6 +214,7 @@ Route::name('api.')->group(function() {
         Route::prefix('player/')->controller(BoardGamePlayerController::class)->name('.player')->group(function() {
             Route::get('list', 'list')->name('list');
             Route::post('add', 'add')->name('add');
+            Route::post('updatedPoints', 'updatedPoints')->name('update-points');
         });
 
         Route::prefix('log/')->controller(LogController::class)->name('.log')->group(function() {

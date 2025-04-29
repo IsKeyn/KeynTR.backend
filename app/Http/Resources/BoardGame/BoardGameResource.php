@@ -21,12 +21,13 @@ class BoardGameResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'entity_type' => $this->model,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
             'image' => $image ? MediaResource::make($image) : null,
             'active' => $this->active,
-            'players' => BoardGamePlayerResource::collection($this->players),
+            'players' => BoardGamePlayerResource::collection($this->players->sortByDesc('points')),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
