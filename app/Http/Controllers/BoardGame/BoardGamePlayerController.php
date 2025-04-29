@@ -3,12 +3,26 @@
 namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
+use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayer;
 use Illuminate\Http\Request;
 
 class BoardGamePlayerController extends Controller
 {
+    public function get($id, Request $request, BoardGamePlayer $BoardGamePlayer, BoardGameInventory $BoardGameInventory)
+    {
+        $player = $BoardGamePlayer->where('user_id', $id)->where('board_game_id', $request->board_game_id)->first();
+//        $inventory = $BoardGamePlayer->inventory->where('board_game_id', $request->board_game_id);
+        $inventory = $BoardGameInventory->where('user_id', $id)->where('board_game_id', $request->board_game_id)->get();
+
+        return [
+            'player_info' => BoardGamePlayerResource::make($player),
+            'inventory' => BoardGameInventoryResource::collection($inventory),
+        ];
+    }
+
     public function list(Request $request, BoardGamePlayer $BoardGamePlayer)
     {
         $players = $BoardGamePlayer->where('board_game_id', $request->board_game_id)->first();

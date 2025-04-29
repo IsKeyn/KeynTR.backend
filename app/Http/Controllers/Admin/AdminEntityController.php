@@ -112,8 +112,6 @@ class AdminEntityController extends Controller {
     }
 
 
-
-
     public function storeAdditionalField($entityName, $id, Request $request) {
         $model = 'App\Models\\' . $entityName;
 

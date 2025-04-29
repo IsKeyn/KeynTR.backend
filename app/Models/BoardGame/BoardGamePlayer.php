@@ -22,4 +22,9 @@ class BoardGamePlayer extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function inventory()
+    {
+        return $this->hasMany(BoardGameInventory::class, 'user_id');
+    }
 }
