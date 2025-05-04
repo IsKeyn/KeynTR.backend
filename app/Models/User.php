@@ -70,4 +70,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
     }
+
+    public function additionalFields()
+    {
+        return $this->morphMany(AdditionalField::class, 'entity');
+    }
 }

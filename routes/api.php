@@ -30,6 +30,7 @@ use App\Http\Controllers\SocialController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\System\ParamController;
 use App\Http\Controllers\TagsController;
+use App\Http\Controllers\TwitchController;
 use App\Http\Controllers\ViewsLogController;
 use App\Http\Controllers\VotesLogController;
 use App\Http\Controllers\YouTubeController;
@@ -61,8 +62,6 @@ Route::name('api.')->group(function() {
     // Общие
     Route::get('csrf', function () { return csrf_token(); });
 
-
-
     // Авторизация и стандартные действия не авторизированного пользователя
     Route::prefix('auth/')->name('auth.')->middleware('guest:api')->group(function() {
         Route::post('login', [LoginController::class, 'login'])->name('login');
@@ -86,6 +85,7 @@ Route::name('api.')->group(function() {
             Route::post('verification-notification', 'sendVerificationNotification')
                 ->middleware(['throttle:6,1'])->name('verification.send');
             Route::post('setAvatar', 'setAvatar')->name('set-avatar');
+            Route::post('update-profile', 'updateProfile')->name('update-profile');
         });
     });
 
@@ -210,6 +210,7 @@ Route::name('api.')->group(function() {
         Route::get('get/{slug}', [BoardGameController::class, 'getBySlug'])->name('get-by-slug');
         Route::get('getBoardInfo', [BoardGameController::class, 'getBoardInfo'])->name('get-board-info');
         Route::get('getItemAndInventory', [BoardGameController::class, 'getItemAndInventory'])->name('get-item-and-inventory');
+        Route::get('getStreamersOnline', [BoardGameController::class, 'getStreamersOnline'])->name('streamers-online');
 
         Route::prefix('player/')->controller(BoardGamePlayerController::class)->name('.player')->group(function() {
             Route::get('get/{id}', 'get')->name('get');

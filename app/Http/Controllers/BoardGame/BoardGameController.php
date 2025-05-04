@@ -10,8 +10,10 @@ use App\Http\Resources\UserResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameItem;
+use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
+use App\Services\TwitchService;
 use Illuminate\Http\Request;
 
 class BoardGameController extends Controller
@@ -35,6 +37,42 @@ class BoardGameController extends Controller
             'items' => BoardGameItemResource::collection($items),
             'inventory' => BoardGameInventoryResource::collection($inventory),
         ];
+    }
+
+    public function getStreamersOnline(Request $request)
+    {
+        if ($request->boardGameId) {
+            $players = BoardGamePlayer::where('board_game_id', $request->boardGameId)->get();
+
+            $twitchChannelsList = [];
+
+            foreach ($players as $player) {
+                if ($player->user && $player->user->additionalFields) {
+                    foreach ($player->user->additionalFields as $field) {
+                        if ($field->slug === 'twitch_channel') {
+                            $path = parse_url($field->value, PHP_URL_PATH);
+                            $twitchChannelsList[] = basename($path);
+                        }
+                    }
+                }
+            }
+
+            $clientId = 'dub1gz76pv44mx1ojnyb9fvhe52m86';
+            $clientSecret = '0uj93fwkcaq67q4uywkqzhjvw7idx2';
+
+            $twitchService = new TwitchService();
+            $token = $twitchService->getAccessToken($clientId, $clientSecret);
+
+            $listOnline = [];
+
+            foreach ($twitchChannelsList as $twitchName) {
+                if ($twitchService->isStreamerLive($twitchName, $clientId, $token)) {
+                    $listOnline[] = $twitchName;
+                }
+            }
+
+            return $listOnline;
+        }
     }
 
     public function getBoardInfo(Request $request)

@@ -13,7 +13,7 @@ class AdditionalFieldsService
         $newFields = [];
 
         foreach ($fields as $key => $field) {
-            if ($field['id']) {
+            if (isset($field['id']) && $field['id']) {
                 $currentFieldsKeys[$field['id']] = $key;
             } else {
                 $newFields[] = $field;

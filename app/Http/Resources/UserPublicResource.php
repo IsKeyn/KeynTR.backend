@@ -22,6 +22,7 @@ class UserPublicResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'avatar' => $image ? MediaResource::make($image) : null,
+            'additional_fields' => $this->additionalFields,
         ];
     }
 }

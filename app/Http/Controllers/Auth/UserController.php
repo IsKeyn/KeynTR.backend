@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Media;
+use App\Services\AdditionalFieldsService;
 use App\Services\MediaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -23,6 +25,25 @@ class UserController extends Controller
             'status_code' => 'notifications.account_verification',
             'status' => __('notifications.account_verification'),
         ];
+    }
+
+    public function updateProfile(Request $request) {
+        $user = Auth::user();
+
+        $validated = $this->validateFields($request);
+
+        if ($user) {
+            $this->setAdditionalFields($user, $validated);
+        }
+
+        return $user;
+    }
+
+    public function validateFields($request) {
+        return $request->validate([
+            'name' => 'sometimes|string',
+            'additional_fields' => 'sometimes',
+        ]);
     }
 
     public function setAvatar(Request $request) {
@@ -46,5 +67,12 @@ class UserController extends Controller
         }
 
         return $avatar;
+    }
+
+    public function setAdditionalFields($model, $validated) {
+        if (isset($validated['additional_fields'])) {
+            $additionalFieldsService = new AdditionalFieldsService();
+            $additionalFieldsService->sync($model, $validated['additional_fields']);
+        }
     }
 }
