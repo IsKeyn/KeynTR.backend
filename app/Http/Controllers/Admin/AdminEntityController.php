@@ -15,16 +15,35 @@ class AdminEntityController extends Controller {
         'Tag'
     ];
 
-    public function index($entityName)
+    public function index($firstParam, $secondParam = null)
     {
-        $model = 'App\Models\\' . $entityName;
+        if ($secondParam) {
+            $entityFolder = $firstParam;
+            $entityName = $secondParam;
+
+            $model = 'App\Models\\' . $entityFolder . '\\' . $entityName;
+        } else {
+            $entityName = $firstParam;
+
+            $model = 'App\Models\\' . $entityName;
+        }
 
         return $model::query()->get();
     }
 
-    public function store($entityName, Request $request)
+    public function store(Request $request, $firstParam, $secondParam = null)
     {
-        $model = 'App\Models\\' . $entityName;
+        if ($secondParam) {
+            $entityFolder = $firstParam;
+            $entityName = $secondParam;
+
+            $model = 'App\Models\\' . $entityFolder . '\\' . $entityName;
+        } else {
+            $entityName = $firstParam;
+
+            $model = 'App\Models\\' . $entityName;
+        }
+
         $params = $request->all();
 
         $entity = $model::create($params);
@@ -38,8 +57,19 @@ class AdminEntityController extends Controller {
         return $entity;
     }
 
-    public function update($entityName, $id, Request $request) {
-        $model = 'App\Models\\' . $entityName;
+    public function update(Request $request, $firstParam, $secondParam = null, $thirdParam = null) {
+        if ($thirdParam) {
+            $entityFolder = $firstParam;
+            $entityName = $secondParam;
+            $id = $thirdParam;
+
+            $model = 'App\Models\\' . $entityFolder . '\\' . $entityName;
+        } else {
+            $entityName = $firstParam;
+            $id = $secondParam;
+
+            $model = 'App\Models\\' . $entityName;
+        }
 
         if ($id) {
             if ($entity = $model::where('id', $id)->first()) {
@@ -60,8 +90,19 @@ class AdminEntityController extends Controller {
         }
     }
 
-    public function edit($entityName, $id) {
-        $model = 'App\Models\\' . $entityName;
+    public function edit($firstParam, $secondParam = null, $thirdParam = null) {
+        if ($thirdParam) {
+            $entityFolder = $firstParam;
+            $entityName = $secondParam;
+            $id = $thirdParam;
+
+            $model = 'App\Models\\' . $entityFolder . '\\' . $entityName;
+        } else {
+            $entityName = $firstParam;
+            $id = $secondParam;
+
+            $model = 'App\Models\\' . $entityName;
+        }
 
         return $model::query()->where('id', $id)->first();
 //        $data = [
@@ -73,8 +114,20 @@ class AdminEntityController extends Controller {
 //        return view('admin.entity.form', compact('data'));
     }
 
-    public function destroy($entityName, $id) {
-        $model = 'App\Models\\' . $entityName;
+    public function destroy($firstParam, $secondParam = null, $thirdParam = null) {
+        if ($thirdParam) {
+            $entityFolder = $firstParam;
+            $entityName = $secondParam;
+            $id = $thirdParam;
+
+            $model = 'App\Models\\' . $entityFolder . '\\' . $entityName;
+        } else {
+            $entityName = $firstParam;
+            $id = $secondParam;
+
+            $model = 'App\Models\\' . $entityName;
+        }
+
         $query = $model::query()->where('id', $id)->first();
 
         // TODO возможно правильнее поискать решение через метолы Laravel
@@ -88,7 +141,6 @@ class AdminEntityController extends Controller {
 
         return $query->delete();
     }
-
 
     public function detail($entityName) {
         $model = 'App\Models\\' . $entityName;
@@ -112,8 +164,19 @@ class AdminEntityController extends Controller {
     }
 
 
-    public function storeAdditionalField($entityName, $id, Request $request) {
-        $model = 'App\Models\\' . $entityName;
+    public function storeAdditionalField(Request $request, $firstParam, $secondParam = null, $thirdParam = null) {
+        if ($thirdParam) {
+            $entityFolder = $firstParam;
+            $entityName = $secondParam;
+            $id = $thirdParam;
+
+            $model = 'App\Models\\' . $entityFolder . '\\' . $entityName;
+        } else {
+            $entityName = $firstParam;
+            $id = $secondParam;
+
+            $model = 'App\Models\\' . $entityName;
+        }
 
         if ($id) {
             if ($element = $model::where('id', $id)->first()) {
@@ -131,8 +194,19 @@ class AdminEntityController extends Controller {
         return redirect()->route('admin.entity.', $entityName);
     }
 
-    public function updateAdditionalField($entityName, $id, Request $request) {
-        $model = 'App\Models\\' . $entityName;
+    public function updateAdditionalField(Request $request, $firstParam, $secondParam = null, $thirdParam = null) {
+        if ($thirdParam) {
+            $entityFolder = $firstParam;
+            $entityName = $secondParam;
+            $id = $thirdParam;
+
+            $model = 'App\Models\\' . $entityFolder . '\\' . $entityName;
+        } else {
+            $entityName = $firstParam;
+            $id = $secondParam;
+
+            $model = 'App\Models\\' . $entityName;
+        }
 
         if ($id) {
             if ($element = $model::where('id', $id)->first()) {
@@ -150,8 +224,19 @@ class AdminEntityController extends Controller {
         return redirect()->route('admin.entity.', $entityName);
     }
 
-    public function deleteAdditionalField($entityName, $id, Request $request) {
-        $model = 'App\Models\\' . $entityName;
+    public function deleteAdditionalField(Request $request, $firstParam, $secondParam = null, $thirdParam = null) {
+        if ($thirdParam) {
+            $entityFolder = $firstParam;
+            $entityName = $secondParam;
+            $id = $thirdParam;
+
+            $model = 'App\Models\\' . $entityFolder . '\\' . $entityName;
+        } else {
+            $entityName = $firstParam;
+            $id = $secondParam;
+
+            $model = 'App\Models\\' . $entityName;
+        }
 
         if ($id) {
             if ($element = $model::where('id', $id)->first()) {

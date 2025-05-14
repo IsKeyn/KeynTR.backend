@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\BoardGame\BoardGameController;
 use App\Http\Controllers\BoardGame\BoardGameInventoryController;
 use App\Http\Controllers\BoardGame\BoardGamePlayerController;
+use App\Http\Controllers\BoardGame\DiceController;
 use App\Http\Controllers\BoardGame\LogController;
 use App\Http\Controllers\BoardGame\PositionController;
 use App\Http\Controllers\BoardGame\BoardGameItemController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\System\ParamController;
 use App\Http\Controllers\TagsController;
 use App\Http\Controllers\TwitchController;
+use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\ViewsLogController;
 use App\Http\Controllers\VotesLogController;
 use App\Http\Controllers\YouTubeController;
@@ -86,6 +88,13 @@ Route::name('api.')->group(function() {
                 ->middleware(['throttle:6,1'])->name('verification.send');
             Route::post('setAvatar', 'setAvatar')->name('set-avatar');
             Route::post('update-profile', 'updateProfile')->name('update-profile');
+        });
+
+        Route::controller(NotificationController::class)->prefix('notification/')->name('notification')->group(function () {
+            Route::get('get', 'GetCurrentUserNotifications')->name('GetCurrentUserNotifications');
+            Route::get('getCount', 'GetCountUserNotifications')->name('GetCountUserNotifications');
+            Route::post('set', 'set')->name('set');
+            Route::post('set-viewed', 'SetViewed')->name('set-viewed');
         });
     });
 
@@ -206,11 +215,13 @@ Route::name('api.')->group(function() {
 
 
     // Работа с сущностью board-game
+    /* TODO для сущностей, которые требует авторизации добавить middleware('auth:sanctum') */
     Route::prefix('board-game/')->name('.board-game')->group(function() {
         Route::get('get/{slug}', [BoardGameController::class, 'getBySlug'])->name('get-by-slug');
         Route::get('getBoardInfo', [BoardGameController::class, 'getBoardInfo'])->name('get-board-info');
         Route::get('getItemAndInventory', [BoardGameController::class, 'getItemAndInventory'])->name('get-item-and-inventory');
         Route::get('getStreamersOnline', [BoardGameController::class, 'getStreamersOnline'])->name('streamers-online');
+        Route::post('roll-dice', [DiceController::class, 'rollDice'])->name('roll-dice');
 
         Route::prefix('player/')->controller(BoardGamePlayerController::class)->name('.player')->group(function() {
             Route::get('get/{id}', 'get')->name('get');
@@ -269,6 +280,18 @@ Route::name('api.')->group(function() {
             Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
             Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
             Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
+
+            Route::prefix('{folder}')->controller(AdminEntityController::class)->name('{folder}.')->group(function () {
+                Route::get('{entityName}', 'index')->name('index');
+                Route::post('{entityName}', 'store')->name('store');
+                Route::put('{entityName}/{id}', 'update')->name('update');
+                Route::delete('{entityName}/{id}', 'destroy')->name('destroy');
+                Route::get('{entityName}/{id}/edit','edit')->name('edit');
+
+                Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
+                Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
+                Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
+            });
         });
 
         Route::resource('media', AdminMediaPagesController::class);

@@ -5,30 +5,24 @@ namespace App\Models\BoardGame;
 use App\Models\Media;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BoardGameItem extends Model
+class PlayerStatusEffect extends Model
 {
     use HasFactory;
 
-    const TYPES = [
-        0 => 'positive',
-        1 => 'negative',
-    ];
-
     protected $fillable = [
-        'name',
-        'slug',
-        'description',
-        'actions',
-        'type',
+        'user_id',
         'board_game_id',
+        'status_effect_id',
         'active',
         'created_by',
     ];
 
-    protected $casts = [
-//        'actions' => 'array',
-    ];
+    public function statusEffect(): BelongsTo
+    {
+        return $this->belongsTo(StatusEffect::class, 'status_effect_id');
+    }
 
     public function titleImage()
     {

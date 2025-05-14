@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BoardGame\BoardGameItemResource;
+use App\Http\Resources\Admin\BoardGame\BoardGameItemResource;
 use App\Models\BoardGame\BoardGameItem;
 use App\Models\Media;
 use App\Services\TagService;
@@ -19,16 +19,26 @@ class BoardGameItemController extends Controller
         return BoardGameItemResource::collection($BoardGameItem::all());
     }
 
+    public function validateFields($request) {
+        $validated = $request->validate([
+                'name' => 'required',
+                'slug' => 'sometimes',
+                'description' => 'sometimes',
+                'actions' => 'sometimes',
+                'type' => 'sometimes',
+                'board_game_id' => 'sometimes',
+                'active' => 'sometimes',
+                'image' => 'sometimes',
+            ]);
+
+        $validated['type'] = $validated['type'] ? $validated['type'] : 0;
+
+        return $validated;
+    }
+
     public function store(Request $request)
     {
-        $fields = $request->validate([
-            'name' => 'required',
-            'slug' => 'sometimes',
-            'description' => 'sometimes',
-            'board_game_id' => 'sometimes',
-            'active' => 'sometimes',
-            'image' => 'sometimes',
-        ]);
+        $fields = $this->validateFields($request);
 
         $fields['created_by'] = $request->user()->id;
         $fields['active'] = true;
@@ -49,14 +59,7 @@ class BoardGameItemController extends Controller
     }
 
     public function update(Request $request, BoardGameItem $BoardGameItem) {
-        $fields = $request->validate([
-            'name' => 'required',
-            'slug' => 'sometimes',
-            'description' => 'sometimes',
-            'board_game_id' => 'sometimes',
-            'active' => 'sometimes',
-            'image' => 'sometimes',
-        ]);
+        $fields = $this->validateFields($request);
 
         if (isset($fields['image'])) {
             $media = Media::query()->where('id', $fields['image'])->first();

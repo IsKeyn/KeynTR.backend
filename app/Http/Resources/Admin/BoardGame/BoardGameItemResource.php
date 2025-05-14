@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\BoardGame;
+namespace App\Http\Resources\Admin\BoardGame;
 
 use App\Http\Resources\MediaResource;
 use App\Models\Media;
@@ -23,7 +23,7 @@ class BoardGameItemResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'actions' => json_decode($this->actions),
+            'actions' => $this->actions,
             'type' => $this->type,
             'board_game_id' => $this->board_game_id,
             'image' => $image ? MediaResource::make($image) : null,

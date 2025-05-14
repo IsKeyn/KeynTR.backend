@@ -2,11 +2,9 @@
 
 namespace App\Http\Resources\BoardGame;
 
-use App\Http\Resources\MediaResource;
-use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardGameItemResource extends JsonResource
+class PlayerStatusEffectResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,17 +14,12 @@ class BoardGameItemResource extends JsonResource
      */
     public function toArray($request)
     {
-        $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
-
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
-            'actions' => json_decode($this->actions),
-            'type' => $this->type,
+            'user_id' => $this->message,
             'board_game_id' => $this->board_game_id,
-            'image' => $image ? MediaResource::make($image) : null,
+            'statusEffect' => StatusEffectResource::make($this->statusEffect),
+            'status_effect_id' => $this->status_effect_id,
             'active' => $this->active,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
