@@ -44,27 +44,33 @@ class UseItemService
                 /* Предмет должен иметь JSON действий, если его нет, то предмет предназначен для "ручного" использования */
                 if ($item->actions) {
                     foreach (json_decode($item->actions) as $action) {
-                        switch ($action->type) {
-                            case 'removePoints':
-                            case 'addPoints':
-                                $this->actionsWithPoints($request, $action, $user, $BoardGamePlayer, $BoardGamePlayerPosition, $notification);
-                                break;
+                        if ($action->type) {
+                            switch ($action->type) {
+                                case 'removePoints':
+                                case 'addPoints':
+                                    $this->actionsWithPoints($request, $action, $user, $BoardGamePlayer,
+                                        $BoardGamePlayerPosition, $notification);
+                                    break;
 
-                            case 'movePlayer':
-                            case 'pushPlayer':
-                                $this->actionsWithPosition($request, $user, $action, $BoardGamePlayer, $BoardGamePlayerPosition, $notification);
-                                break;
+                                case 'movePlayer':
+                                case 'pushPlayer':
+                                    $this->actionsWithPosition($request, $user, $action, $BoardGamePlayer,
+                                        $BoardGamePlayerPosition, $notification);
+                                    break;
 
-                            case 'removeNegativeItem':
-                            case 'stealItem':
-                            case 'changeUserOwner':
-                            case 'removeItem':
-                                $this->actionsWithItems($request, $user, $action, $BoardGamePlayer, $BoardGameInventory, $BoardGamePlayerPosition, $notification);
-                                break;
+                                case 'removeNegativeItem':
+                                case 'stealItem':
+                                case 'changeUserOwner':
+                                case 'removeItem':
+                                    $this->actionsWithItems($request, $user, $action, $BoardGamePlayer,
+                                        $BoardGameInventory, $BoardGamePlayerPosition, $notification);
+                                    break;
 
-                            case 'applyStatusEffect':
-                                $this->activateEffect($request, $user, $action, $statusEffect, $BoardGamePlayer, $PlayerStatusEffect, $BoardGamePlayerPosition, $notification);
-                                break;
+                                case 'applyStatusEffect':
+                                    $this->activateEffect($request, $user, $action, $statusEffect, $BoardGamePlayer,
+                                        $PlayerStatusEffect, $BoardGamePlayerPosition, $notification);
+                                    break;
+                            }
                         }
                     }
                 }
