@@ -44,7 +44,7 @@ class UseItemService
                 /* Предмет должен иметь JSON действий, если его нет, то предмет предназначен для "ручного" использования */
                 if ($item->actions) {
                     foreach (json_decode($item->actions) as $action) {
-                        if ($action->type) {
+                        if (isset($action->type) && $action->type) {
                             switch ($action->type) {
                                 case 'removePoints':
                                 case 'addPoints':
@@ -70,6 +70,12 @@ class UseItemService
                                     $this->activateEffect($request, $user, $action, $statusEffect, $BoardGamePlayer,
                                         $PlayerStatusEffect, $BoardGamePlayerPosition, $notification);
                                     break;
+                            }
+                        } elseif (isset($action->target) && $action->target) {
+                            $players = $this->target($request, $user, $action, $BoardGamePlayer, $BoardGamePlayerPosition);
+
+                            foreach ($players as $player) {
+                                $this->createNotification($player, $user, $request, $notification);
                             }
                         }
                     }
