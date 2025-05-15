@@ -218,6 +218,7 @@ Route::name('api.')->group(function() {
     /* TODO для сущностей, которые требует авторизации добавить middleware('auth:sanctum') */
     Route::prefix('board-game/')->name('.board-game')->group(function() {
         Route::get('get/{slug}', [BoardGameController::class, 'getBySlug'])->name('get-by-slug');
+        Route::get('get-list', [BoardGameController::class, 'getList'])->name('get-list');
         Route::get('getBoardInfo', [BoardGameController::class, 'getBoardInfo'])->name('get-board-info');
         Route::get('getItemAndInventory', [BoardGameController::class, 'getItemAndInventory'])->name('get-item-and-inventory');
         Route::get('getStreamersOnline', [BoardGameController::class, 'getStreamersOnline'])->name('streamers-online');

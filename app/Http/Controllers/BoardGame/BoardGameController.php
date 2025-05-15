@@ -23,6 +23,11 @@ class BoardGameController extends Controller
         return BoardGameResource::make($boardGame->where('slug', $slug)->first());
     }
 
+    public function getList(BoardGame $boardGame)
+    {
+        return BoardGameResource::collection($boardGame::all());
+    }
+
     public function getItemAndInventory(Request $request, BoardGameItem $BoardGameItem, BoardGameInventory $BoardGameInventory)
     {
         $user = $request->user();
