@@ -29,6 +29,26 @@ class TwitchService
         return json_decode($response, true)['access_token'];
     }
 
+    public function getTwitchUserData($username, $clientId, $accessToken) {
+        $url = "https://api.twitch.tv/helix/users?login={$username}";
+
+        $options = [
+            'http' => [
+                'method' => 'GET',
+                'header' => [
+                    "Client-ID: $clientId",
+                    "Authorization: Bearer $accessToken"
+                ]
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+        $data = json_decode($response, true);
+
+        return $data;
+    }
+
     public function isStreamerLive($username, $clientId, $accessToken) {
         $url = "https://api.twitch.tv/helix/streams?user_login={$username}";
 
@@ -48,5 +68,4 @@ class TwitchService
 
         return !empty($data['data']); // true — если стрим активен
     }
-
 }
