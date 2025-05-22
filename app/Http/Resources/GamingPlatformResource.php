@@ -20,6 +20,7 @@ class GamingPlatformResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'release_date' => $this->release_date, // TODO перепривезать к Date
+            'sort' => $this->sort, // TODO перепривезать к Date
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

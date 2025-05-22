@@ -13,7 +13,9 @@ use App\Http\Controllers\BoardGame\BoardGameController;
 use App\Http\Controllers\BoardGame\BoardGameInventoryController;
 use App\Http\Controllers\BoardGame\BoardGamePlayerController;
 use App\Http\Controllers\BoardGame\DiceController;
+use App\Http\Controllers\BoardGame\GameListController;
 use App\Http\Controllers\BoardGame\LogController;
+use App\Http\Controllers\BoardGame\PlayerGameController;
 use App\Http\Controllers\BoardGame\PositionController;
 use App\Http\Controllers\BoardGame\BoardGameItemController;
 use App\Http\Controllers\CommentsController;
@@ -249,6 +251,17 @@ Route::name('api.')->group(function() {
             Route::post('list', 'list')->name('list');
             Route::delete('destroy', 'destroy')->name('destroy');
             Route::post('use', 'useItem')->name('use-item');
+        });
+
+        Route::prefix('game-list/')->controller(GameListController::class)->name('.game-list')->group(function() {
+            Route::get('list', 'list')->name('list');
+        });
+
+        Route::prefix('player-game/')->controller(PlayerGameController::class)->name('.player-game')->group(function () {
+            Route::get('get-player-list', 'getPlayerList')->name('get-player-list');
+            Route::post('roll', 'roll')->name('roll');
+            Route::post('add', 'add')->name('add');
+            Route::post('update', 'update')->name('update');
         });
     });
 

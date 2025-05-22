@@ -14,11 +14,11 @@ class AddFieldsToBoardGameItems extends Migration
     public function up()
     {
         Schema::table('board_game_items', function (Blueprint $table) {
-            $table->json('actions')->after('description')->nullable();
+            $table->json('actions')->after('description')->default(1);
         });
 
         Schema::table('board_game_items', function (Blueprint $table) {
-            $table->bigInteger('type')->default(0)->after('actions');
+            $table->bigInteger('type')->default(1)->after('actions');
         });
     }
 

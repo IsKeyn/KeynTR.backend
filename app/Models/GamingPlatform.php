@@ -14,6 +14,7 @@ class GamingPlatform extends Model
         'slug',
         'description',
         'release_date',
+        'sort',
     ];
 
 }

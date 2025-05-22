@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Class Game
@@ -23,9 +24,16 @@ class Game extends Model
         'name',
         'slug',
         'description',
+        'active',
+        'show_in_list',
         'created_by',
         'created_at',
     ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('active', true);
+    }
 
     public function getModelAttribute()
     {

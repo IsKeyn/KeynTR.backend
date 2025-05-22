@@ -33,6 +33,8 @@ class GameResource extends JsonResource
             'slug' => $this->slug,
             'platforms' => $this->platforms,
             'description' => $this->description,
+            'active' => $this->active,
+            'show_in_list' => $this->show_in_list,
             'release_dates' => ReleaseDateResource::collection($this->dates),
             'anons_dates' => AnonsDateResource::collection($this->anonsDates),
             'title_image' => $image ? MediaResource::make($image) : null,

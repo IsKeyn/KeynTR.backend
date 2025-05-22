@@ -2,8 +2,11 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Game;
+use App\Models\GamingPlatform;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BoardGameGameList extends Model
 {
@@ -12,6 +15,21 @@ class BoardGameGameList extends Model
     protected $fillable = [
         'game_id',
         'board_game_id',
+        'gaming_platform_id',
+        'points',
+        'description',
+        'active',
+        'added_by',
         'created_by',
     ];
+
+    public function game(): BelongsTo
+    {
+        return $this->belongsTo(Game::class, 'game_id');
+    }
+
+    public function platform(): BelongsTo
+    {
+        return $this->belongsTo(GamingPlatform::class, 'gaming_platform_id');
+    }
 }

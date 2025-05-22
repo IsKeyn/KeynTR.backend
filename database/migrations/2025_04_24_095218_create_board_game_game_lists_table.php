@@ -17,6 +17,11 @@ class CreateBoardGameGameListsTable extends Migration
             $table->id();
             $table->foreignId('game_id')->nullable();
             $table->foreignId('board_game_id')->nullable();
+            $table->foreignId('gaming_platform_id')->nullable();
+            $table->text('description')->nullable();
+            $table->bigInteger('points')->nullable();
+            $table->boolean('active')->default(1);
+            $table->foreignId('added_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

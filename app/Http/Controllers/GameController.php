@@ -6,18 +6,21 @@ use App\Http\Resources\GameResource;
 use App\Models\Game;
 use App\Services\ViewsLogService;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class GameController extends Controller
 {
-//    protected $resource = GameResource::class;
-
     public function getList() {
-        $games = Game::query()->get();
+        $games = Game::query()->where('active', true)->where('show_in_list', true)->get();
         return GameResource::collection($games);
     }
 
     public function getGame(Request $request, Game $game) {
-        ViewsLogService::set($request, get_class($game), $game->id);
-        return GameResource::make($game);
+        if ($game->active) {
+            ViewsLogService::set($request, get_class($game), $game->id);
+            return GameResource::make($game);
+        } else {
+            return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+        }
     }
 }

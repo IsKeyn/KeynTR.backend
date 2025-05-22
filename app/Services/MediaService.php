@@ -138,6 +138,8 @@ class MediaService
         $resizesList = [
             300 => [],
             500 => [],
+            1000 => [],
+            1500 => [],
         ];
 
         $returnData = [];

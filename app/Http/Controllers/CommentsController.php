@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CommentResource;
 use App\Models\Comments;
-use App\Services\UserAgentService;
+use App\Services\CommentService;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 
 class CommentsController extends Controller
@@ -75,14 +74,6 @@ class CommentsController extends Controller
             'answer_to' => 'sometimes',
         ]);
 
-        if ($user = $request->user()) {
-            $newComment['created_by'] = $user->id;
-        }
-
-        if ($comment = $this->model::create($newComment)) {
-            UserAgentService::setData($request, $comment);
-
-            return response($comment, Response::HTTP_CREATED);
-        }
+        return CommentService::addComment($request, $newComment);
     }
 }
