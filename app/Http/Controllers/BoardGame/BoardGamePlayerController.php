@@ -4,6 +4,7 @@ namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
+use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\LogResource;
@@ -31,7 +32,7 @@ class BoardGamePlayerController extends Controller
         $steps = $BoardGamePlayerPosition->where('user_id', $id)->where('board_game_id', $request->board_game_id)->orderByDesc('id')->limit(100)->get();
 
         return [
-            'player_info' => BoardGamePlayerResource::make($player),
+            'player_info' => BoardGamePlayerFullResource::make($player),
             'inventory' => BoardGameInventoryResource::collection($inventory),
             'logs' => LogResource::collection($logs),
             'steps' => BoardGamePlayerPositionsResource::collection($steps),

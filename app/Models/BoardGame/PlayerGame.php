@@ -2,6 +2,7 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Comments;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,5 +29,10 @@ class PlayerGame extends Model
     public function game(): BelongsTo
     {
         return $this->belongsTo(BoardGameGameList::class, 'board_game_game_list_id');
+    }
+
+    public function comment(): BelongsTo
+    {
+        return $this->belongsTo(Comments::class, 'comment_id');
     }
 }

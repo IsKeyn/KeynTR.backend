@@ -18,6 +18,7 @@ use App\Http\Controllers\BoardGame\LogController;
 use App\Http\Controllers\BoardGame\PlayerGameController;
 use App\Http\Controllers\BoardGame\PositionController;
 use App\Http\Controllers\BoardGame\BoardGameItemController;
+use App\Http\Controllers\BoardGame\TimerController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
@@ -262,6 +263,13 @@ Route::name('api.')->group(function() {
             Route::post('roll', 'roll')->name('roll');
             Route::post('add', 'add')->name('add');
             Route::post('update', 'update')->name('update');
+        });
+
+        Route::prefix('timer/')->controller(TimerController::class)->name('.timer')->group(function () {
+            Route::post('start', 'start')->name('start');
+            Route::post('stop', 'stop')->name('stop');
+            Route::post('edit', 'edit')->name('edit');
+            Route::post('status', 'status')->name('status');
         });
     });
 

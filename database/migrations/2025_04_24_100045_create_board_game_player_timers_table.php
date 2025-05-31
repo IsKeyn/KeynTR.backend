@@ -16,6 +16,7 @@ class CreateBoardGamePlayerTimersTable extends Migration
         Schema::create('board_game_player_timers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable();
+            $table->foreignId('board_game_id')->nullable();
             $table->timestamp('time_start')->nullable();
             $table->timestamp('time_stop')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

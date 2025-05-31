@@ -3,6 +3,7 @@
 namespace App\Http\Resources\BoardGame;
 
 
+use App\Http\Resources\CommentResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class PlayerGameResource extends JsonResource
@@ -23,6 +24,7 @@ class PlayerGameResource extends JsonResource
             'status' => $this->status,
             'board_game_id' => $this->board_game_id,
             'comment_id' => $this->comment_id,
+            'comment' => CommentResource::make($this->comment),
             'time' => $this->time,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
