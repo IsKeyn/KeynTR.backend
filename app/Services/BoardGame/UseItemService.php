@@ -9,6 +9,7 @@ use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
+use App\Models\BoardGame\Timer;
 use App\Models\User\Notification;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -69,6 +70,11 @@ class UseItemService
                                 case 'applyStatusEffect':
                                     $this->activateEffect($request, $user, $action, $statusEffect, $BoardGamePlayer,
                                         $PlayerStatusEffect, $BoardGamePlayerPosition, $notification);
+                                    break;
+
+                                case 'addTime':
+                                    $this->actionsWithTime($request, $action, $user, $BoardGamePlayer,
+                                        $BoardGamePlayerPosition, $notification);
                                     break;
                             }
                         } elseif (isset($action->target) && $action->target) {
@@ -160,6 +166,24 @@ class UseItemService
                     $this->createNotification($player, $user, $request, $notification);
                 }
             }
+        }
+    }
+
+    private function actionsWithTime($request, $action, $user, $BoardGamePlayer, $BoardGamePlayerPosition, $notification)
+    {
+        $timer = Timer::query()
+            ->where('user_id', $user->id)
+            ->where('board_game_id', $request->board_game_id)
+            ->where('slug','main')
+            ->where('active', true)
+            ->orderBy('id', 'desc')->first();
+
+        if ($action->type === 'addTime') {
+            $fields = [
+                'limit' => $timer->limit + $action->value,
+            ];
+
+            return $timer->update($fields);
         }
     }
 

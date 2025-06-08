@@ -260,6 +260,7 @@ Route::name('api.')->group(function() {
 
         Route::prefix('player-game/')->controller(PlayerGameController::class)->name('.player-game')->group(function () {
             Route::get('get-player-list', 'getPlayerList')->name('get-player-list');
+            Route::get('get-spend-time', 'getSpendTime')->name('get-spend-time');
             Route::post('roll', 'roll')->name('roll');
             Route::post('add', 'add')->name('add');
             Route::post('update', 'update')->name('update');
@@ -270,6 +271,9 @@ Route::name('api.')->group(function() {
             Route::post('stop', 'stop')->name('stop');
             Route::post('edit', 'edit')->name('edit');
             Route::post('status', 'status')->name('status');
+            Route::get('list', 'list')->name('list');
+            Route::post('add', 'add')->name('add');
+            Route::delete('delete', 'delete')->name('delete');
         });
     });
 

@@ -8,7 +8,7 @@ use App\Services\BoardGame\PlayerGameService;
 use App\Services\BoardGame\TimerService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PlayerGameResource extends JsonResource
+class PlayerGameShortResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -32,7 +32,6 @@ class PlayerGameResource extends JsonResource
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'other_players_actions' => PlayerGameService::actionsWithGame($this->board_game_game_list_id, $this->board_game_id),
         ];
     }
 }

@@ -9,6 +9,7 @@ use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameItem;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
+use App\Services\BoardGame\TimerService;
 use App\Services\CommentService;
 use Illuminate\Http\Request;
 
@@ -168,5 +169,20 @@ class PlayerGameController extends Controller
         return $boardGameGameList->filter(function ($value) use ($usedGames) {
             return !in_array($value->id, $usedGames);
         });
+    }
+
+    public function getSpendTime(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user) {
+            $playerGame = PlayerGame::query()
+                ->where('user_id', $user->id)
+                ->where('board_game_id', $request->board_game_id)
+                ->where('status', PlayerGame::CURRENT)
+                ->first();
+
+            return TimerService::timeInGame($playerGame);
+        }
     }
 }

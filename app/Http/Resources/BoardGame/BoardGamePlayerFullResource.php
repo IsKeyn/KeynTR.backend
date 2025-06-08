@@ -7,7 +7,9 @@ use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerStatusEffect;
+use App\Models\BoardGame\Timer;
 use App\Models\User;
+use App\Services\BoardGame\TimerService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class BoardGamePlayerFullResource extends JsonResource
@@ -36,6 +38,13 @@ class BoardGamePlayerFullResource extends JsonResource
             $fullPoints += $position->position;
         }
 
+//        $timer = Timer::query()
+//            ->where('user_id', $this->user_id)
+//            ->where('board_game_id', $this->board_game_id)
+//            ->where('slug','main')
+//            ->where('active', true)
+//            ->orderBy('id', 'desc')->first();
+
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
@@ -47,6 +56,7 @@ class BoardGamePlayerFullResource extends JsonResource
             'current_game' => PlayerGameResource::make($playerCurrentGame),
             'player_games' => PlayerGameResource::collection($playerGames),
             'status_effects' => PlayerStatusEffectResource::collection($playerStatusEffect),
+//            'timer_status' =>  TimerService::getTimerStatus($timer),
             'user' => UserPublicResource::make($user),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,

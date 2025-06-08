@@ -48,6 +48,12 @@ class AdminEntityController extends Controller {
 
         $entity = $model::create($params);
 
+        $mediaService = new MediaService();
+
+        if (isset($params['title_image'])) {
+            $mediaService->setTitleImage($entity, $params['title_image']);
+        }
+
 //        $mediaService = new MediaService();
 
 //        if (isset($params['gallery'])) {
@@ -74,6 +80,12 @@ class AdminEntityController extends Controller {
         if ($id) {
             if ($entity = $model::where('id', $id)->first()) {
                 $params = $request->all();
+
+                $mediaService = new MediaService();
+
+                if (isset($params['title_image'])) {
+                    $mediaService->setTitleImage($entity, $params['title_image']);
+                }
 
 //                $mediaService = new MediaService();
 //
