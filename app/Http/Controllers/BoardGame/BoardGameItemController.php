@@ -77,4 +77,8 @@ class BoardGameItemController extends Controller
     {
         return BoardGameItemResource::make($BoardGameItem);
     }
+
+    public function destroy(BoardGameItem $BoardGameItem) {
+        return $BoardGameItem->delete();
+    }
 }

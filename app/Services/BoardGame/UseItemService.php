@@ -3,6 +3,7 @@
 namespace App\Services\BoardGame;
 
 use App\Models\Block;
+use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameItem;
 use App\Models\BoardGame\BoardGamePlayer;
@@ -178,12 +179,27 @@ class UseItemService
             ->where('active', true)
             ->orderBy('id', 'desc')->first();
 
-        if ($action->type === 'addTime') {
-            $fields = [
-                'limit' => $timer->limit + $action->value,
+        if ($timer) {
+            if ($action->type === 'addTime') {
+                $fields = [
+                    'limit' => $timer->limit + $action->value,
+                ];
+
+                return $timer->update($fields);
+            }
+        } else {
+            $boardGame = BoardGame::query()->where('id', $request->board_game_id)->first();
+
+            $timerFields = [
+                'user_id' => $user->id,
+                'board_game_id' => $request->board_game_id,
+                'name' => $boardGame->name,
+                'limit' => 100*60*60 + $action->value,
+                'slug' => 'main',
+                'created_by' => $user->id,
             ];
 
-            return $timer->update($fields);
+            Timer::create($timerFields);
         }
     }
 
