@@ -8,10 +8,12 @@ use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\LogResource;
+use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameLog;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Models\BoardGame\Timer;
 use Illuminate\Http\Request;
 
 class BoardGamePlayerController extends Controller
@@ -60,6 +62,21 @@ class BoardGamePlayerController extends Controller
             ];
 
             $currentPlayer = $BoardGamePlayer::create($fields);
+
+            if ($currentPlayer) {
+                $boardGame = BoardGame::query()->where('id', $request->board_game_id)->first();
+
+                $timerFields = [
+                    'user_id' => $user->id,
+                    'board_game_id' => $request->board_game_id,
+                    'name' => $boardGame->name,
+                    'limit' => 100*60*60,
+                    'slug' => 'main',
+                    'created_by' => $user->id,
+                ];
+
+                Timer::create($timerFields);
+            }
         }
 
         return BoardGamePlayerResource::make($currentPlayer);

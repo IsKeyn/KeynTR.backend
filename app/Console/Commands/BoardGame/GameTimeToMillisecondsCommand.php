@@ -49,7 +49,7 @@ class GameTimeToMillisecondsCommand extends Command
                     );
 
                     if ($game->update($fields)) {
-                        $this->line('Время обновлено у элемента с ID: ' . $game->id . ' | ' . $game->time . '=> ' . $time);
+                        $this->line('Время обновлено у элемента с ID: ' . $game->id . ' | ' . $game->time . ' => ' . $time);
                     }
                 }
             }

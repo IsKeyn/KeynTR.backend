@@ -145,6 +145,8 @@ class TimerController extends Controller
                 ->where('active', true)
                 ->orderBy('id', 'desc')->first();
 
+            $boardGame = BoardGame::query()->where('id', $request->board_game_id)->first();
+
             if ($timer) {
                 $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
                     ->where('timer_id', $timer->id)->get();
@@ -155,15 +157,13 @@ class TimerController extends Controller
 
                 $fields = [
                     'timer_id' => $timer->id,
-                    'time_start' => Carbon::now()->subSeconds($request->seconds),
-                    'time_stop' => Carbon::now(),
+                    'time_start' => Carbon::parse($boardGame->created_at)->setTimezone('Europe/Moscow')->setTimezone('Europe/Moscow'),
+                    'time_stop' => Carbon::parse($boardGame->created_at)->setTimezone('Europe/Moscow')->addSecond($request->seconds),
                     'created_by' => $user->id,
                 ];
 
                 return BoardGamePlayerTimer::create($fields);
             } else {
-                $boardGame = BoardGame::query()->where('id', $request->board_game_id)->first();
-
                 $timerFields = [
                     'user_id' => $user->id,
                     'board_game_id' => $request->board_game_id,
