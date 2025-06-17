@@ -60,11 +60,14 @@ class GameService extends ServiceProvider
             $arDatesIds = [];
 
             foreach ($anonsDates as $item) {
-                // Ищем дату, которая равна переданой и привязана к текущеё сущности
+                /* Ищем дату, которая равна переданой и привязана к текущеё сущности с типом DATE_ANONS_TYPE */
                 $dateQuery = Date::where('date', $item['date']);
-                $dateQuery->whereHas('gamesAnons', function ($q) use ($entity) {
-                    $q->where('games.id', $entity->id);
-                });
+                $dateQuery->whereHas(
+                    'gamesAnons',
+                    function ($q) use ($entity) {
+                        $q->where('games.id', $entity->id);
+                    }
+                );
 
                 $dateEntity = $dateQuery->first();
 

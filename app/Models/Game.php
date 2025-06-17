@@ -72,12 +72,18 @@ class Game extends Model
 
     public function dates()
     {
-        return $this->morphToMany(Date::class, 'date_bind')->withPivot('type');
+        return $this->morphToMany(Date::class, 'date_bind')
+            ->withPivot('type')
+            ->wherePivot('type', '=', null)
+            ->withTimestamps();
     }
 
     public function anonsDates()
     {
-        return $this->morphToMany(Date::class, 'date_bind')->withPivot('type')->wherePivot('type', '=', Game::DATE_ANONS_TYPE);
+        return $this->morphToMany(Date::class, 'date_bind')
+            ->withPivot('type')
+            ->wherePivot('type', '=', Game::DATE_ANONS_TYPE)
+            ->withTimestamps();
     }
 
     public function gamePlatform()

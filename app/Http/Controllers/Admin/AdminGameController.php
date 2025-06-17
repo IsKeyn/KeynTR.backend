@@ -126,9 +126,9 @@ class AdminGameController extends Controller {
             }
         }
 
-//        if (isset($validated['anons_dates'])) {
-//            GameService::setAnonsDates($model, $validated['anons_dates']);
-//        }
+        if (isset($validated['anons_dates'])) {
+            GameService::setAnonsDates($model, $validated['anons_dates']);
+        }
 
         if (isset($validated['release_dates'])) {
             GameService::setReleaseDates($model, $validated['release_dates']);
