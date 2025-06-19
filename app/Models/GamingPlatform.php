@@ -11,6 +11,7 @@ class GamingPlatform extends Model
 
     protected $fillable = [
         'name',
+        'short_name',
         'slug',
         'description',
         'release_date',
