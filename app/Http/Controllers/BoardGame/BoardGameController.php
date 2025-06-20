@@ -40,7 +40,7 @@ class BoardGameController extends Controller
 
         return [
             'items' => BoardGameItemResource::collection($items),
-            'inventory' => BoardGameInventoryResource::collection($inventory),
+            'inventory' => isset($inventory) ? BoardGameInventoryResource::collection($inventory) : '',
         ];
     }
 
