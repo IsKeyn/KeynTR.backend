@@ -19,7 +19,7 @@ class StatsController extends Controller
         $cacheKey = 'board_game_stats_cache_' . $request->board_game_id . '_' . $request->limit;
         $minutes = 1440; // 24 часа в минутах
 
-//        return Cache::remember($cacheKey, $minutes, function () use ($request) {
+        return Cache::remember($cacheKey, $minutes, function () use ($request) {
             $StatsService = new StatsService();
 
             $playerGames = PlayerGame::query()->where('board_game_id', $request->board_game_id)->get();
@@ -123,6 +123,6 @@ class StatsController extends Controller
             }
 
             return $returnData;
-//        });
+        });
     }
 }
