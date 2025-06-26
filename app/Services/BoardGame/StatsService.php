@@ -52,16 +52,16 @@ class StatsService
             if (isset($data['statuses'][$status])) {
                 $game->setAttribute('additional_data', $data['statuses'][$status]);
                 $gameCollection->push($game);
-            }
 
-            $i++;
+                $i++;
 
-            if ($i === $limit) {
-                break;
+                if ($i === $limit) {
+                    break;
+                }
             }
         }
 
-        return $gameCollection;
+        return $gameCollection->sortByDesc('additional_data');
     }
 
     public function getUserWhoMostUseItem($itemId, $boardGameId, $limit = 5)
@@ -100,7 +100,7 @@ class StatsService
             }
         }
 
-        return $result;
+        return $result->sortByDesc('additional_data');
     }
 
     public function getGamesByTime($boardGameId, $sort = 'asc', $limit = 5)
@@ -122,14 +122,14 @@ class StatsService
                     'time' => $game->time,
                 ];
             } else {
-                if ($sort === 'asc' && $tempResult[$game->board_game_game_list_id] > $game->time) {
+                if ($sort === 'asc' && $tempResult[$game->board_game_game_list_id]['time'] > $game->time) {
                     $tempResult[$game->board_game_game_list_id] = [
                         'id' => $game->id,
                         'time' => $game->time,
                     ];
                 }
 
-                if ($sort === 'desc' && $tempResult[$game->board_game_game_list_id] < $game->time) {
+                if ($sort === 'desc' && $tempResult[$game->board_game_game_list_id]['time'] < $game->time) {
                     $tempResult[$game->board_game_game_list_id] = [
                         'id' => $game->id,
                         'time' => $game->time,

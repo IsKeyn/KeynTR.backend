@@ -39,10 +39,16 @@ class StatsController extends Controller
             $longestGames = $StatsService->getGamesByTime($request->board_game_id, 'desc', $limit);
 
             /* Больше всего использовано бананов */
-            $playerMostUseBanana = $StatsService->getUserWhoMostUseItem(BoardGameItem::where('slug', '=', 'tuhlyi-banan')->first()->id, $request->board_game_id, $limit);
+            $bananaItem = BoardGameItem::where('slug', '=', 'tuhlyi-banan')->first();
+            if ($bananaItem && $bananaId = $bananaItem->id) {
+                $playerMostUseBanana = $StatsService->getUserWhoMostUseItem($bananaId, $request->board_game_id, $limit);
+            }
 
             /* Больше всего использовано бомб */
-            $playerMostUseBomb = $StatsService->getUserWhoMostUseItem(BoardGameItem::where('slug', '=', 'bomb')->first()->id, $request->board_game_id, $limit);
+            $bomb = BoardGameItem::where('slug', '=', 'bomb')->first();
+            if ($bomb && $bombId = $bomb->id) {
+                $playerMostUseBomb = $StatsService->getUserWhoMostUseItem(BoardGameItem::where('slug', '=', 'bomb')->first()->id, $request->board_game_id, $limit);
+            }
 
             /* Активность */
             $activity = [];
@@ -65,36 +71,58 @@ class StatsController extends Controller
 
             ksort($activity);
 
-            return [
-                'mostCompletedGames' => [
+            $returnData = [];
+
+            if (isset($mostCompletedGames)) {
+                $returnData['mostCompletedGames'] = [
                     'name' => 'Пройденные наибольшее количество раз игры',
                     'data' => PlayerGameResource::collection($mostCompletedGames)
-                ],
-                'mostRerolledGames' => [
+                ];
+            }
+
+            if (isset($mostRerolledGames)) {
+                $returnData['mostRerolledGames'] = [
                     'name' => 'Наиболее релолящиеся игры',
                     'data' => PlayerGameResource::collection($mostRerolledGames)
-                ],
-                'shortestGames' => [
+                ];
+            }
+
+            if (isset($shortestGames)) {
+                $returnData['shortestGames'] = [
                     'name' => 'Наиболее короткие игры',
                     'data' => PlayerGameResource::collection($shortestGames)
-                ],
-                'longestGames' => [
+                ];
+            }
+
+            if (isset($longestGames)) {
+                $returnData['longestGames'] = [
                     'name' => 'Наиболее длинные игры',
                     'data' => PlayerGameResource::collection($longestGames)
-                ],
-                'maxBananaCount' => [
+                ];
+            }
+
+            if (isset($playerMostUseBanana)) {
+                $returnData['maxBananaCount'] = [
                     'name' => 'По улицам пройдется и бананов обожрется...',
                     'data' => BoardGamePlayerResource::collection($playerMostUseBanana)
-                ],
-                'kirovReporting' => [
+                ];
+            }
+
+            if (isset($playerMostUseBomb)) {
+                $returnData['kirovReporting'] = [
                     'name' => 'Киров репортинг, больше всего использованных бомб',
                     'data' => BoardGamePlayerResource::collection($playerMostUseBomb)
-                ],
-                'activity' => [
+                ];
+            }
+
+            if (isset($activity)) {
+                $returnData['activity'] = [
                     'name' => 'Активность',
                     'data' => array_slice($activity, -30),
-                ],
-            ];
+                ];
+            }
+
+            return $returnData;
         });
     }
 }
