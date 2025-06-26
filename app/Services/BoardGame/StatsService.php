@@ -47,9 +47,8 @@ class StatsService
 
         $i = 0;
         foreach ($gameList as $gameId => $data) {
-            $game = $playerGames->where('board_game_game_list_id', $gameId)->first();
-
             if (isset($data['statuses'][$status])) {
+                $game = $playerGames->where('board_game_game_list_id', $gameId)->first();
                 $game->setAttribute('additional_data', $data['statuses'][$status]);
                 $gameCollection->push($game);
 

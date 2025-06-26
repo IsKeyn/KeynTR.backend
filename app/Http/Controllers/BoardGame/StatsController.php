@@ -19,12 +19,12 @@ class StatsController extends Controller
         $cacheKey = 'board_game_stats_cache_' . $request->board_game_id . '_' . $request->limit;
         $minutes = 1440; // 24 часа в минутах
 
-        return Cache::remember($cacheKey, $minutes, function () use ($request) {
+//        return Cache::remember($cacheKey, $minutes, function () use ($request) {
             $StatsService = new StatsService();
 
             $playerGames = PlayerGame::query()->where('board_game_id', $request->board_game_id)->get();
             $gameList = $StatsService->getGameList($playerGames);
-            $limit = $request->limit ? $request->limit : 5;
+            $limit = $request->limit ? (int)$request->limit : 5;
 
             /* Самая часто проходимая игра */
             $mostCompletedGames = $StatsService->getGamesListByStatus($playerGames, $gameList, PlayerGame::COMPLETED, $limit);
@@ -123,6 +123,6 @@ class StatsController extends Controller
             }
 
             return $returnData;
-        });
+//        });
     }
 }
