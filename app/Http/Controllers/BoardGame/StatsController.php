@@ -42,7 +42,7 @@ class StatsController extends Controller
             $playerMostUseBanana = $StatsService->getUserWhoMostUseItem(BoardGameItem::where('slug', '=', 'tuhlyi-banan')->first()->id, $request->board_game_id, $limit);
 
             /* Больше всего использовано бомб */
-            $playerMostUseBomb = $StatsService->getUserWhoMostUseItem(BoardGameItem::where('slug', '=', 'bomba')->first()->id, $request->board_game_id, $limit);
+            $playerMostUseBomb = $StatsService->getUserWhoMostUseItem(BoardGameItem::where('slug', '=', 'bomb')->first()->id, $request->board_game_id, $limit);
 
             /* Активность */
             $activity = [];
