@@ -57,7 +57,7 @@ class StatsController extends Controller
                 ->where('board_game_id', $request->board_game_id)
                 ->get();
 
-            $format = 'd:m:Y';
+            $format = 'd.m.Y';
 
             foreach ($logs as $log) {
                 if ($log->created_at) {
