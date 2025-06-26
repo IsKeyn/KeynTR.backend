@@ -20,7 +20,7 @@ class CreatePlayerGamesTable extends Migration
             $table->integer('status')->nullable();
             $table->foreignId('board_game_id');
             $table->foreignId('comment_id')->nullable();
-            $table->string('time')->nullable();
+            $table->bigInteger('time')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

@@ -28,6 +28,7 @@ class PlayerGameResource extends JsonResource
             'comment_id' => $this->comment_id,
             'comment' => CommentResource::make($this->comment),
             'time' => $this->time,
+            'additional_data' => $this->additional_data,
             'timeSpend' => TimerService::timeInGame($this),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,

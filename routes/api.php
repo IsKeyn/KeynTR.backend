@@ -18,6 +18,7 @@ use App\Http\Controllers\BoardGame\LogController;
 use App\Http\Controllers\BoardGame\PlayerGameController;
 use App\Http\Controllers\BoardGame\PositionController;
 use App\Http\Controllers\BoardGame\BoardGameItemController;
+use App\Http\Controllers\BoardGame\StatsController;
 use App\Http\Controllers\BoardGame\TimerController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\ErrorController;
@@ -34,7 +35,6 @@ use App\Http\Controllers\SocialController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\System\ParamController;
 use App\Http\Controllers\TagsController;
-use App\Http\Controllers\TwitchController;
 use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\ViewsLogController;
 use App\Http\Controllers\VotesLogController;
@@ -237,6 +237,10 @@ Route::name('api.')->group(function() {
         Route::prefix('log/')->controller(LogController::class)->name('.log')->group(function() {
             Route::post('add', 'add')->name('add');
             Route::get('list', 'getLogListById')->name('list');
+        });
+
+        Route::prefix('stats/')->controller(StatsController::class)->name('.stats')->group(function() {
+            Route::get('get', 'get')->name('get');
         });
 
         Route::prefix('position/')->controller(PositionController::class)->name('.position')->group(function() {
