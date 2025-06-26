@@ -69,7 +69,7 @@ class StatsController extends Controller
                 }
             }
 
-            ksort($activity);
+//            ksort($activity);
 
             $returnData = [];
 
