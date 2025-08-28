@@ -3,11 +3,10 @@
 namespace App\Http\Resources\BoardGame;
 
 use App\Http\Resources\MediaResource;
-use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardGameResource extends JsonResource
+class BoardGameShortResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,6 +14,13 @@ class BoardGameResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
+
+    public function __construct($resource, $additionalData = null)
+    {
+        parent::__construct($resource);
+        $this->additionalData = $additionalData;
+    }
+
     public function toArray($request)
     {
         $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
@@ -28,10 +34,9 @@ class BoardGameResource extends JsonResource
             'image' => $image ? MediaResource::make($image) : null,
             'active' => $this->active,
             'status' => $this->status,
-            'players' => BoardGamePlayerResource::collection($this->players->sortByDesc('points')),
-            'created_by' => $this->created_by,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'started_at' => $this->started_at,
+            'ended_at' => $this->ended_at,
+            'player' => $this->additionalData ? BoardGamePlayerShortResource::make($this->additionalData) : null,
         ];
     }
 }

@@ -30,6 +30,11 @@ class Game extends Model
         'created_at',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+        'show_in_list' => 'boolean',
+    ];
+
     public function scopeActive($query)
     {
         return $query->where('active', true);

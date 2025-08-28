@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBoardGamesTable extends Migration
+class CreateBgItemsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,15 @@ class CreateBoardGamesTable extends Migration
      */
     public function up()
     {
-        Schema::create('board_games', function (Blueprint $table) {
+        Schema::create('bg_items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
-            $table->json('settings')->nullable();
+            $table->json('actions')->nullable();
+            $table->bigInteger('type')->default(0);
             $table->boolean('active')->default(true);
-            $table->boolean('is_close')->default(false);
-            $table->dateTime('started_at')->nullable();
-            $table->dateTime('ended_at')->nullable();
+            $table->foreignId('author')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
@@ -35,6 +34,6 @@ class CreateBoardGamesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('board_games');
+        Schema::dropIfExists('bg_items');
     }
 }

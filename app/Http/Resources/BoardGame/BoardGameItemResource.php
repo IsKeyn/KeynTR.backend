@@ -28,6 +28,7 @@ class BoardGameItemResource extends JsonResource
             'board_game_id' => $this->board_game_id,
             'image' => $image ? MediaResource::make($image) : null,
             'active' => $this->active,
+            'item' => ItemResource::make($this->item),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

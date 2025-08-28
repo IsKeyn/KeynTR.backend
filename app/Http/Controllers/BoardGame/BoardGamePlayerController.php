@@ -15,9 +15,33 @@ use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\Timer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class BoardGamePlayerController extends Controller
 {
+    public function getByBoardGameSlug(
+        $slug,
+        BoardGame $BoardGame,
+        BoardGamePlayer $BoardGamePlayer
+    )
+    {
+        $user = Auth::user();
+
+        if ($user) {
+            $cacheKey = 'board_game_' . $slug . '_player_' . $user->id . '_cache';
+            $minutes = 60 * 24 * 30; // 30 дней
+
+            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $user, $slug) {
+                $id = $BoardGame->findBySlug($slug)->value('id');
+
+                $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
+
+                return BoardGamePlayerFullResource::make($player);
+            });
+        }
+    }
+
     public function get(
         $id,
         Request $request,

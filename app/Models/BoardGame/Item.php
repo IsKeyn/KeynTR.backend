@@ -5,10 +5,11 @@ namespace App\Models\BoardGame;
 use App\Models\Media;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BoardGameItem extends Model
+class Item extends Model
 {
+    protected $table = 'bg_items';
+
     use HasFactory;
 
     const TYPES = [
@@ -17,7 +18,6 @@ class BoardGameItem extends Model
     ];
 
     protected $fillable = [
-        'item_id',
         'name',
         'slug',
         'description',
@@ -25,7 +25,10 @@ class BoardGameItem extends Model
         'type',
         'board_game_id',
         'active',
+        'author',
         'created_by',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -40,10 +43,5 @@ class BoardGameItem extends Model
     public function media()
     {
         return $this->morphToMany(Media::class, 'media_bind');
-    }
-
-    public function item(): BelongsTo
-    {
-        return $this->belongsTo(Item::class);
     }
 }

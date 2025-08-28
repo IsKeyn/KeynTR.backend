@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\CacheService;
 use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +61,14 @@ class AdminEntityController extends Controller {
 //            $mediaService->setGallery($entity, $params['gallery']);
 //        }
 
+        /* Сброс кеша */
+        CacheService::setJobForDelete(
+            $entityName,
+            $entityFolder,
+            $params['slug'],
+            $params['ended_at'],
+        );
+
         return $entity;
     }
 
@@ -92,6 +101,14 @@ class AdminEntityController extends Controller {
 //                if (isset($params['gallery'])) {
 //                    $mediaService->setGallery($entity, $params['gallery']);
 //                }
+                /* Сброс кеша */
+                CacheService::forgetEntityCache(
+                    $entityName,
+                    $entityFolder,
+                    $params['slug'],
+                    $params['ended_at'],
+                    $entity->ended_at,
+                );
 
                 return $entity->update($params);
             } else {

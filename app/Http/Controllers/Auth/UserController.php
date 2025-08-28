@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Media;
+use App\Models\User;
 use App\Services\AdditionalFieldsService;
 use App\Services\MediaService;
 use App\Services\TwitchService;
@@ -99,5 +100,35 @@ class UserController extends Controller
             $additionalFieldsService = new AdditionalFieldsService();
             $additionalFieldsService->sync($model, $validated['additional_fields']);
         }
+    }
+
+    public function setSettings(Request $request): UserResource
+    {
+        $validated = $request->validate([
+            'theme' => 'sometimes|string',
+            'soundVolume' => 'sometimes|numeric',
+        ]);
+
+        $user = Auth::user();
+
+        if ($user) {
+            $settings = $user->settings;
+
+            foreach ($validated as $settingName => $settingValue) {
+                $settings[$settingName] = $settingValue;
+            }
+
+            $user->settings = $settings;
+            $user->save();
+
+            return UserResource::make($user);
+        }
+    }
+
+    public function getFullProfile($name, Request $request): UserResource
+    {
+        $user = User::where('name', $name)->first();
+
+        return UserResource::make($user);
     }
 }

@@ -1,25 +1,6 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminBoardGameController;
-use App\Http\Controllers\Admin\AdminGameController;
-use App\Http\Controllers\Admin\AdminMediaGroupController;
-use App\Http\Controllers\Admin\AdminMovieController;
-use App\Http\Controllers\Admin\AdminPageController;
 use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\UserController;
-use App\Http\Controllers\BoardGame\BoardGameController;
-use App\Http\Controllers\BoardGame\BoardGameInventoryController;
-use App\Http\Controllers\BoardGame\BoardGamePlayerController;
-use App\Http\Controllers\BoardGame\DiceController;
-use App\Http\Controllers\BoardGame\GameListController;
-use App\Http\Controllers\BoardGame\LogController;
-use App\Http\Controllers\BoardGame\PlayerGameController;
-use App\Http\Controllers\BoardGame\PositionController;
-use App\Http\Controllers\BoardGame\BoardGameItemController;
-use App\Http\Controllers\BoardGame\StatsController;
-use App\Http\Controllers\BoardGame\TimerController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
@@ -33,18 +14,12 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SlideController;
 use App\Http\Controllers\SocialController;
 use App\Http\Controllers\SubscriptionController;
-use App\Http\Controllers\System\ParamController;
 use App\Http\Controllers\TagsController;
-use App\Http\Controllers\User\NotificationController;
 use App\Http\Controllers\ViewsLogController;
 use App\Http\Controllers\VotesLogController;
 use App\Http\Controllers\YouTubeController;
 use App\Services\SearchService;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AdminArticlePagesController;
-use App\Http\Controllers\Admin\AdminEntityController;
-use App\Http\Controllers\Admin\AdminMediaPagesController;
-use App\Http\Controllers\Admin\AdminSlideController;
 use App\Http\Resources\UserResource;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
@@ -67,40 +42,8 @@ Route::name('api.')->group(function() {
     // Общие
     Route::get('csrf', function () { return csrf_token(); });
 
-    // Авторизация и стандартные действия не авторизированного пользователя
-    Route::prefix('auth/')->name('auth.')->middleware('guest:api')->group(function() {
-        Route::post('login', [LoginController::class, 'login'])->name('login');
-
-        Route::controller(RegisterController::class)->group(function() {
-            Route::post('register', 'register')->name('register');
-            Route::post('forgot-password', 'sendResetLink')->name('send-reset-link');
-            Route::post('reset-password', 'resetPassword')->name('reset-password');
-        });
-    });
-
-//    Route::get('user', [UserController::class, 'authUser'])->name('user'); // TODO где используется данный роут?
-
-
-    // Действия авторизированного пользователя
-    Route::prefix('auth/')->name('auth.')->middleware('auth:sanctum')->group(function() {
-        Route::get('logout', [LoginController::class, 'logout'])->name('logout');
-
-        Route::controller(UserController::class)->group(function() {
-            Route::get('user', 'authUser')->name('user');
-            Route::post('verification-notification', 'sendVerificationNotification')
-                ->middleware(['throttle:6,1'])->name('verification.send');
-            Route::post('setAvatar', 'setAvatar')->name('set-avatar');
-            Route::post('update-profile', 'updateProfile')->name('update-profile');
-        });
-
-        Route::controller(NotificationController::class)->prefix('notification/')->name('notification')->group(function () {
-            Route::get('get', 'GetCurrentUserNotifications')->name('GetCurrentUserNotifications');
-            Route::get('getCount', 'GetCountUserNotifications')->name('GetCountUserNotifications');
-            Route::post('set', 'set')->name('set');
-            Route::post('set-viewed', 'SetViewed')->name('set-viewed');
-        });
-    });
-
+    // Действия пользователя
+    Route::name('auth.')->group(base_path('routes/api/auth/v1.php'));
 
     // Ошибки
     Route::prefix('error/')->controller(ErrorController::class)->name('error')->group(function() {
@@ -216,131 +159,12 @@ Route::name('api.')->group(function() {
         Route::post('lastVideo', 'getLastVideos')->name('get-last-videos');
     });
 
-
-    // Работа с сущностью board-game
-    /* TODO для сущностей, которые требует авторизации добавить middleware('auth:sanctum') */
-    Route::prefix('board-game/')->name('.board-game')->group(function() {
-        Route::get('get/{slug}', [BoardGameController::class, 'getBySlug'])->name('get-by-slug');
-        Route::get('get-list', [BoardGameController::class, 'getList'])->name('get-list');
-        Route::get('getBoardInfo', [BoardGameController::class, 'getBoardInfo'])->name('get-board-info');
-        Route::get('getItemAndInventory', [BoardGameController::class, 'getItemAndInventory'])->name('get-item-and-inventory');
-        Route::get('getStreamersOnline', [BoardGameController::class, 'getStreamersOnline'])->name('streamers-online');
-        Route::post('roll-dice', [DiceController::class, 'rollDice'])->name('roll-dice');
-
-        Route::prefix('player/')->controller(BoardGamePlayerController::class)->name('.player')->group(function() {
-            Route::get('get/{id}', 'get')->name('get');
-            Route::get('list', 'list')->name('list');
-            Route::post('add', 'add')->name('add');
-            Route::post('updatedPoints', 'updatedPoints')->name('update-points');
-        });
-
-        Route::prefix('log/')->controller(LogController::class)->name('.log')->group(function() {
-            Route::post('add', 'add')->name('add');
-            Route::get('list', 'getLogListById')->name('list');
-        });
-
-        Route::prefix('stats/')->controller(StatsController::class)->name('.stats')->group(function() {
-            Route::get('get', 'get')->name('get');
-        });
-
-        Route::prefix('position/')->controller(PositionController::class)->name('.position')->group(function() {
-            Route::post('add', 'add')->name('add');
-        });
-
-        Route::prefix('items/')->controller(BoardGameItemController::class)->name('.items')->group(function() {
-            Route::get('list', 'list')->name('list');
-        });
-
-        Route::prefix('inventory/')->controller(BoardGameInventoryController::class)->name('.inventory')->group(function() {
-            Route::post('add', 'add')->name('add');
-            Route::post('list', 'list')->name('list');
-            Route::delete('destroy', 'destroy')->name('destroy');
-            Route::post('use', 'useItem')->name('use-item');
-        });
-
-        Route::prefix('game-list/')->controller(GameListController::class)->name('.game-list')->group(function() {
-            Route::get('list', 'list')->name('list');
-        });
-
-        Route::prefix('player-game/')->controller(PlayerGameController::class)->name('.player-game')->group(function () {
-            Route::get('get-player-list', 'getPlayerList')->name('get-player-list');
-            Route::get('get-spend-time', 'getSpendTime')->name('get-spend-time');
-            Route::post('roll', 'roll')->name('roll');
-            Route::post('add', 'add')->name('add');
-            Route::post('update', 'update')->name('update');
-        });
-
-        Route::prefix('timer/')->controller(TimerController::class)->name('.timer')->group(function () {
-            Route::post('start', 'start')->name('start');
-            Route::post('stop', 'stop')->name('stop');
-            Route::post('edit', 'edit')->name('edit');
-            Route::post('status', 'status')->name('status');
-            Route::get('list', 'list')->name('list');
-            Route::post('add', 'add')->name('add');
-            Route::delete('delete', 'delete')->name('delete');
-        });
-    });
+    // Работа с настольной игрой
+    Route::name('board-game.')->group(base_path('routes/api/board-game/v1.php'));
+    Route::name('board-game.')->group(base_path('routes/api/board-game/v2.php'));
 
     // Действия в админке
-    Route::prefix('admin/')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])->group(function() {
-        Route::prefix('BoardGame')->name('BoardGame.')->group(function () {
-            Route::resource('BoardGameItem', BoardGameItemController::class);
-            Route::resource('BoardGameInventory', BoardGameInventoryController::class);
-
-            Route::controller(AdminBoardGameController::class)->group(function () {
-                Route::get('{entityName}', 'index')->name('index');
-                Route::post('{entityName}', 'store')->name('store');
-                Route::put('{entityName}/{id}', 'update')->name('update');
-                Route::delete('{entityName}/{id}', 'destroy')->name('destroy');
-                Route::get('{entityName}/{id}/edit','edit')->name('edit');
-
-                Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
-                Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
-                Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
-            });
-        });
-
-        Route::prefix('entity')->controller(AdminEntityController::class)->name('entity.')->group(function () {
-            Route::get('{entityName}', 'index')->name('index');
-            Route::post('{entityName}', 'store')->name('store');
-            Route::put('{entityName}/{id}', 'update')->name('update');
-            Route::delete('{entityName}/{id}', 'destroy')->name('destroy');
-            Route::get('{entityName}/{id}/edit','edit')->name('edit');
-
-            Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
-            Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
-            Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
-
-            Route::prefix('{folder}')->controller(AdminEntityController::class)->name('{folder}.')->group(function () {
-                Route::get('{entityName}', 'index')->name('index');
-                Route::post('{entityName}', 'store')->name('store');
-                Route::put('{entityName}/{id}', 'update')->name('update');
-                Route::delete('{entityName}/{id}', 'destroy')->name('destroy');
-                Route::get('{entityName}/{id}/edit','edit')->name('edit');
-
-                Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
-                Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
-                Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
-            });
-        });
-
-        Route::resource('media', AdminMediaPagesController::class);
-        Route::prefix('media/')->controller(AdminMediaPagesController::class)->name('media.')->group(function() {
-            Route::post('multi-store', 'multiStore')->name('multi-store');
-        });
-
-        Route::resource('pages', AdminPageController::class);
-        Route::resource('articles', AdminArticlePagesController::class);
-        Route::resource('slides', AdminSlideController::class);
-
-        Route::get('game/get-additional-data', [AdminGameController::class, 'getAdditionalData'])->name('game.get-additional-data');
-        Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');
-        Route::resource('game', AdminGameController::class);
-        Route::resource('movie', AdminMovieController::class);
-        Route::resource('media-group', AdminMediaGroupController::class);
-
-        Route::get('param-value/{paramName}', [ParamController::class, 'getPhpParamValue'])->name('param.value');
-    });
+    Route::name('admin.')->group(base_path('routes/api/admin/v1.php'));
 });
 
 Route::get('/auth/verify/{id}/{hash}', function (EmailVerificationRequest $request) {

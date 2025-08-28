@@ -3,11 +3,10 @@
 namespace App\Http\Resources\BoardGame;
 
 use App\Http\Resources\MediaResource;
-use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardGameResource extends JsonResource
+class ItemResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -21,14 +20,14 @@ class BoardGameResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'entity_type' => $this->model,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'actions' => json_decode($this->actions),
+            'type' => $this->type,
+            'board_game_id' => $this->board_game_id,
             'image' => $image ? MediaResource::make($image) : null,
             'active' => $this->active,
-            'status' => $this->status,
-            'players' => BoardGamePlayerResource::collection($this->players->sortByDesc('points')),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

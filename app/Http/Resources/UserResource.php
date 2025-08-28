@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'avatar' => $image ? MediaResource::make($image) : null,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at,
+            'settings' => $this->settings,
             'roles' => RoleResource::collection($this->roles),
             'additional_fields' => $this->additionalFields,
             'created_at' => $this->created_at,

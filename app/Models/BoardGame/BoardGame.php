@@ -3,6 +3,7 @@
 namespace App\Models\BoardGame;
 
 use App\Models\Media;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,17 +11,34 @@ class BoardGame extends Model
 {
     use HasFactory;
 
+    const CLOSE_STATUS = 0;
+    const OPEN_STATUS = 1;
+
     protected $fillable = [
         'name',
         'slug',
         'description',
+        'settings',
         'active',
+        'is_close',
+        'started_at',
+        'ended_at',
         'created_by',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
+        'is_close' => 'boolean',
     ];
 
     public function getModelAttribute()
     {
         return get_class($this);
+    }
+
+    public function scopeFindBySlug($query, $slug)
+    {
+        return $query->where('slug', $slug);
     }
 
     public function titleImage()
@@ -38,4 +56,16 @@ class BoardGame extends Model
         return $this->hasMany(BoardGamePlayer::class, 'board_game_id');
     }
 
+    public function getStatusAttribute()
+    {
+        $status = self::OPEN_STATUS;
+
+        if ($this->is_close) {
+            $status = self::CLOSE_STATUS;
+        } else if ($this->ended_at && Carbon::now() > $this->ended_at) {
+            $status = self::CLOSE_STATUS;
+        }
+
+        return $status;
+    }
 }
