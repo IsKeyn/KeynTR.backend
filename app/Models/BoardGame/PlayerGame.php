@@ -3,6 +3,7 @@
 namespace App\Models\BoardGame;
 
 use App\Models\Comments;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,11 @@ class PlayerGame extends Model
         'time',
         'created_by',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function game(): BelongsTo
     {

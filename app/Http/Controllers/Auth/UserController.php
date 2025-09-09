@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\AdditionalFieldsService;
 use App\Services\MediaService;
 use App\Services\TwitchService;
+use App\Services\User\UserPasswordService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -73,13 +74,15 @@ class UserController extends Controller
 
     public function setAdditionalFields($model, $validated) {
         if (isset($validated['additional_fields'])) {
-            foreach ($validated['additional_fields'] as $field) {
+            foreach ($validated['additional_fields'] as &$field) {
                 if ($field['slug'] === 'twitch_channel') {
                     $path = parse_url($field['value'], PHP_URL_PATH);
                     $twitchName = basename($path);
 
-                    $clientId = 'dub1gz76pv44mx1ojnyb9fvhe52m86';
-                    $clientSecret = '0uj93fwkcaq67q4uywkqzhjvw7idx2';
+                    $field['value'] = $twitchName;
+
+                    $clientId = config('twitch.client_id');
+                    $clientSecret = config('twitch.client_secret');
 
                     $twitchService = new TwitchService();
                     $token = $twitchService->getAccessToken($clientId, $clientSecret);
@@ -105,7 +108,7 @@ class UserController extends Controller
     public function setSettings(Request $request): UserResource
     {
         $validated = $request->validate([
-            'theme' => 'sometimes|string',
+            'theme' => 'sometimes',
             'soundVolume' => 'sometimes|numeric',
         ]);
 
@@ -130,5 +133,20 @@ class UserController extends Controller
         $user = User::where('name', $name)->first();
 
         return UserResource::make($user);
+    }
+
+    public function changePassword(Request $request): array
+    {
+        $validated = $request->validate([
+            'currentPassword' => 'sometimes|required|string|min:8',
+            'password' => 'sometimes|required|string|min:8|confirmed',
+            'password_confirmation' => 'sometimes|required|string|min:8',
+        ]);
+
+        $user = Auth::user();
+
+        $userPasswordService = new UserPasswordService();
+
+       return $userPasswordService->changePassword($user, $validated);
     }
 }

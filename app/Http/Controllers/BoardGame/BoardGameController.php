@@ -80,7 +80,7 @@ class BoardGameController extends Controller
     public function getStreamersOnline(Request $request)
     {
         if ($request->boardGameId) {
-            $players = BoardGamePlayer::where('board_game_id', $request->boardGameId)->get();
+            $players = BoardGamePlayer::active()->where('board_game_id', $request->boardGameId)->get();
 
             $twitchChannelsList = [];
 
@@ -89,23 +89,23 @@ class BoardGameController extends Controller
                     foreach ($player->user->additionalFields as $field) {
                         if ($field->slug === 'twitch_channel') {
                             $path = parse_url($field->value, PHP_URL_PATH);
-                            $twitchChannelsList[] = basename($path);
+                            $twitchChannelsList[$player->user->id] = basename($path);
                         }
                     }
                 }
             }
 
-            $clientId = 'dub1gz76pv44mx1ojnyb9fvhe52m86';
-            $clientSecret = '0uj93fwkcaq67q4uywkqzhjvw7idx2';
+            $clientId = config('twitch.client_id');
+            $clientSecret = config('twitch.client_secret');
 
             $twitchService = new TwitchService();
             $token = $twitchService->getAccessToken($clientId, $clientSecret);
 
             $listOnline = [];
 
-            foreach ($twitchChannelsList as $twitchName) {
+            foreach ($twitchChannelsList as $userId => $twitchName) {
                 if ($twitchService->isStreamerLive($twitchName, $clientId, $token)) {
-                    $listOnline[] = $twitchName;
+                    $listOnline[$userId] = $twitchName;
                 }
             }
 

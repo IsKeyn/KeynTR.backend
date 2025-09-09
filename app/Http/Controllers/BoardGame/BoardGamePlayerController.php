@@ -7,19 +7,46 @@ use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
+use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
 use App\Http\Resources\BoardGame\LogResource;
+use App\Http\Resources\BoardGame\PlayerGameResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameLog;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\Timer;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class BoardGamePlayerController extends Controller
 {
+    public function getByBoardGameSlugAndUserName (
+        $slug,
+        $name,
+        BoardGame $BoardGame,
+        BoardGamePlayer $BoardGamePlayer
+    )
+    {
+        $user = User::query()->where('name', $name)->first();
+
+        if ($user) {
+            $cacheKey = 'board_game_' . $slug . '_player_' . $user->id . '_cache';
+            $minutes = 60 * 24 * 30; // 30 дней
+
+            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $user, $slug) {
+                $id = $BoardGame->findBySlug($slug)->value('id');
+
+                $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
+
+                return BoardGamePlayerFullResource::make($player);
+            });
+        }
+    }
+
     public function getByBoardGameSlug(
         $slug,
         BoardGame $BoardGame,
@@ -38,6 +65,73 @@ class BoardGamePlayerController extends Controller
                 $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
 
                 return BoardGamePlayerFullResource::make($player);
+            });
+        }
+    }
+
+    public function listByBoardGameSlug(
+        $slug,
+        BoardGame $BoardGame,
+        BoardGamePlayer $BoardGamePlayer
+    )
+    {
+        $cacheKey = 'board_game_' . $slug . '_player_list_cache';
+        $minutes = 60 * 24 * 30; // 30 дней
+
+        return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $slug) {
+            $boardGameId = $BoardGame->findBySlug($slug)->value('id');
+            $players = $BoardGamePlayer->where('board_game_id', $boardGameId)->get();
+
+            return BoardGamePlayerShortResource::collection($players);
+        });
+    }
+
+    public function getInventoryByBoardGameSlugAndUserName(
+        $slug,
+        $name,
+        BoardGame $BoardGame,
+        BoardGameInventory $BoardGameInventory
+    )
+    {
+        $user = User::query()->where('name', $name)->first();
+
+        if ($user) {
+            $cacheKey = 'board_game_' . $slug . '_player_inventory_' . $user->id . '_cache';
+            $minutes = 60 * 24 * 30; // 30 дней
+
+            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGameInventory, $user, $slug) {
+                $id = $BoardGame->findBySlug($slug)->value('id');
+
+                $inventory = $BoardGameInventory
+                    ->where('board_game_id', $id)
+                    ->where('user_id', $user->id)->get();
+
+                return BoardGameInventoryResource::collection($inventory);
+            });
+        }
+    }
+
+    public function getGamesByBoardGameSlugAndUserName(
+        $slug,
+        $name,
+        BoardGame $BoardGame,
+        PlayerGame $PlayerGame
+    )
+    {
+        $user = User::query()->where('name', $name)->first();
+
+        if ($user) {
+            $cacheKey = 'board_game_' . $slug . '_player_games_' . $user->id . '_cache';
+            $minutes = 60 * 24 * 30; // 30 дней
+
+            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $PlayerGame, $user, $slug) {
+                $id = $BoardGame->findBySlug($slug)->value('id');
+
+                $playerGames = PlayerGame::where('board_game_id', $id)
+                    ->where('user_id', $user->id)
+                    ->orderByDesc('id')->get();
+
+                return PlayerGameResource::collection($playerGames);
             });
         }
     }

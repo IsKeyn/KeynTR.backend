@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\User\Message;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -76,5 +78,32 @@ class User extends Authenticatable implements MustVerifyEmail
     public function additionalFields()
     {
         return $this->morphMany(AdditionalField::class, 'entity');
+    }
+
+    // Сообщения, где пользователь является отправителем
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'created_by');
+    }
+
+    // Сообщения, где пользователь является получателем
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'recipient');
+    }
+
+    // Все сообщения, связанные с пользователем (как отправителем, так и получателем)
+    public function allMessages()
+    {
+        return Message::where(function($query) {
+            $query->where('created_by', $this->id)
+                ->orWhere('recipient', $this->id);
+        });
+    }
+
+    // Получить все сообщения, где пользователь является участником
+    public function messages()
+    {
+        return $this->allMessages();
     }
 }

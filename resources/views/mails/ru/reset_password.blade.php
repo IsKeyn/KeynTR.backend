@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.mail')
 
 @section('content')
     <h2 style="text-align: center">Здравствуйте!</h2>

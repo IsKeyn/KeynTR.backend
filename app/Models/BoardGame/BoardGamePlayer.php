@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
 
 class BoardGamePlayer extends Model
 {
@@ -23,8 +24,14 @@ class BoardGamePlayer extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // Не будет работать, так как нет зависимости от игры
     public function inventory()
     {
         return $this->hasMany(BoardGameInventory::class, 'user_id');
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('active', true);
     }
 }

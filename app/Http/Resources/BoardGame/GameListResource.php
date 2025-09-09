@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\BoardGame;
 
-use App\Http\Resources\GameResource;
+use App\Http\Resources\Game\GameShortResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class GameListResource extends JsonResource
@@ -18,7 +18,7 @@ class GameListResource extends JsonResource
         return [
             'id' => $this->id,
             'game_id' => $this->game_id,
-            'game' => GameResource::make($this->game),
+            'game' => GameShortResource::make($this->game),
             'gaming_platform_id' => $this->gaming_platform_id,
             'platform' => $this->platform,
             'board_game_id' => $this->board_game_id,

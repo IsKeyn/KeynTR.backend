@@ -19,7 +19,7 @@ class NotificationController extends Controller
         return $notification->create($validated);
     }
 
-    public function SetViewed(Notification $notification, Request $request)
+    public function setViewed(Notification $notification, Request $request)
     {
         $user = Auth::user();
 
@@ -27,14 +27,14 @@ class NotificationController extends Controller
         return $notification->update(['viewed' => true]);
     }
 
-    public function GetCurrentUserNotifications(Notification $notification, Request $request)
+    public function getCurrentUserNotifications(Notification $notification, Request $request)
     {
         $user = Auth::user();
 
         return NotificationResource::collection($notification::where('user_id', $user->id)->orderBy('created_at', 'desc')->get());
     }
 
-    public function GetCountUserNotifications(Notification $notification, Request $request)
+    public function getCountUserNotifications(Notification $notification, Request $request)
     {
         $user = Auth::user();
 

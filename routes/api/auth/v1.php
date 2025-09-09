@@ -1,4 +1,7 @@
 <?php
+
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\User\MessageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -11,8 +14,12 @@ Route::prefix('auth/')->middleware('guest:api')->group(function() {
 
     Route::controller(RegisterController::class)->group(function() {
         Route::post('register', 'register')->name('register');
-        Route::post('forgot-password', 'sendResetLink')->name('send-reset-link');
-        Route::post('reset-password', 'resetPassword')->name('reset-password');
+
+    });
+
+    Route::controller(ResetPasswordController::class)->group(function() {
+        Route::post('forgot-password', 'sendResetLink')->name('sendResetLink');
+        Route::post('reset-password', 'resetPassword')->name('resetPassword');
     });
 });
 
@@ -24,16 +31,24 @@ Route::prefix('auth/')->middleware('auth:sanctum')->group(function() {
         Route::get('user', 'authUser')->name('user');
         Route::post('verification-notification', 'sendVerificationNotification')
             ->middleware(['throttle:6,1'])->name('verification.send');
-        Route::post('setAvatar', 'setAvatar')->name('set-avatar');
-        Route::post('update-profile', 'updateProfile')->name('update-profile');
-        Route::put('set-settings', 'setSettings')->name('set-settings');
+        Route::post('setAvatar', 'setAvatar')->name('setAvatar');
+        Route::post('update-profile', 'updateProfile')->name('updateProfile');
+        Route::put('set-settings', 'setSettings')->name('setSettings');
+        Route::post('change-password', 'changePassword')->name('changePassword');
     });
 
     Route::controller(NotificationController::class)->prefix('notification/')->name('notification')->group(function () {
-        Route::get('get', 'GetCurrentUserNotifications')->name('GetCurrentUserNotifications');
-        Route::get('getCount', 'GetCountUserNotifications')->name('GetCountUserNotifications');
+        Route::get('get', 'getCurrentUserNotifications')->name('getCurrentUserNotifications');
+        Route::get('getCount', 'getCountUserNotifications')->name('getCountUserNotifications');
         Route::post('set', 'set')->name('set');
-        Route::post('set-viewed', 'SetViewed')->name('set-viewed');
+        Route::post('set-viewed', 'setViewed')->name('setViewed');
+    });
+
+    Route::controller(MessageController::class)->prefix('message/')->name('message')->group(function () {
+        Route::get('get', 'getCurrentUserMessages')->name('getCurrentUserMessages');
+//        Route::get('getCount', 'GetCountUserNotifications')->name('GetCountUserNotifications');
+//        Route::post('set', 'set')->name('set');
+//        Route::post('set-viewed', 'SetViewed')->name('set-viewed');
     });
 });
 
