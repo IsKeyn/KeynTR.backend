@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\GameListResource;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\BoardGameItem;
+use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
 use App\Services\BoardGame\TimerService;
@@ -54,7 +54,7 @@ class PlayerGameController extends Controller
                         'board_game_id' => 'required',
                     ]);
 
-                    $boardGameItems = BoardGameItem::query()->where('slug', 'tuhlyi-banan')->first();
+                    $boardGameItems = ItemBind::query()->where('slug', 'tuhlyi-banan')->first();
 
                     $fields['board_game_item_id'] = $boardGameItems->id;
                     $fields['user_id'] = $user->id;

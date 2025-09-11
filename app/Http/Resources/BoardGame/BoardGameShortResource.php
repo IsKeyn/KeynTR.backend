@@ -25,7 +25,7 @@ class BoardGameShortResource extends JsonResource
     {
         $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
 
-        return [
+        $data = [
             'id' => $this->id,
             'entity_type' => $this->model,
             'name' => $this->name,
@@ -36,7 +36,12 @@ class BoardGameShortResource extends JsonResource
             'status' => $this->status,
             'started_at' => $this->started_at,
             'ended_at' => $this->ended_at,
-            'player' => $this->additionalData ? BoardGamePlayerShortResource::make($this->additionalData) : null,
         ];
+
+        if (isset($this->additionalData['player'])) {
+            $data['player'] = BoardGamePlayerShortResource::make($this->additionalData['player']);
+        }
+
+        return $data;
     }
 }

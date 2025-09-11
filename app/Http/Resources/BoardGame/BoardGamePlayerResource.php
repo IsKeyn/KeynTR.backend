@@ -53,6 +53,7 @@ class BoardGamePlayerResource extends JsonResource
             'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,
             'seconds' => $status['time'],
+            'active' => $this->active,
             'inventory' => BoardGameInventoryResource::collection($inventory),
             'current_game' => PlayerGameResource::make($playerCurrentGame),
             'status_effects' => PlayerStatusEffectResource::collection($playerStatusEffect),

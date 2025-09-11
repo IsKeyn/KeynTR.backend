@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\PlayerGameResource;
 use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\BoardGameItem;
+use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Services\BoardGame\StatsService;
 use Illuminate\Http\Request;
@@ -39,15 +39,15 @@ class StatsController extends Controller
             $longestGames = $StatsService->getGamesByTime($request->board_game_id, 'desc', $limit);
 
             /* Больше всего использовано бананов */
-            $bananaItem = BoardGameItem::where('slug', '=', 'tuhlyi-banan')->first();
+            $bananaItem = ItemBind::where('slug', '=', 'tuhlyi-banan')->first();
             if ($bananaItem && $bananaId = $bananaItem->id) {
                 $playerMostUseBanana = $StatsService->getUserWhoMostUseItem($bananaId, $request->board_game_id, $limit);
             }
 
             /* Больше всего использовано бомб */
-            $bomb = BoardGameItem::where('slug', '=', 'bomb')->first();
+            $bomb = ItemBind::where('slug', '=', 'bomb')->first();
             if ($bomb && $bombId = $bomb->id) {
-                $playerMostUseBomb = $StatsService->getUserWhoMostUseItem(BoardGameItem::where('slug', '=', 'bomb')->first()->id, $request->board_game_id, $limit);
+                $playerMostUseBomb = $StatsService->getUserWhoMostUseItem(ItemBind::where('slug', '=', 'bomb')->first()->id, $request->board_game_id, $limit);
             }
 
             /* Активность */

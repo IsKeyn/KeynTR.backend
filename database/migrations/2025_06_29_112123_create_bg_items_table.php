@@ -17,7 +17,8 @@ class CreateBgItemsTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug')->nullable();
-            $table->text('description')->nullable();
+            $table->text('short_description')->nullable();
+            $table->text('full_description')->nullable();
             $table->json('actions')->nullable();
             $table->bigInteger('type')->default(0);
             $table->boolean('active')->default(true);

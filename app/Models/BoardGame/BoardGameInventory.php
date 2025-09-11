@@ -20,6 +20,6 @@ class BoardGameInventory extends Model
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(BoardGameItem::class, 'board_game_item_id');
+        return $this->belongsTo(ItemBind::class, 'board_game_item_id');
     }
 }

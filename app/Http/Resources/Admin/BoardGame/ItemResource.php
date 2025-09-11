@@ -6,7 +6,7 @@ use App\Http\Resources\MediaResource;
 use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardGameItemResource extends JsonResource
+class ItemResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -22,12 +22,13 @@ class BoardGameItemResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'description' => $this->description,
+            'short_description' => $this->short_description,
+            'full_description' => $this->full_description,
             'actions' => $this->actions,
             'type' => $this->type,
-            'board_game_id' => $this->board_game_id,
-            'image' => $image ? MediaResource::make($image) : null,
             'active' => $this->active,
+            'author' => $this->author,
+            'image' => $image ? MediaResource::make($image) : null,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

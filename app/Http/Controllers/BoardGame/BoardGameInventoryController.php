@@ -5,7 +5,7 @@ namespace App\Http\Controllers\BoardGame;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\BoardGameItem;
+use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\PlayerStatusEffect;
@@ -72,7 +72,7 @@ class BoardGameInventoryController extends Controller
         StatusEffect $statusEffect,
         PlayerStatusEffect $PlayerStatusEffect,
         BoardGamePlayerPosition $BoardGamePlayerPosition,
-        BoardGameItem $BoardGameItem,
+        ItemBind $BoardGameItem,
         BoardGameInventory $BoardGameInventory,
         Notification $notification
     ) {

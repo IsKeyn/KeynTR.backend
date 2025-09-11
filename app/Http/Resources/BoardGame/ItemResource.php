@@ -3,6 +3,7 @@
 namespace App\Http\Resources\BoardGame;
 
 use App\Http\Resources\MediaResource;
+use App\Http\Resources\UserPublicResource;
 use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -22,12 +23,14 @@ class ItemResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'description' => $this->description,
+            'short_description' => $this->short_description,
+            'full_description' => $this->full_description,
             'actions' => json_decode($this->actions),
             'type' => $this->type,
             'board_game_id' => $this->board_game_id,
             'image' => $image ? MediaResource::make($image) : null,
             'active' => $this->active,
+            'authorUser' => $this->authorUser ? UserPublicResource::make($this->authorUser) : null,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

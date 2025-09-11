@@ -65,8 +65,8 @@ class AdminEntityController extends Controller {
         CacheService::setJobForDelete(
             $entityName,
             $entityFolder,
-            $params['slug'],
-            $params['ended_at'],
+            isset($params['slug']) ? $params['slug'] : null,
+            isset($params['ended_at']) ? $params['ended_at'] : null,
         );
 
         return $entity;
@@ -96,6 +96,10 @@ class AdminEntityController extends Controller {
                     $mediaService->setTitleImage($entity, $params['title_image']);
                 }
 
+                if (isset($params['image'])) {
+                    $mediaService->setTitleImage($entity, $params['image']);
+                }
+
 //                $mediaService = new MediaService();
 //
 //                if (isset($params['gallery'])) {
@@ -105,8 +109,8 @@ class AdminEntityController extends Controller {
                 CacheService::forgetEntityCache(
                     $entityName,
                     $entityFolder,
-                    $params['slug'],
-                    $params['ended_at'],
+                    isset($params['slug']) ? $params['slug'] : null,
+                    isset($params['ended_at']) ? $params['ended_at'] : null,
                     $entity->ended_at,
                 );
 

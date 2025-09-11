@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User\Message;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -51,8 +52,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->is_admin === 1;
     }
 
+    public function scopeVerified(Builder $query): Builder
+    {
+        return $query->where('email_verified_at', '!=', null);
+    }
+
     /**
-     * Отправить пользователю уведомление о сбросе пароля.is_admin
+     * Отправить пользователю уведомление о сбросе пароля
      *
      * @param  string  $token
      * @return void

@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Cache;
 
 class BoardGamePlayerController extends Controller
 {
-    public function getByBoardGameSlugAndUserName (
+    public function getPlayer (
         $slug,
         $name,
         BoardGame $BoardGame,
@@ -47,7 +47,7 @@ class BoardGamePlayerController extends Controller
         }
     }
 
-    public function getByBoardGameSlug(
+    public function getCurrent(
         $slug,
         BoardGame $BoardGame,
         BoardGamePlayer $BoardGamePlayer
@@ -69,7 +69,7 @@ class BoardGamePlayerController extends Controller
         }
     }
 
-    public function listByBoardGameSlug(
+    public function getList(
         $slug,
         BoardGame $BoardGame,
         BoardGamePlayer $BoardGamePlayer
@@ -86,7 +86,7 @@ class BoardGamePlayerController extends Controller
         });
     }
 
-    public function getInventoryByBoardGameSlugAndUserName(
+    public function getInventory(
         $slug,
         $name,
         BoardGame $BoardGame,
@@ -111,7 +111,7 @@ class BoardGamePlayerController extends Controller
         }
     }
 
-    public function getGamesByBoardGameSlugAndUserName(
+    public function getGames(
         $slug,
         $name,
         BoardGame $BoardGame,
@@ -129,12 +129,41 @@ class BoardGamePlayerController extends Controller
 
                 $playerGames = PlayerGame::where('board_game_id', $id)
                     ->where('user_id', $user->id)
+                    ->where('status', '!=', PlayerGame::CURRENT)
                     ->orderByDesc('id')->get();
 
                 return PlayerGameResource::collection($playerGames);
             });
         }
     }
+
+    public function getCurrentGame(
+        $slug,
+        $name,
+        BoardGame $BoardGame,
+        PlayerGame $PlayerGame
+    )
+    {
+        $user = User::query()->where('name', $name)->first();
+
+        if ($user) {
+            $cacheKey = 'board_game_' . $slug . '_player_current_game_' . $user->id . '_cache';
+            $minutes = 60 * 24 * 30; // 30 дней
+
+            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $PlayerGame, $user, $slug) {
+                $id = $BoardGame->findBySlug($slug)->value('id');
+
+                $playerGames = PlayerGame::where('board_game_id', $id)
+                    ->where('user_id', $user->id)
+                    ->where('status', '=', PlayerGame::CURRENT)
+                    ->orderByDesc('id')->get();
+
+                return PlayerGameResource::collection($playerGames);
+            });
+        }
+    }
+
+    /* Устаревшие методы */
 
     public function get(
         $id,

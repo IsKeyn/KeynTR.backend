@@ -3,8 +3,11 @@
 namespace App\Models\BoardGame;
 
 use App\Models\Media;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Item extends Model
 {
@@ -20,7 +23,8 @@ class Item extends Model
     protected $fillable = [
         'name',
         'slug',
-        'description',
+        'short_description',
+        'full_description',
         'actions',
         'type',
         'board_game_id',
@@ -32,8 +36,13 @@ class Item extends Model
     ];
 
     protected $casts = [
-//        'actions' => 'array',
+        'active' => 'boolean',
     ];
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('active', true);
+    }
 
     public function titleImage()
     {
@@ -43,5 +52,10 @@ class Item extends Model
     public function media()
     {
         return $this->morphToMany(Media::class, 'media_bind');
+    }
+
+    public function authorUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'author');
     }
 }

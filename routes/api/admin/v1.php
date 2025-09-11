@@ -1,6 +1,8 @@
 <?php
+
+use App\Http\Controllers\Admin\BoardGame\ItemBindController;
+use App\Http\Controllers\Admin\BoardGame\ItemController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AdminBoardGameController;
 use App\Http\Controllers\Admin\AdminGameController;
 use App\Http\Controllers\Admin\AdminMediaGroupController;
 use App\Http\Controllers\Admin\AdminMovieController;
@@ -11,7 +13,6 @@ use App\Http\Controllers\Admin\AdminEntityController;
 use App\Http\Controllers\Admin\AdminMediaPagesController;
 use App\Http\Controllers\Admin\AdminSlideController;
 use App\Http\Controllers\BoardGame\BoardGameInventoryController;
-use App\Http\Controllers\BoardGame\BoardGameItemController;
 
 Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->group(function() {
     Route::prefix('entity')->controller(AdminEntityController::class)->name('entity.')->group(function () {
@@ -39,7 +40,8 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
     });
 
     Route::prefix('BoardGame')->name('BoardGame.')->group(function () {
-        Route::resource('BoardGameItem', BoardGameItemController::class);
+        Route::resource('Item', ItemController::class);
+        Route::resource('ItemBind', ItemBindController::class);
         Route::resource('BoardGameInventory', BoardGameInventoryController::class);
     });
 

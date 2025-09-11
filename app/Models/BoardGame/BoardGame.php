@@ -4,6 +4,7 @@ namespace App\Models\BoardGame;
 
 use App\Models\Media;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,9 +37,19 @@ class BoardGame extends Model
         return get_class($this);
     }
 
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('active', true);
+    }
+
     public function scopeFindBySlug($query, $slug)
     {
         return $query->where('slug', $slug);
+    }
+
+    public function scopeFindById($query, $id)
+    {
+        return $query->where('slug', $id);
     }
 
     public function titleImage()

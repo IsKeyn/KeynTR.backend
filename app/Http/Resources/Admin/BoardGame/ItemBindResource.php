@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Resources\BoardGame;
+namespace App\Http\Resources\Admin\BoardGame;
 
 use App\Http\Resources\MediaResource;
 use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardGameItemResource extends JsonResource
+class ItemBindResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,19 +16,11 @@ class BoardGameItemResource extends JsonResource
      */
     public function toArray($request)
     {
-        $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
-
         return [
             'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
-            'actions' => json_decode($this->actions),
-            'type' => $this->type,
+            'item_id' => $this->item_id,
             'board_game_id' => $this->board_game_id,
-            'image' => $image ? MediaResource::make($image) : null,
             'active' => $this->active,
-            'item' => ItemResource::make($this->item),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

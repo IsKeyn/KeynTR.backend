@@ -44,6 +44,7 @@ Route::name('api.')->group(function() {
 
     // Действия пользователя
     Route::name('auth.')->group(base_path('routes/api/auth/v1.php'));
+    Route::name('user.')->group(base_path('routes/api/user/v1.php'));
 
     // Ошибки
     Route::prefix('error/')->controller(ErrorController::class)->name('error')->group(function() {

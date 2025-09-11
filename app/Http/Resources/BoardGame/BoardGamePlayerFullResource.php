@@ -59,6 +59,7 @@ class BoardGamePlayerFullResource extends JsonResource
             'player_games' => PlayerGameResource::collection($playerGames),
             'status_effects' => PlayerStatusEffectResource::collection($playerStatusEffect),
             'seconds' => $status['time'],
+            'active' => $this->active,
             'user' => UserPublicResource::make($user),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,

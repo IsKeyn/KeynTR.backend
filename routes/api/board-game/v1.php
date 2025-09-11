@@ -8,7 +8,7 @@ use App\Http\Controllers\BoardGame\GameListController;
 use App\Http\Controllers\BoardGame\LogController;
 use App\Http\Controllers\BoardGame\PlayerGameController;
 use App\Http\Controllers\BoardGame\PositionController;
-use App\Http\Controllers\BoardGame\BoardGameItemController;
+use App\Http\Controllers\Admin\BoardGame\ItemBindController;
 use App\Http\Controllers\BoardGame\StatsController;
 use App\Http\Controllers\BoardGame\TimerController;
 
@@ -42,7 +42,7 @@ Route::prefix('board-game/')->name('v1.')->group(function() {
         Route::post('add', 'add')->name('add');
     });
 
-    Route::prefix('items/')->controller(BoardGameItemController::class)->name('items.')->group(function() {
+    Route::prefix('items/')->controller(ItemBindController::class)->name('items.')->group(function() {
         Route::get('list', 'list')->name('list');
     });
 

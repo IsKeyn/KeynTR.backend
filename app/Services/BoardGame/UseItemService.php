@@ -2,10 +2,9 @@
 
 namespace App\Services\BoardGame;
 
-use App\Models\Block;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\BoardGameItem;
+use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\PlayerStatusEffect;
@@ -23,7 +22,7 @@ class UseItemService
         StatusEffect $statusEffect,
         PlayerStatusEffect $PlayerStatusEffect,
         BoardGamePlayerPosition $BoardGamePlayerPosition,
-        BoardGameItem $BoardGameItem,
+        ItemBind $BoardGameItem,
         BoardGameInventory $BoardGameInventory,
         Notification $notification
     ) {

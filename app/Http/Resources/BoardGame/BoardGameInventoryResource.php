@@ -19,7 +19,7 @@ class BoardGameInventoryResource extends JsonResource
             'user_id' => $this->user_id,
             'board_game_id' => $this->board_game_id,
             'board_game_item_id' => $this->board_game_item_id,
-            'item' => BoardGameItemResource::make($this->item),
+            'item' => ItemBindResource::make($this->item),
             'has_used' => $this->has_used,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,

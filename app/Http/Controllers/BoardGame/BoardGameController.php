@@ -4,13 +4,13 @@ namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
-use App\Http\Resources\BoardGame\BoardGameItemResource;
+use App\Http\Resources\BoardGame\ItemBindResource;
 use App\Http\Resources\BoardGame\BoardGameResource;
 use App\Http\Resources\BoardGame\BoardGameShortResource;
 use App\Http\Resources\UserResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\BoardGameItem;
+use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
@@ -58,10 +58,10 @@ class BoardGameController extends Controller
 
     public function getList(BoardGame $boardGame)
     {
-        return BoardGameResource::collection($boardGame::all());
+        return BoardGameShortResource::collection($boardGame::all());
     }
 
-    public function getItemAndInventory(Request $request, BoardGameItem $BoardGameItem, BoardGameInventory $BoardGameInventory)
+    public function getItemAndInventory(Request $request, ItemBind $BoardGameItem, BoardGameInventory $BoardGameInventory)
     {
         $user = $request->user();
 
@@ -72,7 +72,7 @@ class BoardGameController extends Controller
         $items = $BoardGameItem->where('board_game_id', $request->board_game_id)->get();
 
         return [
-            'items' => BoardGameItemResource::collection($items),
+            'items' => ItemBindResource::collection($items),
             'inventory' => isset($inventory) ? BoardGameInventoryResource::collection($inventory) : '',
         ];
     }
