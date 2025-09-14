@@ -7,7 +7,6 @@ use App\Http\Controllers\FormResultController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaGroupController;
-use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SettingController;
@@ -57,13 +56,8 @@ Route::name('api.')->group(function() {
         Route::get('get', 'get')->name('get');
     });
 
-
-
     // Работа с меню
-    Route::prefix('menu/')->controller(MenuController::class)->name('menu.')->group(function() {
-        Route::get('get', 'getMenuElements')->name('get-menu-elements');
-        Route::get('getArticlesMenu', 'getArticlesMenu')->name('get-articles-menu');
-    });
+    Route::name('menu.')->group(base_path('routes/api/menu/v1.php'));
 
     // Поиск
     Route::prefix('search/')->controller(SearchService::class)->name('search.')->group(function() {
@@ -166,6 +160,9 @@ Route::name('api.')->group(function() {
 
     // Действия в админке
     Route::name('admin.')->group(base_path('routes/api/admin/v1.php'));
+
+    // Работа с сущностями
+    Route::name('entity.')->group(base_path('routes/api/entity/v1.php'));
 });
 
 Route::get('/auth/verify/{id}/{hash}', function (EmailVerificationRequest $request) {

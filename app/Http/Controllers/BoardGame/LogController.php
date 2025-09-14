@@ -4,6 +4,7 @@ namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\LogResource;
+use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameLog;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,5 +34,20 @@ class LogController extends Controller
         $logs = BoardGameLog::query()->where('board_game_id', $request->boardGameId)->orderByDesc('id')->limit(100)->get();
 
         return LogResource::collection($logs);
+    }
+
+    public function getList(Request $request, $slug)
+    {
+        $id = BoardGame::findBySlug($slug)->value('id');
+
+        if ($id) {
+            $query = BoardGameLog::query()
+                ->where('board_game_id', $id)
+                ->orderByDesc('created_at');
+
+            $result = $request->perPage ? $query->paginate((int)$request->perPage) : $query->get();
+
+            return LogResource::collection($result);
+        }
     }
 }

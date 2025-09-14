@@ -18,8 +18,12 @@ class CreateMenuTypesTable extends Migration
             $table->string('name');
             $table->string('code');
             $table->boolean('group');
-            $table->integer('menu_type_bind_id');
-            $table->string('menu_type_bind_type');
+            $table->string('group_name')->nullable();
+            $table->string('group_icon')->nullable();
+            $table->integer('menu_type_bind_id')->nullable();
+            $table->string('menu_type_bind_type')->nullable();
+            $table->integer('sort')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
         });
     }

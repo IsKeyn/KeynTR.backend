@@ -16,7 +16,12 @@ class Menu extends Model
         'menu_type_id',
         'link_type',
         'icon',
+        'sort',
         'active',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
     ];
 
     public function type()

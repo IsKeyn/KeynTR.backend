@@ -18,7 +18,13 @@ class MenuResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'code' => $this->code,
-            'elements' => MenuElementsResource::collection($this->elements),
+            'group' => $this->group,
+            'group_icon' => $this->group_icon,
+            'menu_type_bind_id' => $this->group_icon,
+            'menu_type_bind_type' => $this->group_icon,
+            'sort' => $this->group_icon,
+            'active' => $this->group_icon,
+            'elements' => MenuElementsResource::collection($this->elements->sortBy('sort')),
         ];
     }
 }

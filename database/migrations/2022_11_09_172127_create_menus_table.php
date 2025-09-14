@@ -21,6 +21,7 @@ class CreateMenusTable extends Migration
             $table->foreignId('menu_type_id')->nullable();
             $table->string('link_type')->nullable();
             $table->string('icon')->nullable();
+            $table->integer('sort')->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();
         });

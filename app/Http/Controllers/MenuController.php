@@ -151,4 +151,13 @@ class MenuController extends Controller
             return "/article/{$element->slug}";
         }
     }
+
+    public function getByCode(Request $request)
+    {
+        if ($request->code) {
+            $menuTypes = MenuType::findByCode($request->code)->active()->get()->sortBy('sort');
+
+            return MenuResource::collection($menuTypes);
+        }
+    }
 }

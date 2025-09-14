@@ -18,9 +18,12 @@ class MenuElementsResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'url' => $this->url,
+            'target' => $this->target,
+            'menu_type_id' => $this->menu_type_id,
             'link_type' => $this->link_type,
             'icon' => $this->icon,
-            'target' => $this->target,
+            'sort' => $this->sort,
+            'active' => $this->active,
         ];
     }
 }

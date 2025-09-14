@@ -37,6 +37,8 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
             Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
             Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
         });
+
+        Route::get('getList','getEntityList')->name('getEntityList');
     });
 
     Route::prefix('BoardGame')->name('BoardGame.')->group(function () {

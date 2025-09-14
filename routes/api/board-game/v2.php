@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BoardGame\BoardGamePlayerController;
 use App\Http\Controllers\BoardGame\ItemController;
+use App\Http\Controllers\BoardGame\LogController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('board-game/v2/')->name('v2.')->group(function() {
@@ -17,6 +18,10 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
     Route::prefix('item/')->controller(ItemController::class)->name('item.')->group(function() {
         Route::get('list', 'list')->name('list');
+        Route::get('list/{slug}', 'getList')->name('getList');
+    });
+
+    Route::prefix('log/')->controller(LogController::class)->name('log.')->group(function() {
         Route::get('list/{slug}', 'getList')->name('getList');
     });
 });

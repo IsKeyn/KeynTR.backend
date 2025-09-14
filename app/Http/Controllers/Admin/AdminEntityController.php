@@ -2,10 +2,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Entity\EntityListResource;
 use App\Services\CacheService;
 use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Database\Eloquent\Model;
 
 class AdminEntityController extends Controller {
     /*
@@ -62,12 +65,14 @@ class AdminEntityController extends Controller {
 //        }
 
         /* Сброс кеша */
-        CacheService::setJobForDelete(
-            $entityName,
-            $entityFolder,
-            isset($params['slug']) ? $params['slug'] : null,
-            isset($params['ended_at']) ? $params['ended_at'] : null,
-        );
+        if (isset($entityName) && isset($entityFolder)) {
+            CacheService::setJobForDelete(
+                $entityName,
+                $entityFolder,
+                isset($params['slug']) ? $params['slug'] : null,
+                isset($params['ended_at']) ? $params['ended_at'] : null,
+            );
+        }
 
         return $entity;
     }
@@ -106,13 +111,15 @@ class AdminEntityController extends Controller {
 //                    $mediaService->setGallery($entity, $params['gallery']);
 //                }
                 /* Сброс кеша */
-                CacheService::forgetEntityCache(
-                    $entityName,
-                    $entityFolder,
-                    isset($params['slug']) ? $params['slug'] : null,
-                    isset($params['ended_at']) ? $params['ended_at'] : null,
-                    $entity->ended_at,
-                );
+                if (isset($entityName) && isset($entityFolder)) {
+                    CacheService::forgetEntityCache(
+                        $entityName,
+                        $entityFolder,
+                        isset($params['slug']) ? $params['slug'] : null,
+                        isset($params['ended_at']) ? $params['ended_at'] : null,
+                        $entity->ended_at,
+                    );
+                }
 
                 return $entity->update($params);
             } else {
@@ -284,5 +291,35 @@ class AdminEntityController extends Controller {
         }
 
         return redirect()->route('admin.entity.', $entityName);
+    }
+
+    public function getEntityList($directory = null)
+    {
+        $directory = $directory ?? app_path('Models');
+        $files = File::allFiles($directory);
+
+        $models = collect(); // Создаем пустую коллекцию
+
+        foreach ($files as $file) {
+            // Получаем namespace на основе пути файла
+            $relativePath = str_replace([app_path(), '.php'], '', $file->getRealPath());
+            $className = 'App' . str_replace('/', '\\', $relativePath);
+
+            if (class_exists($className) && is_subclass_of($className, Model::class)) {
+                $models->push([ // Используем push() для добавления элемента в коллекцию
+                    'name' => $className,
+                    'value' => $className,
+                ]);
+            }
+        }
+
+        return $models;
+    }
+
+    public function getFields(Request $request)
+    {
+        if ($model = $request->entity) {
+            return $model::all();
+        }
     }
 }
