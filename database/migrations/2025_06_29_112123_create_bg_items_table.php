@@ -21,6 +21,7 @@ class CreateBgItemsTable extends Migration
             $table->text('full_description')->nullable();
             $table->json('actions')->nullable();
             $table->bigInteger('type')->default(0);
+            $table->integer('drop_chance')->default(10);
             $table->boolean('active')->default(true);
             $table->foreignId('author')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

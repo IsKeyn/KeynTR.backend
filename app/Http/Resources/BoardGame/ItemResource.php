@@ -27,6 +27,7 @@ class ItemResource extends JsonResource
             'full_description' => $this->full_description,
             'actions' => json_decode($this->actions),
             'type' => $this->type,
+            'drop_chance' => $this->drop_chance,
             'board_game_id' => $this->board_game_id,
             'image' => $image ? MediaResource::make($image) : null,
             'active' => $this->active,

@@ -4,7 +4,7 @@ namespace App\Http\Resources\BoardGame;
 
 
 use App\Http\Resources\CommentResource;
-use App\Services\BoardGame\PlayerGameService;
+use App\Http\Resources\UserPublicResource;
 use App\Services\BoardGame\TimerService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,6 +21,7 @@ class PlayerGameShortResource extends JsonResource
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
+            'user' => UserPublicResource::make($this->user),
             'game' => GameListResource::make($this->game),
             'board_game_game_list_id' => $this->board_game_game_list_id,
             'status' => $this->status,

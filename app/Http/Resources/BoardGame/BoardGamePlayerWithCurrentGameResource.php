@@ -3,12 +3,14 @@
 namespace App\Http\Resources\BoardGame;
 
 use App\Http\Resources\UserPublicResource;
+use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\Timer;
 use App\Services\BoardGame\TimerService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardGamePlayerShortResource extends JsonResource
+class BoardGamePlayerWithCurrentGameResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,13 +21,17 @@ class BoardGamePlayerShortResource extends JsonResource
 
     public function toArray($request)
     {
-        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->first();
+        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->orderBy('updated_at', 'desc')->first();
 
         $fullPoints = $this->points;
 
         if ($position) {
             $fullPoints += $position->position;
         }
+
+        $playerCurrentGame = PlayerGame::where('board_game_id', $this->board_game_id)
+            ->where('user_id', $this->user_id)
+            ->where('status', PlayerGame::CURRENT)->first();
 
         $timer = Timer::query()
             ->where('user_id', $this->user_id)
@@ -48,6 +54,7 @@ class BoardGamePlayerShortResource extends JsonResource
             'seconds' => $status['time'],
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
+            'current_game' => PlayerGameResource::make($playerCurrentGame),
         ];
     }
 }

@@ -14,6 +14,7 @@ class BoardGame extends Model
 
     const CLOSE_STATUS = 0;
     const OPEN_STATUS = 1;
+    const COMING_SOON = 2;
 
     protected $fillable = [
         'name',
@@ -42,6 +43,11 @@ class BoardGame extends Model
         return $query->where('active', true);
     }
 
+    public function scopeOpen(Builder $query): Builder
+    {
+        return $query->where('is_close', false);
+    }
+
     public function scopeFindBySlug($query, $slug)
     {
         return $query->where('slug', $slug);
@@ -49,7 +55,7 @@ class BoardGame extends Model
 
     public function scopeFindById($query, $id)
     {
-        return $query->where('slug', $id);
+        return $query->where('id', $id);
     }
 
     public function titleImage()
@@ -75,6 +81,8 @@ class BoardGame extends Model
             $status = self::CLOSE_STATUS;
         } else if ($this->ended_at && Carbon::now() > $this->ended_at) {
             $status = self::CLOSE_STATUS;
+        } else if ($this->started_at && Carbon::now() < $this->started_at) {
+            $status = self::COMING_SOON;
         }
 
         return $status;

@@ -2,8 +2,7 @@
 
 namespace App\Http\Resources\BoardGame;
 
-use App\Http\Resources\UserLightResource;
-use App\Models\User;
+use App\Http\Resources\UserPublicResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class LogResource extends JsonResource
@@ -20,7 +19,7 @@ class LogResource extends JsonResource
             'id' => $this->id,
             'message' => $this->message,
             'board_game_id' => $this->board_game_id,
-            'user' => UserLightResource::make($this->user),
+            'user' => UserPublicResource::make($this->user),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

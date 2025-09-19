@@ -39,15 +39,15 @@ class StatsController extends Controller
             $longestGames = $StatsService->getGamesByTime($request->board_game_id, 'desc', $limit);
 
             /* Больше всего использовано бананов */
-            $bananaItem = ItemBind::where('slug', '=', 'tuhlyi-banan')->first();
+            $bananaItem = ItemBind::where('id', '=', 3)->first();
             if ($bananaItem && $bananaId = $bananaItem->id) {
                 $playerMostUseBanana = $StatsService->getUserWhoMostUseItem($bananaId, $request->board_game_id, $limit);
             }
 
             /* Больше всего использовано бомб */
-            $bomb = ItemBind::where('slug', '=', 'bomb')->first();
+            $bomb = ItemBind::where('id', '=', 5)->first();
             if ($bomb && $bombId = $bomb->id) {
-                $playerMostUseBomb = $StatsService->getUserWhoMostUseItem(ItemBind::where('slug', '=', 'bomb')->first()->id, $request->board_game_id, $limit);
+                $playerMostUseBomb = $StatsService->getUserWhoMostUseItem(ItemBind::where('id', '=', 5)->first()->id, $request->board_game_id, $limit);
             }
 
             /* Активность */

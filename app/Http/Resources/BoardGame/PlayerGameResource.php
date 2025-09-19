@@ -19,6 +19,8 @@ class PlayerGameResource extends JsonResource
      */
     public function toArray($request)
     {
+        $otherPlayersActions = PlayerGameService::actionsWithGame($this->board_game_game_list_id, $this->board_game_id);
+
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
@@ -32,7 +34,7 @@ class PlayerGameResource extends JsonResource
             'time' => $this->time,
             'timeSpend' => TimerService::timeInGame($this),
             'additional_data' => $this->additional_data,
-            'other_players_actions' => PlayerGameService::actionsWithGame($this->board_game_game_list_id, $this->board_game_id),
+            'other_players_actions' => $otherPlayersActions ?  PlayerGameShortResource::collection($otherPlayersActions) : null,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

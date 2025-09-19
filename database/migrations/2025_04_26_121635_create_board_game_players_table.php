@@ -18,7 +18,9 @@ class CreateBoardGamePlayersTable extends Migration
             $table->foreignId('user_id')->nullable();
             $table->foreignId('board_game_id')->nullable();
             $table->bigInteger('points')->default(0);
+            $table->integer('item_roll_count')->default(0);
             $table->boolean('active')->default(true);
+            $table->text('not_active_reason')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });

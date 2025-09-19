@@ -4,6 +4,7 @@ namespace App\Models\BoardGame;
 
 use App\Models\Game;
 use App\Models\GamingPlatform;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,5 +32,10 @@ class BoardGameGameList extends Model
     public function platform(): BelongsTo
     {
         return $this->belongsTo(GamingPlatform::class, 'gaming_platform_id');
+    }
+
+    public function addedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'added_by');
     }
 }

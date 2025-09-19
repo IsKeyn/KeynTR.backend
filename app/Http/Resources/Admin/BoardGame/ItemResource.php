@@ -26,6 +26,7 @@ class ItemResource extends JsonResource
             'full_description' => $this->full_description,
             'actions' => $this->actions,
             'type' => $this->type,
+            'drop_chance' => $this->drop_chance,
             'active' => $this->active,
             'author' => $this->author,
             'image' => $image ? MediaResource::make($image) : null,

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\LogResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameLog;
+use App\Models\BoardGame\BoardGamePlayer;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -13,7 +15,7 @@ class LogController extends Controller
 {
     protected $model = BoardGameLog::class;
 
-    public function add(Request $request)
+    public function add(Request $request) // TODO Старый метод, удалить когда перестанет использоваться
     {
         $newEntry = $request->validate([
             'message' => 'required|min:2',
@@ -29,7 +31,7 @@ class LogController extends Controller
         }
     }
 
-    public function getLogListById(Request $request)
+    public function getLogListById(Request $request) // TODO Старый метод, удалить когда перестанет использоваться
     {
         $logs = BoardGameLog::query()->where('board_game_id', $request->boardGameId)->orderByDesc('id')->limit(100)->get();
 
@@ -45,7 +47,28 @@ class LogController extends Controller
                 ->where('board_game_id', $id)
                 ->orderByDesc('created_at');
 
-            $result = $request->perPage ? $query->paginate((int)$request->perPage) : $query->get();
+            $result = $request->perPage ? $query->paginate($request->perPage) : $query->get();
+
+            return LogResource::collection($result);
+        }
+    }
+
+    public function getPlayerLog(Request $request, $slug, $playerName)
+    {
+        $id = BoardGame::findBySlug($slug)->value('id');
+        $user = User::query()->where('name', $playerName)->first();
+
+        if ($id) {
+            $player = BoardGamePlayer::where('user_id', $user->id)->where('board_game_id', $id)->first();
+
+//            dd($player->id);
+
+            $query = BoardGameLog::query()
+                ->where('board_game_id', $id)
+                ->where('created_by', $player->user_id)
+                ->orderByDesc('created_at');
+
+            $result = $request->perPage ? $query->paginate($request->perPage) : $query->get();
 
             return LogResource::collection($result);
         }

@@ -8,6 +8,8 @@ use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
+use App\Http\Resources\BoardGame\BoardGamePlayerWithInventoryResource;
+use App\Http\Resources\BoardGame\ItemBindResource;
 use App\Http\Resources\BoardGame\LogResource;
 use App\Http\Resources\BoardGame\PlayerGameResource;
 use App\Models\BoardGame\BoardGame;
@@ -15,9 +17,13 @@ use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameLog;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\Timer;
 use App\Models\User;
+use App\Services\BoardGame\ItemService;
+use App\Services\BoardGame\LogService;
+use App\Services\BoardGame\PlayerGameService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -86,6 +92,18 @@ class BoardGamePlayerController extends Controller
         });
     }
 
+    public function getListWithInventory(
+        $slug,
+        BoardGame $BoardGame,
+        BoardGamePlayer $BoardGamePlayer
+    )
+    {
+            $boardGameId = $BoardGame->findBySlug($slug)->value('id');
+            $players = $BoardGamePlayer->where('board_game_id', $boardGameId)->active()->get();
+
+            return BoardGamePlayerWithInventoryResource::collection($players);
+    }
+
     public function getInventory(
         $slug,
         $name,
@@ -111,6 +129,7 @@ class BoardGamePlayerController extends Controller
         }
     }
 
+    /* Игры авторизованного игрока в настольной игре */
     public function getGames(
         $slug,
         $name,
@@ -121,10 +140,10 @@ class BoardGamePlayerController extends Controller
         $user = User::query()->where('name', $name)->first();
 
         if ($user) {
-            $cacheKey = 'board_game_' . $slug . '_player_games_' . $user->id . '_cache';
-            $minutes = 60 * 24 * 30; // 30 дней
-
-            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $PlayerGame, $user, $slug) {
+//            $cacheKey = 'board_game_' . $slug . '_player_games_' . $user->id . '_cache';
+//            $minutes = 60 * 24 * 30; // 30 дней
+//
+//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $PlayerGame, $user, $slug) {
                 $id = $BoardGame->findBySlug($slug)->value('id');
 
                 $playerGames = PlayerGame::where('board_game_id', $id)
@@ -133,7 +152,7 @@ class BoardGamePlayerController extends Controller
                     ->orderByDesc('id')->get();
 
                 return PlayerGameResource::collection($playerGames);
-            });
+//            });
         }
     }
 
@@ -244,5 +263,75 @@ class BoardGamePlayerController extends Controller
         }
 
         return false;
+    }
+
+    public function getDataForItemGamblingGame ($slug)
+    {
+        $conditionData = PlayerGameService::checkConditions($slug);
+
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        } else {
+            $items = ItemBind::active()->where('board_game_id', $conditionData['boardGame']->id)->get();
+
+            return [
+                'status' => 1,
+                'items' => ItemBindResource::collection($items),
+                'player' => BoardGamePlayerWithInventoryResource::make($conditionData['player']),
+            ];
+        }
+    }
+
+    public function rollItem($slug, $withDropChance = true)
+    {
+        /* Проверяем условия рода */
+        $conditionData = PlayerGameService::checkConditions($slug);
+
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        } else {
+            $items = ItemBind::active()->where('board_game_id', $conditionData['boardGame']->id)->get();
+
+            if ($withDropChance) {
+                /* Формируем массив, для учета шанса дропа, елемент добавляется в массив столько раз, каков его процент шанса дропа */
+                $arItemChance = [];
+
+                foreach ($items as $item) {
+                    if ($item->item->drop_chance) {
+                        for ($i = 1; $i <= $item->item->drop_chance; $i++) {
+                            $arItemChance[] = $item;
+                        }
+                    }
+                }
+
+                shuffle($arItemChance);
+                $randomKey = array_rand($arItemChance);
+
+                $randItem = $arItemChance[$randomKey];
+            } else {
+                /* Рандомим предмет из списка доступных */
+                $randItem = $items->random();
+            }
+
+            /* Добавление предмета в инвентарь */
+            ItemService::addToInventory(
+                $conditionData['user']->id,
+                $conditionData['boardGame']->id,
+                $randItem->id,
+            );
+
+            /* Добавление в логи */
+            LogService::addLog(
+                $conditionData['user']->id,
+                $conditionData['boardGame']->id,
+                'крутанул рулетку предметов и ему выпало "' . $randItem->item->name . '"',
+            );
+
+            /* Уменьшаем доступное количество ролов */
+            $conditionData['player']->item_roll_count--;
+            $conditionData['player']->save();
+
+            return ItemBindResource::make($randItem);
+        }
     }
 }

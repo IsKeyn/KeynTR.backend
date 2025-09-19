@@ -27,6 +27,7 @@ class Item extends Model
         'full_description',
         'actions',
         'type',
+        'drop_chance',
         'board_game_id',
         'active',
         'author',

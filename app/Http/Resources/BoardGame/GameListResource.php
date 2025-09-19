@@ -3,6 +3,7 @@
 namespace App\Http\Resources\BoardGame;
 
 use App\Http\Resources\Game\GameShortResource;
+use App\Http\Resources\UserPublicResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class GameListResource extends JsonResource
@@ -19,6 +20,7 @@ class GameListResource extends JsonResource
             'id' => $this->id,
             'game_id' => $this->game_id,
             'game' => GameShortResource::make($this->game),
+            'added_by_user' => UserPublicResource::make($this->addedBy),
             'gaming_platform_id' => $this->gaming_platform_id,
             'platform' => $this->platform,
             'board_game_id' => $this->board_game_id,

@@ -3,21 +3,40 @@
 namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\GameListResource;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
+use App\Services\BoardGame\PlayerGameService;
 use App\Services\BoardGame\TimerService;
 use App\Services\CommentService;
 use Illuminate\Http\Request;
 
 class PlayerGameController extends Controller
 {
-    public function getPlayerList(Request $request)
+//    public function getPlayerList(Request $request)
+//    {
+//        return GameListResource::collection($this->getFilteredGameList($request));
+//    }
+
+    public function getPlayerList($slug, Request $request)
     {
-        return GameListResource::collection($this->getFilteredGameList($request));
+        $conditionData = PlayerGameService::checkConditions($slug);
+
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        } else {
+            $games = $this->getFilteredGameList($request, $conditionData);
+
+            return [
+                'status' => 1,
+                'games' => GameListResource::collection($games),
+                'player' => BoardGamePlayerWithCurrentGameResource::make($conditionData['player']),
+            ];
+        }
     }
 
     public function add(Request $request)
@@ -146,11 +165,9 @@ class PlayerGameController extends Controller
         }
     }
 
-    private function getFilteredGameList($request)
+    private function getFilteredGameList($request, $conditionData)
     {
-        $user = $request->user();
-
-        $boardGameGameQuery = BoardGameGameList::query()->where('board_game_id', $request->board_game_id);
+        $boardGameGameQuery = BoardGameGameList::query()->where('board_game_id', $conditionData['boardGame']->id);
 
         if ($request->platform_id) {
             $boardGameGameQuery->where('gaming_platform_id', $request->platform_id);
@@ -158,7 +175,10 @@ class PlayerGameController extends Controller
 
         $boardGameGameList = $boardGameGameQuery->get();
 
-        $playerGameList = PlayerGame::query()->where('board_game_id', $request->board_game_id)->where('user_id', $user->id)->get();
+        $playerGameList = PlayerGame::query()
+            ->where('board_game_id', $conditionData['boardGame']->id)
+            ->where('user_id', $conditionData['user']->id)
+            ->get();
 
         $usedGames = [];
 

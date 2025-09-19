@@ -16,7 +16,14 @@ class BoardGamePlayer extends Model
         'user_id',
         'board_game_id',
         'points',
+        'item_roll_count',
+        'not_active_reason',
+        'active',
         'created_by',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
     ];
 
     public function user(): BelongsTo

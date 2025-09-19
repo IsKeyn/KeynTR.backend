@@ -29,6 +29,7 @@ class UseItemService
         $user = $request->user();
 
         /* Только авторизованный пользователь может применять предметы */
+        // TODO добавить проверку что игра открыта и т.д.
         if ($user) {
             /* Получаем информацию из инветаря пользователя о предмете, предмет должен участвовать в текущей настольной игре */
             $usedInventoryItem = $BoardGameInventory
@@ -43,8 +44,8 @@ class UseItemService
                 $item = $BoardGameItem->where('id', $usedInventoryItem->board_game_item_id)->first();
 
                 /* Предмет должен иметь JSON действий, если его нет, то предмет предназначен для "ручного" использования */
-                if ($item->actions) {
-                    foreach (json_decode($item->actions) as $action) {
+                if ($item->item->actions) {
+                    foreach (json_decode($item->item->actions) as $action) {
                         if (isset($action->type) && $action->type) {
                             switch ($action->type) {
                                 case 'removePoints':
@@ -328,6 +329,7 @@ class UseItemService
     {
         /* Удаление всех предметов */
         if ($action->type === 'removeItem' && $action->target === 'all' && $action->itemId) {
+            // TODO переделать, должен брать не привязанный предмет ид а оригинальный
             $items = $BoardGameInventory->where('board_game_item_id', $action->itemId);
 
             $arUserIds = [];

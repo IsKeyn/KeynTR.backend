@@ -66,12 +66,9 @@ class AdminEntityController extends Controller {
 
         /* Сброс кеша */
         if (isset($entityName) && isset($entityFolder)) {
-            CacheService::setJobForDelete(
-                $entityName,
-                $entityFolder,
-                isset($params['slug']) ? $params['slug'] : null,
-                isset($params['ended_at']) ? $params['ended_at'] : null,
-            );
+            if (isset($entityName) && isset($entityFolder)) {
+                $this->clearCache($entityName, $entityFolder, $params, $entity);
+            }
         }
 
         return $entity;
@@ -110,15 +107,8 @@ class AdminEntityController extends Controller {
 //                if (isset($params['gallery'])) {
 //                    $mediaService->setGallery($entity, $params['gallery']);
 //                }
-                /* Сброс кеша */
                 if (isset($entityName) && isset($entityFolder)) {
-                    CacheService::forgetEntityCache(
-                        $entityName,
-                        $entityFolder,
-                        isset($params['slug']) ? $params['slug'] : null,
-                        isset($params['ended_at']) ? $params['ended_at'] : null,
-                        $entity->ended_at,
-                    );
+                    $this->clearCache($entityName, $entityFolder, $params, $entity);
                 }
 
                 return $entity->update($params);
@@ -128,6 +118,18 @@ class AdminEntityController extends Controller {
         } else {
             echo 'Не получен ID сущности'; // TODO Сделать общий вывод ошибок, типа error();
         }
+    }
+
+    private function clearCache($entityName, $entityFolder, $params, $entity)
+    {
+        /* Сброс кеша */
+        CacheService::forgetEntityCache(
+            $entityName,
+            $entityFolder,
+            $entity,
+            isset($params['slug']) ? $params['slug'] : null,
+            isset($params['ended_at']) ? $params['ended_at'] : null,
+        );
     }
 
     public function edit($firstParam, $secondParam = null, $thirdParam = null) {
