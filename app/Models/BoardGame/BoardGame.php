@@ -2,15 +2,16 @@
 
 namespace App\Models\BoardGame;
 
-use App\Models\Media;
+use App\Models\Traits\ExtendModelTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardGame extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes, ExtendModelTrait;
 
     const CLOSE_STATUS = 0;
     const OPEN_STATUS = 1;
@@ -33,39 +34,11 @@ class BoardGame extends Model
         'is_close' => 'boolean',
     ];
 
-    public function getModelAttribute()
-    {
-        return get_class($this);
-    }
-
-    public function scopeActive(Builder $query): Builder
-    {
-        return $query->where('active', true);
-    }
+    protected $dates = ['deleted_at'];
 
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('is_close', false);
-    }
-
-    public function scopeFindBySlug($query, $slug)
-    {
-        return $query->where('slug', $slug);
-    }
-
-    public function scopeFindById($query, $id)
-    {
-        return $query->where('id', $id);
-    }
-
-    public function titleImage()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
-    }
-
-    public function media()
-    {
-        return $this->morphToMany(Media::class, 'media_bind');
     }
 
     public function players()

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BoardGame\BoardGameController;
 use App\Http\Controllers\BoardGame\BoardGamePlayerController;
 use App\Http\Controllers\BoardGame\ItemController;
 use App\Http\Controllers\BoardGame\LogController;
@@ -7,11 +8,17 @@ use App\Http\Controllers\BoardGame\PlayerGameController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('board-game/v2/')->name('v2.')->group(function() {
+    Route::controller(BoardGameController::class)->group(function() {
+        Route::get('list', 'getList')->name('list');
+    });
+
     Route::prefix('player/')->controller(BoardGamePlayerController::class)->name('player.')->group(function() {
         Route::get('get/{slug}/{name}', 'getPlayer')->name('getPlayer');
         Route::get('current/{slug}', 'getCurrent')->middleware('auth:sanctum')->name('getCurrent');
         Route::get('list/{slug}', 'getList')->name('getList');
         Route::get('listWithInventory/{slug}', 'getListWithInventory')->name('getListWithInventory');
+
+        Route::get('getEvents/{slug}/{name}', 'getEvents')->name('getEvents');
 
         Route::get('getInventory/{slug}/{name}', 'getInventory')->name('getInventory');
         Route::get('getGames/{slug}/{name}', 'getGames')->name('getGames');

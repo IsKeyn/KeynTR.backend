@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BoardGame\ItemBindController;
 use App\Http\Controllers\Admin\BoardGame\ItemController;
+use App\Http\Controllers\Admin\BoardGame\BoardGameController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminGameController;
 use App\Http\Controllers\Admin\AdminMediaGroupController;
@@ -42,6 +43,7 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
     });
 
     Route::prefix('BoardGame')->name('BoardGame.')->group(function () {
+        Route::resource('BoardGame', BoardGameController::class);
         Route::resource('Item', ItemController::class);
         Route::resource('ItemBind', ItemBindController::class);
         Route::resource('BoardGameInventory', BoardGameInventoryController::class);

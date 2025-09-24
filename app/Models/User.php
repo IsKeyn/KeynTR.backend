@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ExtendModelTrait;
 use App\Models\User\Message;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +15,7 @@ use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, ExtendModelTrait;
 
     /**
      * The attributes that are mass assignable.

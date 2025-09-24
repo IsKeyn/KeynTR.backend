@@ -9,6 +9,7 @@ use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithInventoryResource;
+use App\Http\Resources\BoardGame\BoardGameShortResource;
 use App\Http\Resources\BoardGame\ItemBindResource;
 use App\Http\Resources\BoardGame\LogResource;
 use App\Http\Resources\BoardGame\PlayerGameResource;
@@ -37,19 +38,19 @@ class BoardGamePlayerController extends Controller
         BoardGamePlayer $BoardGamePlayer
     )
     {
-        $user = User::query()->where('name', $name)->first();
+        $user = User::findByName($name)->first();
 
         if ($user) {
-            $cacheKey = 'board_game_' . $slug . '_player_' . $user->id . '_cache';
-            $minutes = 60 * 24 * 30; // 30 дней
-
-            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $user, $slug) {
+//            $cacheKey = 'board_game_' . $slug . '_player_' . $user->id . '_cache';
+//            $minutes = 60 * 24 * 30; // 30 дней
+//
+//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $user, $slug) {
                 $id = $BoardGame->findBySlug($slug)->value('id');
 
                 $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
 
                 return BoardGamePlayerFullResource::make($player);
-            });
+//            });
         }
     }
 
@@ -62,16 +63,16 @@ class BoardGamePlayerController extends Controller
         $user = Auth::user();
 
         if ($user) {
-            $cacheKey = 'board_game_' . $slug . '_player_' . $user->id . '_cache';
-            $minutes = 60 * 24 * 30; // 30 дней
-
-            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $user, $slug) {
+//            $cacheKey = 'board_game_' . $slug . '_player_' . $user->id . '_cache';
+//            $minutes = 60 * 24 * 30; // 30 дней
+//
+//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $user, $slug) {
                 $id = $BoardGame->findBySlug($slug)->value('id');
 
                 $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
 
                 return BoardGamePlayerFullResource::make($player);
-            });
+//            });
         }
     }
 
@@ -81,15 +82,15 @@ class BoardGamePlayerController extends Controller
         BoardGamePlayer $BoardGamePlayer
     )
     {
-        $cacheKey = 'board_game_' . $slug . '_player_list_cache';
-        $minutes = 60 * 24 * 30; // 30 дней
-
-        return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $slug) {
+//        $cacheKey = 'board_game_' . $slug . '_player_list_cache';
+//        $minutes = 60 * 24 * 30; // 30 дней
+//
+//        return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $slug) {
             $boardGameId = $BoardGame->findBySlug($slug)->value('id');
             $players = $BoardGamePlayer->where('board_game_id', $boardGameId)->get();
 
             return BoardGamePlayerShortResource::collection($players);
-        });
+//        });
     }
 
     public function getListWithInventory(
@@ -104,6 +105,29 @@ class BoardGamePlayerController extends Controller
             return BoardGamePlayerWithInventoryResource::collection($players);
     }
 
+    public function getEvents(
+        $slug,
+        $name,
+        BoardGame $BoardGame,
+        BoardGamePlayer $BoardGamePlayer
+    )
+    {
+        $userId = User::findByName($name)->value('id');
+
+        if ($userId) {
+            $id = $BoardGame->findBySlug($slug)->value('id');
+            $playerInGames = $BoardGamePlayer->findByUserId($userId)->where('board_game_id', '!=', $id)->get();
+
+            $BoardGames = collect([]);
+
+            foreach ($playerInGames as $player) {
+                $BoardGames->push($player->boardGame);
+            }
+
+            return BoardGameShortResource::collection($BoardGames);
+        }
+    }
+
     public function getInventory(
         $slug,
         $name,
@@ -111,13 +135,13 @@ class BoardGamePlayerController extends Controller
         BoardGameInventory $BoardGameInventory
     )
     {
-        $user = User::query()->where('name', $name)->first();
+        $user = User::findByName($name)->first();
 
         if ($user) {
-            $cacheKey = 'board_game_' . $slug . '_player_inventory_' . $user->id . '_cache';
-            $minutes = 60 * 24 * 30; // 30 дней
-
-            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGameInventory, $user, $slug) {
+//            $cacheKey = 'board_game_' . $slug . '_player_inventory_' . $user->id . '_cache';
+//            $minutes = 60 * 24 * 30; // 30 дней
+//
+//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGameInventory, $user, $slug) {
                 $id = $BoardGame->findBySlug($slug)->value('id');
 
                 $inventory = $BoardGameInventory
@@ -125,7 +149,7 @@ class BoardGamePlayerController extends Controller
                     ->where('user_id', $user->id)->get();
 
                 return BoardGameInventoryResource::collection($inventory);
-            });
+//            });
         }
     }
 
@@ -137,7 +161,7 @@ class BoardGamePlayerController extends Controller
         PlayerGame $PlayerGame
     )
     {
-        $user = User::query()->where('name', $name)->first();
+        $user = User::findByName($name)->first();
 
         if ($user) {
 //            $cacheKey = 'board_game_' . $slug . '_player_games_' . $user->id . '_cache';
@@ -163,13 +187,13 @@ class BoardGamePlayerController extends Controller
         PlayerGame $PlayerGame
     )
     {
-        $user = User::query()->where('name', $name)->first();
+        $user = User::findByName($name)->first();
 
         if ($user) {
-            $cacheKey = 'board_game_' . $slug . '_player_current_game_' . $user->id . '_cache';
-            $minutes = 60 * 24 * 30; // 30 дней
-
-            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $PlayerGame, $user, $slug) {
+//            $cacheKey = 'board_game_' . $slug . '_player_current_game_' . $user->id . '_cache';
+//            $minutes = 60 * 24 * 30; // 30 дней
+//
+//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $PlayerGame, $user, $slug) {
                 $id = $BoardGame->findBySlug($slug)->value('id');
 
                 $playerGames = PlayerGame::where('board_game_id', $id)
@@ -178,7 +202,7 @@ class BoardGamePlayerController extends Controller
                     ->orderByDesc('id')->get();
 
                 return PlayerGameResource::collection($playerGames);
-            });
+//            });
         }
     }
 

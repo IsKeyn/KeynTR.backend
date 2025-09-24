@@ -2,15 +2,15 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Traits\ExtendModelTrait;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class BoardGamePlayer extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait;
 
     protected $fillable = [
         'user_id',
@@ -26,6 +26,11 @@ class BoardGamePlayer extends Model
         'active' => 'boolean',
     ];
 
+    public function scopeFindByUserId($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -37,8 +42,8 @@ class BoardGamePlayer extends Model
         return $this->hasMany(BoardGameInventory::class, 'user_id');
     }
 
-    public function scopeActive(Builder $query): Builder
+    public function boardGame()
     {
-        return $query->where('active', true);
+        return $this->belongsTo(BoardGame::class, 'board_game_id');
     }
 }

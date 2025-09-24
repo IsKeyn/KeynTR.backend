@@ -20,6 +20,13 @@ use Illuminate\Support\Facades\Cache;
 
 class BoardGameController extends Controller
 {
+    public function getList(BoardGame $boardGame)
+    {
+        $boardGameList = $boardGame::active()->orderBy('created_at', 'desc')->get();
+
+        return BoardGameShortResource::collection($boardGameList);
+    }
+
     public function getBySlug($slug, Request $request, BoardGame $boardGame)
     {
         $validated = $request->validate([
@@ -31,7 +38,7 @@ class BoardGameController extends Controller
             $minutes = 60 * 24 * 30; // 30 дней
 
             if ($validated['type'] === 'short') {
-                return Cache::remember($cacheKey, $minutes, function () use ($slug, $request, $boardGame) {
+//                return Cache::remember($cacheKey, $minutes, function () use ($slug, $request, $boardGame) {
                     $boardGame = $boardGame->where('slug', $slug)->where('active', true)->first();
 
                     if ($boardGame) {
@@ -44,7 +51,7 @@ class BoardGameController extends Controller
 
                         return BoardGameShortResource::make($boardGame, $player);
                     }
-                });
+//                });
             }
         } else {
             /* Используется в старой версии игры */
@@ -54,11 +61,6 @@ class BoardGameController extends Controller
                 return BoardGameResource::make($boardGame);
             }
         }
-    }
-
-    public function getList(BoardGame $boardGame)
-    {
-        return BoardGameShortResource::collection($boardGame::all());
     }
 
     public function getItemAndInventory(Request $request, ItemBind $BoardGameItem, BoardGameInventory $BoardGameInventory)
