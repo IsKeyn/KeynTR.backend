@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\BoardGame\StatusEffectResource;
 use App\Http\Resources\Entity\EntityListResource;
 use App\Services\CacheService;
 use App\Services\MediaService;
@@ -19,6 +20,10 @@ class AdminEntityController extends Controller {
         'Tag'
     ];
 
+    public const ENTITY_RESOURCE_RELATIONS = [
+        'App\Models\BoardGame\StatusEffect' => StatusEffectResource::class,
+    ];
+
     public function index($firstParam, $secondParam = null)
     {
         if ($secondParam) {
@@ -32,7 +37,13 @@ class AdminEntityController extends Controller {
             $model = 'App\Models\\' . $entityName;
         }
 
-        return $model::query()->get();
+        $entityList = $model::query()->get();
+
+        if ($resourceClass = self::ENTITY_RESOURCE_RELATIONS[$model] ?? null) {
+            return $resourceClass::collection($entityList);
+        } else {
+            return $entityList;
+        }
     }
 
     public function store(Request $request, $firstParam, $secondParam = null)
@@ -71,7 +82,11 @@ class AdminEntityController extends Controller {
             }
         }
 
-        return $entity;
+        if ($resourceClass = self::ENTITY_RESOURCE_RELATIONS[$model] ?? null) {
+            return $resourceClass::make($entity);
+        } else {
+            return $entity;
+        }
     }
 
     public function update(Request $request, $firstParam, $secondParam = null, $thirdParam = null) {
@@ -111,7 +126,13 @@ class AdminEntityController extends Controller {
                     $this->clearCache($entityName, $entityFolder, $params, $entity);
                 }
 
-                return $entity->update($params);
+                $result = $entity->update($params);
+
+                if ($resourceClass = self::ENTITY_RESOURCE_RELATIONS[$model] ?? null) {
+                    return $resourceClass::make($entity);
+                } else {
+                    return $entity;
+                }
             } else {
                 echo 'Такой сущности нет'; // TODO Сделать общий вывод ошибок, типа error();
             }
@@ -146,7 +167,14 @@ class AdminEntityController extends Controller {
             $model = 'App\Models\\' . $entityName;
         }
 
-        return $model::query()->where('id', $id)->first();
+        $entity = $model::query()->where('id', $id)->first();
+
+        if ($resourceClass = self::ENTITY_RESOURCE_RELATIONS[$model] ?? null) {
+            return $resourceClass::make($entity);
+        } else {
+            return $entity;
+        }
+
 //        $data = [
 //            'element' => $model::query()->where('id', $id)->first(),
 //            'name' => $entityName,

@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use App\Http\Resources\Admin\BoardGame\ItemResource;
 use Illuminate\Support\Facades\Cache;
 
-class ItemController extends Controller
+class StatusEffectController extends Controller
 {
     public function index(Item $Item)
     {

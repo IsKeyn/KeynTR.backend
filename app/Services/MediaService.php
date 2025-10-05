@@ -110,6 +110,10 @@ class MediaService
 
     public function getWebp(MediaResource $media)
     {
+        if (!$this->isImageMedia($media)) {
+            return false;
+        }
+
         $originalPath = "media/$media->id/$media->file_name";
         $webpPath = str_replace($media->mime_type, 'webp', $originalPath);
 
@@ -128,6 +132,10 @@ class MediaService
 
     public function getResizes(MediaResource $media)
     {
+        if (!$this->isImageMedia($media)) {
+            return false;
+        }
+
         $originalPath = "media/$media->id/$media->file_name";
 
         /* Проверяем, что файл, который мы собираемся обрабатывать существуе */
@@ -158,4 +166,11 @@ class MediaService
 
         return $returnData;
     }
+
+    private function isImageMedia(MediaResource $media): bool
+    {
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        return in_array(strtolower($media->mime_type), $imageExtensions);
+    }
+
 }

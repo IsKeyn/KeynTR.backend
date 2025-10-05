@@ -2,6 +2,7 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Setting;
 use App\Models\Traits\ExtendModelTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +22,6 @@ class BoardGame extends Model
         'name',
         'slug',
         'description',
-        'settings',
         'active',
         'is_close',
         'started_at',
@@ -59,5 +59,10 @@ class BoardGame extends Model
         }
 
         return $status;
+    }
+
+    public function settings()
+    {
+        return $this->morphMany(Setting::class, 'entity');
     }
 }

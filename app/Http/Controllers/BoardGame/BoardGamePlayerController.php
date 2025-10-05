@@ -8,11 +8,13 @@ use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
+use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithInventoryResource;
 use App\Http\Resources\BoardGame\BoardGameShortResource;
 use App\Http\Resources\BoardGame\ItemBindResource;
 use App\Http\Resources\BoardGame\LogResource;
 use App\Http\Resources\BoardGame\PlayerGameResource;
+use App\Http\Resources\BoardGame\PlayerStatusEffectResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameLog;
@@ -20,6 +22,8 @@ use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
+use App\Models\BoardGame\PlayerStatusEffect;
+use App\Models\BoardGame\StatusEffect;
 use App\Models\BoardGame\Timer;
 use App\Models\User;
 use App\Services\BoardGame\ItemService;
@@ -49,8 +53,14 @@ class BoardGamePlayerController extends Controller
 
                 $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
 
-                return BoardGamePlayerFullResource::make($player);
+                if ($player) {
+                    return BoardGamePlayerFullResource::make($player);
+                } else {
+                    return false;
+                }
 //            });
+        } else {
+            return false;
         }
     }
 
@@ -60,20 +70,28 @@ class BoardGamePlayerController extends Controller
         BoardGamePlayer $BoardGamePlayer
     )
     {
-        $user = Auth::user();
+        if ($slug) {
+            $user = Auth::user();
 
-        if ($user) {
+            if ($user) {
 //            $cacheKey = 'board_game_' . $slug . '_player_' . $user->id . '_cache';
 //            $minutes = 60 * 24 * 30; // 30 дней
 //
 //            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $user, $slug) {
                 $id = $BoardGame->findBySlug($slug)->value('id');
 
-                $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
+                if ($id) {
+                    $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
 
-                return BoardGamePlayerFullResource::make($player);
+                    if ($player) {
+                        return BoardGamePlayerWithCurrentGameResource::make($player);
+                    }
+                }
 //            });
+            }
         }
+
+        return false;
     }
 
     public function getList(
@@ -149,6 +167,31 @@ class BoardGamePlayerController extends Controller
                     ->where('user_id', $user->id)->get();
 
                 return BoardGameInventoryResource::collection($inventory);
+//            });
+        }
+    }
+
+    public function getStatusEffects(
+        $slug,
+        $name,
+        BoardGame $BoardGame,
+        PlayerStatusEffect $PlayerStatusEffect
+    )
+    {
+        $user = User::findByName($name)->first();
+
+        if ($user) {
+//            $cacheKey = 'board_game_' . $slug . '_player_inventory_' . $user->id . '_cache';
+//            $minutes = 60 * 24 * 30; // 30 дней
+//
+//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGameInventory, $user, $slug) {
+            $id = $BoardGame->findBySlug($slug)->value('id');
+
+            $statusEffects = $PlayerStatusEffect
+                ->where('board_game_id', $id)
+                ->where('user_id', $user->id)->get();
+
+            return PlayerStatusEffectResource::collection($statusEffects);
 //            });
         }
     }
@@ -308,7 +351,7 @@ class BoardGamePlayerController extends Controller
 
     public function rollItem($slug, $withDropChance = true)
     {
-        /* Проверяем условия рода */
+        /* Проверяем условия рола */
         $conditionData = PlayerGameService::checkConditions($slug);
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
@@ -337,12 +380,47 @@ class BoardGamePlayerController extends Controller
                 $randItem = $items->random();
             }
 
-            /* Добавление предмета в инвентарь */
-            ItemService::addToInventory(
-                $conditionData['user']->id,
-                $conditionData['boardGame']->id,
-                $randItem->id,
-            );
+            /*
+             * Если предмет накладывает статус эффект,
+             * то на игрока необходимо наложить статус эффект,
+             * а не класть предмет в инвентарь
+             */
+            $setStatusEffect = false;
+
+            $actions = json_decode($randItem->item->actions);
+
+            $useStatusEffect = false;
+
+            foreach ($actions as $action) {
+                if (
+                    $action
+                    && $action->type === 'applyStatusEffect'
+                    && $action->target === 'current'
+                    && $action->value
+                ) {
+                    /* Применяем статус эффект */
+                    $statusEffectObj = StatusEffect::where('slug', $action->value)->first();
+
+                    $PlayerStatusEffectFields = [
+                        'user_id' => $conditionData['user']->id,
+                        'board_game_id' => $conditionData['boardGame']->id,
+                        'status_effect_id' => $statusEffectObj->id,
+                        'created_by' => $conditionData['user']->id,
+                    ];
+
+                    PlayerStatusEffect::create($PlayerStatusEffectFields);
+                    $useStatusEffect = true;
+                }
+            }
+
+            if (!$useStatusEffect) {
+                /* Добавление предмета в инвентарь */
+                ItemService::addToInventory(
+                    $conditionData['user']->id,
+                    $conditionData['boardGame']->id,
+                    $randItem->id,
+                );
+            }
 
             /* Добавление в логи */
             LogService::addLog(

@@ -2,7 +2,6 @@
 
 namespace App\Services\BoardGame;
 
-use App\Http\Resources\BoardGame\PlayerGameShortResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
@@ -10,6 +9,29 @@ use Illuminate\Support\Facades\Auth;
 
 class PlayerGameService
 {
+    public static function joinTheGame($user, $slug)
+    {
+        if ($user && $slug) {
+            $boardGame = BoardGame::findBySlug($slug)->first();
+
+            $itemRollCountSetting = $boardGame->settings->where('code', '=', 'item_roll_count')->first();
+            $typeSettings = $boardGame->settings->where('code', '=', 'type')->first();
+
+            if ($boardGame) {
+                $fields = [
+                    'user_id' => $user->id,
+                    'board_game_id' => $boardGame->id,
+                    'item_roll_count' => $itemRollCountSetting ? $itemRollCountSetting->value : 2,
+                    'active' => $typeSettings ? ($typeSettings->value === 'upon-request' ? false : true) : true,
+                    'not_active_reason' => $typeSettings ? ($typeSettings->value === 'upon-request' ? 'Ожидает одобрения модератора' : null) : null,
+                    'created_by' => $user->id,
+                ];
+
+                return PlayerGame::create($fields);
+            }
+        }
+    }
+
     public static function actionsWithGame($gameListGameId, $boardGameId)
     {
         $playerGame = PlayerGame::query()

@@ -14,5 +14,7 @@ class Setting extends Model
         'name',
         'code',
         'value',
+        'entity_type',
+        'entity_id',
     ];
 }

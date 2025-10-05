@@ -26,6 +26,11 @@ class BoardGamePlayer extends Model
         'active' => 'boolean',
     ];
 
+    public function scopeFindByBoardGame($query, $boardGameId)
+    {
+        return $query->where('board_game_id', $boardGameId);
+    }
+
     public function scopeFindByUserId($query, $userId)
     {
         return $query->where('user_id', $userId);
@@ -36,10 +41,9 @@ class BoardGamePlayer extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Не будет работать, так как нет зависимости от игры
     public function inventory()
     {
-        return $this->hasMany(BoardGameInventory::class, 'user_id');
+        return $this->hasMany(BoardGameInventory::class, 'user_id', 'user_id')->where('board_game_id', '=', $this->board_game_id);
     }
 
     public function boardGame()

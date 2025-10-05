@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\BoardGame;
 
+use App\Http\Resources\MediaResource;
+use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class StatusEffectResource extends JsonResource
@@ -14,6 +16,8 @@ class StatusEffectResource extends JsonResource
      */
     public function toArray($request)
     {
+        $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -22,6 +26,7 @@ class StatusEffectResource extends JsonResource
             'actions' => $this->actions,
             'board_game_id' => $this->board_game_id,
             'debuff' => $this->debuff,
+            'image' => $image ? MediaResource::make($image) : null,
 //            'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

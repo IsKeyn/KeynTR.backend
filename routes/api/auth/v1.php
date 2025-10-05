@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\User\MessageController;
+use App\Services\User\UserService;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -22,6 +24,11 @@ Route::prefix('auth/')->middleware('guest:api')->group(function() {
         Route::post('reset-password', 'resetPassword')->name('resetPassword');
     });
 });
+
+// Подтверждение email
+Route::get('/auth/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    return UserService::verifyEmail($request);
+})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
 
 // Действия авторизированного пользователя
 Route::prefix('auth/')->middleware('auth:sanctum')->group(function() {

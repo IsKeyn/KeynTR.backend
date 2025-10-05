@@ -19,6 +19,10 @@ class PlayerStatusEffect extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function statusEffect(): BelongsTo
     {
         return $this->belongsTo(StatusEffect::class, 'status_effect_id');

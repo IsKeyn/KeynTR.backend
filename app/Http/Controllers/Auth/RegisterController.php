@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
+use App\Services\BoardGame\PlayerGameService;
+use App\Services\User\UserService;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -75,6 +77,14 @@ class RegisterController extends Controller
     protected function registered(Request $request, $user)
     {
         if ($user) {
+            if ($request->additional_fields) {
+                UserService::setAdditionalFields($user, $request->additional_fields);
+            }
+
+            if ($request->registerOnEventBySlug) {
+                PlayerGameService::joinTheGame($user, $request->registerOnEventBySlug);
+            }
+
             //$user->tokens()->delete(); // TODO несколько токенов для авторизации на нескольких устройствах
             // TODO удалять старые токены через определённое время, например через год, комманда
 

@@ -18,6 +18,7 @@ class ItemResource extends JsonResource
     public function toArray($request)
     {
         $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
+        $sound = $this->titleImage()->wherePivot('type', '=', Media::SOUND)->first();
 
         return [
             'id' => $this->id,
@@ -30,6 +31,7 @@ class ItemResource extends JsonResource
             'drop_chance' => $this->drop_chance,
             'board_game_id' => $this->board_game_id,
             'image' => $image ? MediaResource::make($image) : null,
+            'sound' => $image ? MediaResource::make($sound) : null,
             'active' => $this->active,
             'authorUser' => $this->authorUser ? UserPublicResource::make($this->authorUser) : null,
             'created_by' => $this->created_by,

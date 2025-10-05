@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBoardGamesTable extends Migration
+class CreateBgStatusEffectsBindsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,17 +13,12 @@ class CreateBoardGamesTable extends Migration
      */
     public function up()
     {
-        Schema::create('board_games', function (Blueprint $table) {
+        Schema::create('bg_status_effects_binds', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('slug')->nullable()->unique();
-            $table->text('description')->nullable();
+            $table->foreignId('status_effect_id')->nullable()->constrained('status_effects')->nullOnDelete();
+            $table->foreignId('board_game_id')->nullable()->constrained('board_games')->nullOnDelete();
             $table->boolean('active')->default(true);
-            $table->boolean('is_close')->default(false);
-            $table->dateTime('started_at')->nullable();
-            $table->dateTime('ended_at')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->softDeletes();
             $table->timestamps();
         });
     }
@@ -35,6 +30,6 @@ class CreateBoardGamesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('board_games');
+        Schema::dropIfExists('bg_status_effects_binds');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models\Traits;
 
+use App\Models\Block;
 use App\Models\Media;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -42,5 +43,10 @@ trait ExtendModelTrait
         return $this->titleImage()
             ->wherePivot('type', '=', Media::TITLE_TYPE)
             ->first();
+    }
+
+    public function blocks()
+    {
+        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type')->orderBy('position', 'asc');
     }
 }

@@ -28,7 +28,7 @@ class BoardGamePlayerWithInventoryResource extends JsonResource
             $fullPoints += $position->position;
         }
 
-        $inventory = BoardGameInventory::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->get();
+        $inventory = BoardGameInventory::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('created_at', 'desc')->get();
 
         $timer = Timer::query()
             ->where('user_id', $this->user_id)

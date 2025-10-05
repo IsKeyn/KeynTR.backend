@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Media;
 use App\Models\User;
-use App\Services\AdditionalFieldsService;
 use App\Services\MediaService;
-use App\Services\TwitchService;
 use App\Services\User\UserPasswordService;
+use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -74,34 +73,7 @@ class UserController extends Controller
 
     public function setAdditionalFields($model, $validated) {
         if (isset($validated['additional_fields'])) {
-            foreach ($validated['additional_fields'] as &$field) {
-                if ($field['slug'] === 'twitch_channel') {
-                    $path = parse_url($field['value'], PHP_URL_PATH);
-                    $twitchName = basename($path);
-
-                    $field['value'] = $twitchName;
-
-                    $clientId = config('twitch.client_id');
-                    $clientSecret = config('twitch.client_secret');
-
-                    $twitchService = new TwitchService();
-                    $token = $twitchService->getAccessToken($clientId, $clientSecret);
-
-                    $twitchUserData = $twitchService->getTwitchUserData($twitchName, $clientId, $token);
-
-                    if (isset($twitchUserData['data'][0])) {
-                        $validated['additional_fields'][] = [
-                            'name' => 'Twitch ID',
-                            'slug' => 'twitch_id',
-                            'value' => $twitchUserData['data'][0]['id'],
-                            'sort' => 90,
-                        ];
-                    }
-                }
-            }
-
-            $additionalFieldsService = new AdditionalFieldsService();
-            $additionalFieldsService->sync($model, $validated['additional_fields']);
+            UserService::setAdditionalFields($model, $validated['additional_fields']);
         }
     }
 

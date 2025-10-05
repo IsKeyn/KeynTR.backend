@@ -4,7 +4,7 @@ namespace App\Http\Resources\BoardGame;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PlayerStatusEffectResource extends JsonResource
+class BoardResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,10 +16,12 @@ class PlayerStatusEffectResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user_id' => $this->user_id,
-            'board_game_id' => $this->board_game_id,
-            'statusEffect' => StatusEffectResource::make($this->statusEffect),
-            'status_effect_id' => $this->status_effect_id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'columns' => $this->columns,
+            'media' => $this->media,
+            'sort' => $this->sort,
             'active' => $this->active,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,

@@ -12,6 +12,7 @@ class Media extends Model
     const TITLE_TYPE = 1;
     const COVER_TYPE = 2;
     const MEDIA_GROUP = 3;
+    const SOUND = 4;
 
     protected $fillable = [
         'name',

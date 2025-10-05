@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\BoardGame\BoardGameResource;
 use App\Jobs\BoardGame\BoardGameShortCacheClear;
 use App\Models\BoardGame\BoardGame;
+use App\Services\BlockService;
 use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -30,6 +31,10 @@ class BoardGameController extends Controller {
             $mediaService->setTitleImage($entity, $params['media']);
         }
 
+        if (isset($params['blocks'])) {
+            BlockService::set($entity, $params['blocks']);
+        }
+
         $this->clearCache($entity);
 
         return $entity;
@@ -46,6 +51,10 @@ class BoardGameController extends Controller {
 
         if (isset($params['media'])) {
             $mediaService->setTitleImage($boardGame, $params['media']);
+        }
+
+        if (isset($params['blocks'])) {
+            BlockService::set($boardGame, $params['blocks']);
         }
 
         $this->clearCache($boardGame);
@@ -69,5 +78,11 @@ class BoardGameController extends Controller {
         // TODO Очищать все привязки, операция опасна, может добавить soft delete а удалять полностью по команде?
         $boardGame = BoardGame::findById($id)->first();
         return $boardGame->delete();
+    }
+
+    public function setAdditionalFields($model, $validated) {
+        if (isset($validated['blocks'])) {
+            BlockService::set($model, $validated['blocks']);
+        }
     }
 }

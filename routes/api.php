@@ -164,14 +164,3 @@ Route::name('api.')->group(function() {
     // Работа с сущностями
     Route::name('entity.')->group(base_path('routes/api/entity/v1.php'));
 });
-
-Route::get('/auth/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-    $user = $request->user();
-
-    return UserResource::make($user);
-})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
-
-//Route::get('/user', function (Request $request) {
-//    return $request->user();
-//})->middleware('auth:sanctum');

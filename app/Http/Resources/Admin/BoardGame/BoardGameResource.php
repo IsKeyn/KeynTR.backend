@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Admin\BoardGame;
 
+use App\Http\Resources\BlockResource;
 use App\Http\Resources\MediaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,6 +22,7 @@ class BoardGameResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'blocks' => BlockResource::collection($this->blocks),
             'settings' => $this->settings,
             'media' => $this->title_image ? MediaResource::make($this->title_image) : null,
             'active' => $this->active,
