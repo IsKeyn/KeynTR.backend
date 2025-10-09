@@ -14,6 +14,16 @@ class PlayerInteractionResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'type' => $this->type,
+            'status' => $this->status,
+            'board_game_id' => $this->board_game_id,
+            'with_player' => $this->with_player,
+            'with_player_data' => $this->withPlayerData,
+            'created_by' => $this->created_by,
+            'entity_id' => $this->entity_type,
+            'active' => $this->active,
+        ];
     }
 }

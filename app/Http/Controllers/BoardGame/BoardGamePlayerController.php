@@ -10,10 +10,12 @@ use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithInventoryResource;
+use App\Http\Resources\BoardGame\BoardGamePlayerWithStatusEffectsResource;
 use App\Http\Resources\BoardGame\BoardGameShortResource;
 use App\Http\Resources\BoardGame\ItemBindResource;
 use App\Http\Resources\BoardGame\LogResource;
 use App\Http\Resources\BoardGame\PlayerGameResource;
+use App\Http\Resources\BoardGame\PlayerInteractionResource;
 use App\Http\Resources\BoardGame\PlayerStatusEffectResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
@@ -22,6 +24,7 @@ use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
+use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
 use App\Models\BoardGame\Timer;
@@ -107,7 +110,7 @@ class BoardGamePlayerController extends Controller
             $boardGameId = $BoardGame->findBySlug($slug)->value('id');
             $players = $BoardGamePlayer->where('board_game_id', $boardGameId)->get();
 
-            return BoardGamePlayerShortResource::collection($players);
+            return BoardGamePlayerWithStatusEffectsResource::collection($players);
 //        });
     }
 
@@ -434,6 +437,27 @@ class BoardGamePlayerController extends Controller
             $conditionData['player']->save();
 
             return ItemBindResource::make($randItem);
+        }
+    }
+
+    public function getInteractions($slug)
+    {
+        $conditionData = PlayerGameService::checkConditions($slug);
+
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        } else {
+            $playerInteractions = PlayerInteractions::where('board_game_id', $conditionData['boardGame']->id)
+                ->where(function($query) use ($conditionData) {
+                    $query->where('created_by', '=', $conditionData['user']->id)->orWhere('with_player', '=', $conditionData['user']->id);
+                })->active()
+                ->get();
+
+            return [
+                'status' => 1,
+                'interaction' => PlayerInteractionResource::collection($playerInteractions),
+                'player' => BoardGamePlayerWithInventoryResource::make($conditionData['player']),
+            ];
         }
     }
 }

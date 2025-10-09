@@ -15,10 +15,13 @@ class CreateBgPlayerInteractionsTable extends Migration
     {
         Schema::create('bg_player_interactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('with_player')->nullable()->constrained('board_game_players')->nullOnDelete();
             $table->string('type');
             $table->integer('status')->nullable();
+            $table->foreignId('board_game_id')->nullable();
+            $table->foreignId('with_player')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->integer('entity_id')->nullable();
+            $table->string('entity_type')->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();
         });

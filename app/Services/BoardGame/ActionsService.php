@@ -3,11 +3,15 @@
 namespace App\Services\BoardGame;
 
 use App\Models\BoardGame\Board;
+use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Models\BoardGame\PlayerGame;
+use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
+use App\Models\BoardGame\Timer;
 use App\Models\User\Notification;
 
 class ActionsService
@@ -73,17 +77,22 @@ class ActionsService
                 );
                 break;
 
+
             case 'addTime':
                 $result = $this->actionsWithTime(
                     $request,
                     $action,
                 );
                 break;
-            case 'customItem':
-                $result = $this->customItem(
+
+            case 'playerInteractions':
+                $result = $this->actionsWithPlayerInteractions(
                     $request,
                     $action,
                 );
+                break;
+            case 'customItem':
+
                 break;
         }
 
@@ -113,7 +122,7 @@ class ActionsService
                 if (!$dontSendNotification) {
                     if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
                         $notificationMessage = $request->additionalParams['message'];
-                        $this->createNotification($player, $user, $notificationMessage, $notification);
+                        $this->createNotification($player, $notificationMessage);
                     }
                 }
             }
@@ -134,12 +143,12 @@ class ActionsService
         } else {
             if ($value === 'playersAheadCount') {
                 /* За каждого игрока впереди */
-                $playerPosition = $this->BoardGamePlayerPosition
+                $playerPosition = $this->BoardGamePlayerPosition::query()
                     ->where('user_id', $player->user_id)
                     ->where('board_game_id', $this->conditionData['boardGame']->id)
                     ->orderBy('id', 'desc')->first();
 
-                $playersAhead = $this->BoardGamePlayerPosition::where('position', '>', $playerPosition->position)
+                $playersAhead = $this->BoardGamePlayerPosition::query()->where('position', '>', $playerPosition->position)
                     ->where('user_id', '!=', $player->user_id)
                     ->get()->sortByDesc('created_at')->unique('user_id');
 
@@ -155,12 +164,12 @@ class ActionsService
 
                 $explodedString = explode('_', $action->value);
 
-                $currentPlayerPosition = $this->BoardGamePlayerPosition
+                $currentPlayerPosition = $this->BoardGamePlayerPosition::query()
                     ->where('user_id', $player->user_id)
                     ->where('board_game_id', $this->conditionData['boardGame']->id)
                     ->orderBy('id', 'desc')->first();
 
-                $nearPlayers = $this->BoardGamePlayerPosition::where('user_id', '!=', $player->user_id)
+                $nearPlayers = $this->BoardGamePlayerPosition::query()->where('user_id', '!=', $player->user_id)
                     ->get()
                     ->sortByDesc('created_at')
                     ->unique('user_id');
@@ -215,7 +224,7 @@ class ActionsService
         $players = $this->target($request, $action);
 
         foreach ($players as $player) {
-            $playerPosition = $this->BoardGamePlayerPosition
+            $playerPosition = $this->BoardGamePlayerPosition::query()
                 ->where('user_id', $player->user_id)
                 ->where('board_game_id', $this->conditionData['boardGame']->id)
                 ->orderBy('id', 'desc')->first();
@@ -231,7 +240,7 @@ class ActionsService
             /* Проверяем, что игрок не дальше позиции указанной в $action->target */
             if (str_contains($action->target, 'noFurther')) {
                 /* Позиция игрока, который использует предмет */
-                $usedItemPlayerPosition = $this->BoardGamePlayerPosition
+                $usedItemPlayerPosition = $this->BoardGamePlayerPosition::query()
                     ->where('user_id', $this->conditionData['user']->id)
                     ->where('board_game_id', $this->conditionData['boardGame']->id)
                     ->orderBy('id', 'desc')
@@ -264,7 +273,7 @@ class ActionsService
                 );
             }
 
-            $this->BoardGamePlayerPosition->create($playerPositionFields);
+            $this->BoardGamePlayerPosition::create($playerPositionFields);
 
             $dontSendNotification = false;
 
@@ -426,6 +435,93 @@ class ActionsService
         }
     }
 
+    private function actionsWithTime($request, $action)
+    {
+        $timer = Timer::query()
+            ->where('user_id', $this->conditionData['user']->id)
+            ->where('board_game_id', $this->conditionData['boardGame']->id)
+            ->where('slug','main')
+            ->where('active', true)
+            ->orderBy('id', 'desc')->first();
+
+        if ($timer) {
+            if ($action->type === 'addTime') {
+                $fields = [
+                    'limit' => $timer->limit + $action->value,
+                ];
+
+                return $timer->update($fields);
+            }
+        } else {
+            $boardGame = BoardGame::query()->where('id', $this->conditionData['boardGame']->id)->first();
+
+            $timerFields = [
+                'user_id' => $this->conditionData['user']->id,
+                'board_game_id' => $this->conditionData['boardGame']->id,
+                'name' => $boardGame->name,
+                'limit' => 100*60*60 + $action->value,
+                'slug' => 'main',
+                'created_by' => $this->conditionData['user']->id,
+            ];
+
+            Timer::create($timerFields);
+        }
+    }
+
+    private function actionsWithPlayerInteractions($request, $action)
+    {
+        if ($action->value) {
+            $players = $this->target($request, $action);
+
+            foreach ($players as $player) {
+                switch ($action->value) {
+                    case 'switchGame':
+                        $playerCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
+                            ->where('user_id', $player->user_id)
+                            ->where('status', PlayerGame::CURRENT)->first();
+
+                        if ($playerCurrentGame) {
+                            $fields = [
+                                'type' => $action->value,
+                                'status' => PlayerInteractions::STATUS_ACTIVE,
+                                'board_game_id' => $this->conditionData['boardGame']->id,
+                                'created_by' => $this->conditionData['user']->id,
+                                'with_player' => $player->user_id,
+                                'entity_id' => $this->itemElement->id,
+                                'entity_type' => $this->itemElement->model,
+                                'active' => true,
+                            ];
+
+                            if (PlayerInteractions::create($fields)) {
+                                $dontSendNotification = false;
+
+                                if (isset($action->sendNotification) && $action->sendNotification === false) {
+                                    $dontSendNotification = true;
+                                }
+
+                                if (!$dontSendNotification) {
+                                    if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
+                                        $notificationMessage = $request->additionalParams['message'];
+                                        $this->createNotification($player, $notificationMessage);
+                                    }
+                                }
+
+                                return 'Ваш запрос успешно отправлен игроку';
+
+                                // TODO если игрок изменил игру или рерольнул или прошел или обменял с другим игроком, то возвращать предмет и отзывать запрос
+                            } else {
+                                return $this->error('Ошибка создания взаимодействия игроков');
+                            }
+                        } else {
+                            return $this->error('У данного игрока отсуствует текущая игра');
+                        }
+                }
+            }
+        } else {
+            return $this->error('Отсутствует тип взаимодействия $action->value');
+        }
+    }
+
     private function activateEffect($request, $action)
     {
         /* Функция выполняет действия связанные с эффектами игрока */
@@ -505,7 +601,7 @@ class ActionsService
             case str_contains($action->target, 'noFurther'):
                 /* TODO ближащий игрок выбрается на фронте, проверять его тут на беке */
                 if (isset($request->additionalParams['player']) && $request->additionalParams['player']) {
-                    $players[] = $this->BoardGamePlayer
+                    $players[] = $this->BoardGamePlayer::query()
                         ->where('id', $request->additionalParams['player'])
                         ->where('board_game_id', $this->conditionData['boardGame']->id)
                         ->first();
@@ -515,7 +611,7 @@ class ActionsService
                 break;
 
             case 'allExpectMe':
-                $playersSelection = $this->BoardGamePlayer
+                $playersSelection = $this->BoardGamePlayer::query()
                     ->where('board_game_id', $this->conditionData['boardGame']->id)
                     ->where('user_id', '!=', $this->conditionData['user']->id)
                     ->get();
@@ -535,7 +631,7 @@ class ActionsService
                 }
 
                 foreach ($playersByPositions[max(array_keys($playersByPositions))] as $playerByPosition) {
-                    $players[] = $this->BoardGamePlayer
+                    $players[] = $this->BoardGamePlayer::query()
                         ->where('user_id', $playerByPosition->user_id)
                         ->where('board_game_id', $this->conditionData['boardGame']->id)
                         ->first();
@@ -558,7 +654,14 @@ class ActionsService
                 'message' => $message,
             ];
 
-            $this->notification->create($fields);
+            $this->notification::create($fields);
         }
+    }
+
+    private function error($message)
+    {
+        /* Функция возврата ошибок действий с предметами */
+        return ['error' => $message];
+//        return response()->json(['error' => $message])->setStatusCode(Response::HTTP_OK);
     }
 }

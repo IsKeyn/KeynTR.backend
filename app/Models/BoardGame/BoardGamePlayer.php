@@ -43,7 +43,17 @@ class BoardGamePlayer extends Model
 
     public function inventory()
     {
-        return $this->hasMany(BoardGameInventory::class, 'user_id', 'user_id')->where('board_game_id', '=', $this->board_game_id);
+        return $this
+            ->hasMany(BoardGameInventory::class, 'user_id', 'user_id')
+            ->where('board_game_id', '=', $this->board_game_id);
+    }
+
+    public function statusEffects()
+    {
+        return $this
+            ->hasMany(PlayerStatusEffect::class, 'user_id', 'user_id')
+            ->where('board_game_id', '=', $this->board_game_id)
+            ->active();
     }
 
     public function boardGame()

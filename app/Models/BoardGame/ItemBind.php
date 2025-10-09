@@ -2,6 +2,7 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ class ItemBind extends Model
 {
     protected $table = 'bg_items_binds';
 
-    use HasFactory;
+    use HasFactory, ExtendModelTrait;
 
     protected $fillable = [
         'item_id',

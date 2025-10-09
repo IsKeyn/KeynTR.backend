@@ -51,80 +51,95 @@ class UseItemService
 
                     /* Предмет должен иметь JSON действий, если его нет, то предмет предназначен для "ручного" использования */
                     if ($this->item->item->actions) {
+                        $actionService = new ActionsService($this->conditionData, 'item', $this->item);
+
                         foreach (json_decode($this->item->item->actions) as $action) {
                             if (isset($action->type) && $action->type) {
-                                switch ($action->type) {
-                                    case 'removePoints':
-                                    case 'addPoints':
-                                        $result = $this->actionsWithPoints(
-                                            $request,
-                                            $action,
-                                            $this->conditionData['user'],
-                                            $BoardGamePlayer,
-                                            $BoardGamePlayerPosition,
-                                            $notification
-                                        );
-                                        break;
-
-                                    case 'movePlayer':
-                                    case 'pushPlayer':
-                                        $result = $this->actionsWithPosition(
-                                            $request,
-                                            $this->conditionData['user'],
-                                            $action,
-                                            $BoardGamePlayer,
-                                            $BoardGamePlayerPosition,
-                                            $notification
-                                        );
-                                        break;
-
-                                    case 'removeNegativeItem':
-                                    case 'stealItem':
-                                    case 'changeUserOwner':
-                                    case 'removeItem':
-                                        $result = $this->actionsWithItems(
-                                            $request,
-                                            $this->conditionData['user'],
-                                            $action,
-                                            $BoardGamePlayer,
-                                            $BoardGameInventory,
-                                            $BoardGamePlayerPosition,
-                                            $notification
-                                        );
-                                        break;
-
-                                    case 'applyStatusEffect':
-                                        $result = $this->activateEffect(
-                                            $request,
-                                            $this->conditionData['user'],
-                                            $action,
-                                            $statusEffect,
-                                            $BoardGamePlayer,
-                                            $PlayerStatusEffect,
-                                            $BoardGamePlayerPosition,
-                                            $notification
-                                        );
-                                        break;
-
-                                    case 'addTime':
-                                        $result = $this->actionsWithTime(
-                                            $request,
-                                            $action,
-                                            $this->conditionData['user']
-                                        );
-                                        break;
-                                    case 'customItem':
-                                        $result = $this->customItem(
-                                            $request,
-                                            $action,
-                                            $this->conditionData['user'],
-                                            $BoardGamePlayer,
-                                            $BoardGamePlayerPosition,
-                                            $notification,
-                                        );
-                                        break;
-
+                                if ($action->type === 'customItem') {
+                                    $result = $this->customItem(
+                                        $request,
+                                        $action,
+                                        $this->conditionData['user'],
+                                        $BoardGamePlayer,
+                                        $BoardGamePlayerPosition,
+                                        $notification,
+                                    );
+                                } else {
+                                    $result = $actionService->activateAction($request, $action);
                                 }
+
+//                                switch ($action->type) {
+//                                    case 'removePoints':
+//                                    case 'addPoints':
+//                                        $result = $this->actionsWithPoints(
+//                                            $request,
+//                                            $action,
+//                                            $this->conditionData['user'],
+//                                            $BoardGamePlayer,
+//                                            $BoardGamePlayerPosition,
+//                                            $notification
+//                                        );
+//                                        break;
+//
+//                                    case 'movePlayer':
+//                                    case 'pushPlayer':
+//                                        $result = $this->actionsWithPosition(
+//                                            $request,
+//                                            $this->conditionData['user'],
+//                                            $action,
+//                                            $BoardGamePlayer,
+//                                            $BoardGamePlayerPosition,
+//                                            $notification
+//                                        );
+//                                        break;
+//
+//                                    case 'removeNegativeItem':
+//                                    case 'stealItem':
+//                                    case 'changeUserOwner':
+//                                    case 'removeItem':
+//                                        $result = $this->actionsWithItems(
+//                                            $request,
+//                                            $this->conditionData['user'],
+//                                            $action,
+//                                            $BoardGamePlayer,
+//                                            $BoardGameInventory,
+//                                            $BoardGamePlayerPosition,
+//                                            $notification
+//                                        );
+//                                        break;
+//
+//                                    case 'applyStatusEffect':
+//                                        $result = $this->activateEffect(
+//                                            $request,
+//                                            $this->conditionData['user'],
+//                                            $action,
+//                                            $statusEffect,
+//                                            $BoardGamePlayer,
+//                                            $PlayerStatusEffect,
+//                                            $BoardGamePlayerPosition,
+//                                            $notification
+//                                        );
+//                                        break;
+//
+//                                    case 'addTime':
+//                                        $result = $this->actionsWithTime(
+//                                            $request,
+//                                            $action,
+//                                            $this->conditionData['user']
+//                                        );
+//                                        break;
+//                                    case 'customItem':
+//                                        $result = $this->customItem(
+//                                            $request,
+//                                            $action,
+//                                            $this->conditionData['user'],
+//                                            $BoardGamePlayer,
+//                                            $BoardGamePlayerPosition,
+//                                            $notification,
+//                                        );
+//                                        break;
+//
+//                                }
                             } elseif (isset($action->target) && $action->target) {
                                 $players = $this->target($request, $this->conditionData['user'], $action, $BoardGamePlayer,
                                     $BoardGamePlayerPosition);

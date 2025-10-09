@@ -36,6 +36,8 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
         Route::get('item/gamblingGame/{slug}', 'getDataForItemGamblingGame')->name('getDataForItemGamblingGame');
         Route::post('rollItem/{slug}', 'rollItem')->name('rollItem');
+
+        Route::get('interactions/get/{slug}', 'getInteractions')->name('getInteractions');
     });
 
     Route::prefix('inventory/')->controller(BoardGameInventoryController::class)->name('inventory.')->group(function() {

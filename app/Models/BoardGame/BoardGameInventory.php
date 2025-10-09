@@ -2,13 +2,14 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BoardGameInventory extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait;
 
     protected $fillable = [
         'user_id',
