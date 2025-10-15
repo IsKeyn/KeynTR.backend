@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BoardGame\ItemBindController;
 use App\Http\Controllers\Admin\BoardGame\ItemController;
 use App\Http\Controllers\Admin\BoardGame\BoardGameController;
+use App\Http\Controllers\User\MagicLinkController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminGameController;
 use App\Http\Controllers\Admin\AdminMediaGroupController;
@@ -65,4 +66,14 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
     Route::resource('media-group', AdminMediaGroupController::class);
 
     Route::get('param-value/{paramName}', [ParamController::class, 'getPhpParamValue'])->name('param.value');
+
+    Route::prefix('magical-link/')->controller(MagicLinkController::class)->name('magic-link.')->group(function() {
+        Route::get('generate/{userId}', 'createLink')->name('generate');
+    });
+});
+
+Route::prefix('admin/')->name('v1.')->group(function() {
+    Route::prefix('magical-link/')->controller(MagicLinkController::class)->name('magic-link.')->group(function() {
+        Route::get('/login/{token}','login')->name('login');
+    });
 });
