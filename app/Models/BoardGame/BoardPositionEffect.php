@@ -2,6 +2,7 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,16 +10,19 @@ class BoardPositionEffect extends Model
 {
     protected $table = 'bg_board_position_effects';
 
-    use HasFactory;
+    use HasFactory, ExtendModelTrait;
 
     protected $fillable = [
         'name',
         'slug',
         'description',
         'action',
-        'media',
         'sort',
         'active',
         'created_by',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
     ];
 }

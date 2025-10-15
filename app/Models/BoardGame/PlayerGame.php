@@ -16,6 +16,7 @@ class PlayerGame extends Model
     const REROLLED = 1;
     const COMPLETED = 2;
     const GIVEN_AWAY = 3;
+    const QUEUE = 4;
 
     protected $fillable = [
         'user_id',

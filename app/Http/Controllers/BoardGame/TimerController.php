@@ -8,6 +8,7 @@ use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayerTimer;
 use App\Models\BoardGame\Timer;
 use App\Models\User;
+use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\TimerService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -21,9 +22,11 @@ class TimerController extends Controller
         $user = $request->user();
 
         if ($user) {
+            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+
             $timer = Timer::query()
                 ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
+                ->where('board_game_id', $boardGameId)
                 ->where('slug', $request->slug ? $request->slug : 'main')
                 ->where('active', true)
                 ->orderBy('id', 'desc')->first();
@@ -31,11 +34,11 @@ class TimerController extends Controller
             if ($timer) {
                 return $this->toggleTimer($user, $timer, 'start', $request);
             } else {
-                $boardGame = BoardGame::query()->where('id', $request->board_game_id)->first();
+                $boardGame = BoardGame::query()->where('id', $boardGameId)->first();
 
                 $timerFields = [
                     'user_id' => $user->id,
-                    'board_game_id' => $request->board_game_id,
+                    'board_game_id' => $boardGameId,
                     'name' => $boardGame->name,
                     'limit' => 100*60*60,
                     'slug' => $request->slug ? $request->slug : 'main',
@@ -56,9 +59,11 @@ class TimerController extends Controller
         $user = $request->user();
 
         if ($user) {
+            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+
             $timer = Timer::query()
                 ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
+                ->where('board_game_id', $boardGameId)
                 ->where('slug', $request->slug ? $request->slug : 'main')
                 ->where('active', true)
                 ->orderBy('id', 'desc')->first();
@@ -120,9 +125,11 @@ class TimerController extends Controller
         }
 
         if ($user) {
+            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+
             $timer = Timer::query()
                 ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
+                ->where('board_game_id', $boardGameId)
                 ->where('slug', $request->slug ? $request->slug : 'main')
                 ->where('active', true)
                 ->orderBy('id', 'desc')->first();
@@ -135,38 +142,104 @@ class TimerController extends Controller
 
     public function edit(Request $request)
     {
+        $result = null;
         $user = $request->user();
 
         if ($user) {
+            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+
             $timer = Timer::query()
                 ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
+                ->where('board_game_id', $boardGameId)
                 ->where('slug', $request->slug ? $request->slug : 'main')
                 ->where('active', true)
                 ->orderBy('id', 'desc')->first();
 
-            $boardGame = BoardGame::query()->where('id', $request->board_game_id)->first();
+            $boardGame = BoardGame::query()->where('id', $boardGameId)->first();
 
             if ($timer) {
-                $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
-                    ->where('timer_id', $timer->id)->get();
+                $status = TimerService::getTimerStatus($timer);
 
-                foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
-                    $playerTimer->delete();
+                if (isset($status['time'])) {
+                    if ($status['time'] === $request->seconds) {
+                        return true;
+                    }
+
+                    if ($status['time'] > $request->seconds) {
+                        $secondsForSave = $status['time'] - $request->seconds;
+
+                        $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
+                            ->where('timer_id', $timer->id)
+                            ->get();
+
+                        $lastTime = null;
+
+                        foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
+                            $seconds = Carbon::parse($playerTimer->time_start)->diffInSeconds($playerTimer->time_stop);
+
+                            if ($seconds < $secondsForSave) {
+                                $secondsForSave = $secondsForSave - $seconds;
+                                $playerTimer->delete();
+                            } else {
+                                $lastTime = $playerTimer;
+                            }
+                        }
+
+                        if ($lastTime) {
+                            $lastTime->time_stop = Carbon::parse($lastTime->time_stop)->subSeconds($secondsForSave);
+
+                            if ($lastTime->update()) {
+                                $result = true;
+                            }
+                        } else {
+                            $fields = [
+                                'timer_id' => $timer->id,
+                                'time_start' => Carbon::now()->subSeconds($secondsForSave),
+                                'time_stop' => Carbon::now(),
+                                'created_by' => $user->id,
+                            ];
+
+                            $result = BoardGamePlayerTimer::create($fields);
+                        }
+                    }
+
+                    if ($status['time'] < $request->seconds) {
+                        $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
+                            ->where('timer_id', $timer->id)
+                            ->where('time_start', '>', Carbon::now()->subSeconds($request->seconds))
+                            ->get();
+
+                        foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
+                            $playerTimer->delete();
+                        }
+
+                        $statusNew = TimerService::getTimerStatus($timer);
+
+                        $secondsForSave = $request->seconds - $statusNew['time'];
+
+                        $fields = [
+                            'timer_id' => $timer->id,
+                            'time_start' => Carbon::now()->subSeconds($secondsForSave),
+                            'time_stop' => Carbon::now(),
+                            'created_by' => $user->id,
+                        ];
+
+                        $result = BoardGamePlayerTimer::create($fields);
+                    }
+
+                    if ($request->slug === 'main') {
+                        $message = 'Изменил таймер с ' .  gmdate("H:i:s", $status['time']) . ' на ' .  gmdate("H:i:s", $request->seconds);
+                        LogService::addLog($user->id, $boardGameId, $message);
+                    }
+
+                    return $result;
+                } else {
+                    return response()->json(['error' => 'Ошибка статуса таймера'])->setStatusCode(Response::HTTP_OK);
                 }
-
-                $fields = [
-                    'timer_id' => $timer->id,
-                    'time_start' => Carbon::parse($boardGame->created_at)->setTimezone('Europe/Moscow')->setTimezone('Europe/Moscow'),
-                    'time_stop' => Carbon::parse($boardGame->created_at)->setTimezone('Europe/Moscow')->addSecond($request->seconds),
-                    'created_by' => $user->id,
-                ];
-
-                return BoardGamePlayerTimer::create($fields);
             } else {
                 $timerFields = [
                     'user_id' => $user->id,
-                    'board_game_id' => $request->board_game_id,
+                    'board_game_id' => $boardGameId,
                     'name' => $boardGame->name,
                     'limit' => 100*60*60,
                     'slug' => $request->slug ? $request->slug : 'main',
@@ -195,9 +268,11 @@ class TimerController extends Controller
         $user = $request->user();
 
         if ($user) {
+            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+
             $timers = Timer::query()
                 ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
+                ->where('board_game_id', $boardGameId)
                 ->where('active', true)
                 ->get();
 
@@ -210,9 +285,11 @@ class TimerController extends Controller
         $user = $request->user();
 
         if ($user) {
+            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+
             $timersCount = Timer::query()
                 ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
+                ->where('board_game_id', $boardGameId)
                 ->where('active', true)
                 ->count();
 
@@ -225,7 +302,7 @@ class TimerController extends Controller
 
                 $timer = Timer::query()
                     ->where('user_id', $user->id)
-                    ->where('board_game_id', $request->board_game_id)
+                    ->where('board_game_id', $boardGameId)
                     ->where('slug', $slug)
                     ->where('active', true)
                     ->orderBy('id', 'desc')->first();
@@ -235,7 +312,7 @@ class TimerController extends Controller
                 } else {
                     $timerFields = [
                         'user_id' => $user->id,
-                        'board_game_id' => $request->board_game_id,
+                        'board_game_id' => $boardGameId,
                         'name' => $request->name,
                         'description' => $request->description,
                         'slug' => $slug,
@@ -261,9 +338,11 @@ class TimerController extends Controller
         $user = $request->user();
 
         if ($user) {
+            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+
             $timer = Timer::query()
                 ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
+                ->where('board_game_id', $boardGameId)
                 ->where('slug', $request->slug)
                 ->where('active', true)
                 ->orderBy('id', 'desc')->first();

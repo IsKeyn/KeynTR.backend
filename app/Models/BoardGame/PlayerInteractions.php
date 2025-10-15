@@ -18,6 +18,15 @@ class PlayerInteractions extends Model
     public const STATUS_ACCEPTED = 2;
     public const STATUS_REFUSED = 3;
 
+    public const TYPE_NAME = [
+      'ru' => [
+          'switchGame' => 'Обмен игрой',
+      ],
+      'en' => [
+          'switchGame' => 'Switch game',
+      ],
+    ];
+
     protected $fillable = [
         'type',
         'status',

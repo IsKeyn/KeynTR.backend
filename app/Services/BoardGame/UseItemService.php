@@ -51,7 +51,7 @@ class UseItemService
 
                     /* Предмет должен иметь JSON действий, если его нет, то предмет предназначен для "ручного" использования */
                     if ($this->item->item->actions) {
-                        $actionService = new ActionsService($this->conditionData, 'item', $this->item);
+                        $actionService = new ActionsService($this->conditionData, 'item', $this->item, $request);
 
                         foreach (json_decode($this->item->item->actions) as $action) {
                             if (isset($action->type) && $action->type) {

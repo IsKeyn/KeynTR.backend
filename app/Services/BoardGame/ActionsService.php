@@ -13,6 +13,7 @@ use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
 use App\Models\BoardGame\Timer;
 use App\Models\User\Notification;
+use App\Services\ErrorService;
 
 class ActionsService
 {
@@ -247,15 +248,15 @@ class ActionsService
                     ->first();
 
                 if ($usedItemPlayerPosition->position > $playerPosition->position) {
-                    $playerPositionFields['position'] = $this->checkPosition($playerPosition->position - $value);
+                    $playerPositionFields['position'] = BoardService::checkPosition($playerPosition->position - $value, $this->conditionData['boardGame']);
                 } else if ($usedItemPlayerPosition->position < $playerPosition->position) {
-                    $playerPositionFields['position'] = $this->checkPosition($playerPosition->position + $value);
+                    $playerPositionFields['position'] = BoardService::checkPosition($playerPosition->position + $value, $this->conditionData['boardGame']);
                 }
             } else if (isset($action->direction)) {
                 if ($action->direction === 'forward') {
-                    $playerPositionFields['position'] = $this->checkPosition($playerPosition->position + $value);
+                    $playerPositionFields['position'] = BoardService::checkPosition($playerPosition->position + $value, $this->conditionData['boardGame']);
                 } elseif ($action->direction === 'back') {
-                    $playerPositionFields['position'] = $this->checkPosition($playerPosition->position - $value);
+                    $playerPositionFields['position'] = BoardService::checkPosition($playerPosition->position - $value, $this->conditionData['boardGame']);
                 }
             }
 
@@ -288,33 +289,6 @@ class ActionsService
                 }
             }
         }
-    }
-
-    private function checkPosition($position)
-    {
-        if ($position < 0) {
-            return 0;
-        }
-
-        if ($boardGameType = $this->conditionData['boardGame']->settings()->where('code', '=', 'board_type')->value('value')) {
-            if ($board = Board::query()->where('slug', '=', $boardGameType)->first()) {
-                $maxIndex = 0;
-
-                foreach (json_decode($board->columns) as $row) {
-                    foreach ($row->cols as $col) {
-                        if (isset($col->index) && $maxIndex < $col->index) {
-                            $maxIndex = $col->index;
-                        }
-                    }
-                }
-
-                if ($position > $maxIndex) {
-                    return $maxIndex;
-                }
-            }
-        }
-
-        return $position;
     }
 
     private function actionsWithItems($request, $action)
@@ -473,52 +447,77 @@ class ActionsService
         if ($action->value) {
             $players = $this->target($request, $action);
 
+            $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
+                ->where('user_id', $this->conditionData['user']->id)
+                ->where('status', PlayerGame::CURRENT)->first();
+
             foreach ($players as $player) {
                 switch ($action->value) {
                     case 'switchGame':
+                        // TODO проверять, что текущая игра не ультра мошна и не переденная игра
+                        if (!$currentUserCurrentGame) {
+                            return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
+                        }
+
                         $playerCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
                             ->where('user_id', $player->user_id)
                             ->where('status', PlayerGame::CURRENT)->first();
 
                         if ($playerCurrentGame) {
-                            $fields = [
-                                'type' => $action->value,
-                                'status' => PlayerInteractions::STATUS_ACTIVE,
-                                'board_game_id' => $this->conditionData['boardGame']->id,
-                                'created_by' => $this->conditionData['user']->id,
-                                'with_player' => $player->user_id,
-                                'entity_id' => $this->itemElement->id,
-                                'entity_type' => $this->itemElement->model,
-                                'active' => true,
-                            ];
-
-                            if (PlayerInteractions::create($fields)) {
-                                $dontSendNotification = false;
-
-                                if (isset($action->sendNotification) && $action->sendNotification === false) {
-                                    $dontSendNotification = true;
-                                }
-
-                                if (!$dontSendNotification) {
-                                    if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
-                                        $notificationMessage = $request->additionalParams['message'];
-                                        $this->createNotification($player, $notificationMessage);
-                                    }
-                                }
-
-                                return 'Ваш запрос успешно отправлен игроку';
-
-                                // TODO если игрок изменил игру или рерольнул или прошел или обменял с другим игроком, то возвращать предмет и отзывать запрос
-                            } else {
-                                return $this->error('Ошибка создания взаимодействия игроков');
-                            }
+                            return $this->createInteraction($request, $action, $player);
                         } else {
-                            return $this->error('У данного игрока отсуствует текущая игра');
+                            return ErrorService::message('У данного игрока отсуствует текущая игра');
                         }
+                    case 'playForMe':
+                        // TODO проверять, что текущая игра не ультра мошна и не переденная игра
+                        if (!$currentUserCurrentGame) {
+                            return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
+                        }
+
+                        return $this->createInteraction($request, $action, $player);
                 }
             }
         } else {
-            return $this->error('Отсутствует тип взаимодействия $action->value');
+            return ErrorService::message('Отсутствует тип взаимодействия $action->value');
+        }
+    }
+
+    private function createInteraction($request, $action, $player)
+    {
+        $fields = [
+            'type' => $action->value,
+            'status' => PlayerInteractions::STATUS_ACTIVE,
+            'board_game_id' => $this->conditionData['boardGame']->id,
+            'created_by' => $this->conditionData['user']->id,
+            'with_player' => $player->user_id,
+            'active' => true,
+        ];
+
+        if ($request && $request->id && $this->type === 'item') {
+            $fields['entity_id'] = $request->id;
+            $fields['entity_type'] = 'App\Models\BoardGame\BoardGameInventory';
+        }
+
+        if (PlayerInteractions::create($fields)) {
+            $dontSendNotification = false;
+
+            if (isset($action->sendNotification) && $action->sendNotification === false) {
+                $dontSendNotification = true;
+            }
+
+            if (!$dontSendNotification) {
+                if ($request->additionalParams['message'] ?? null) {
+                    $notificationMessage = $request->additionalParams['message'];
+                }
+
+                $this->createNotification($player, $notificationMessage);
+            }
+
+            return 'Ваш запрос успешно отправлен игроку';
+
+            // TODO если игрок изменил игру или рерольнул или прошел или обменял с другим игроком, то возвращать предмет и отзывать запрос
+        } else {
+            return ErrorService::message('Ошибка создания взаимодействия игроков');
         }
     }
 

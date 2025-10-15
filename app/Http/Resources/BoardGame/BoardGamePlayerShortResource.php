@@ -43,6 +43,7 @@ class BoardGamePlayerShortResource extends JsonResource
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
             'item_roll_count' => $this->item_roll_count,
+            'step_count' => $this->step_count,
             'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,
             'seconds' => $status['time'],

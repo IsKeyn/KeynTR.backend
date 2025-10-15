@@ -18,10 +18,16 @@ class BoardGameGameList extends Model
         'board_game_id',
         'gaming_platform_id',
         'points',
+        'difficult',
+        'game_completion_time',
         'description',
         'active',
         'added_by',
         'created_by',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
     ];
 
     public function game(): BelongsTo

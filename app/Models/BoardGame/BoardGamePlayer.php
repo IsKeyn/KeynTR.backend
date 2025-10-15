@@ -17,6 +17,8 @@ class BoardGamePlayer extends Model
         'board_game_id',
         'points',
         'item_roll_count',
+        'step_count',
+        'streak',
         'not_active_reason',
         'active',
         'created_by',

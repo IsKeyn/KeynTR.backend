@@ -14,7 +14,8 @@ class PlayerGameService
         if ($user && $slug) {
             $boardGame = BoardGame::findBySlug($slug)->first();
 
-            $itemRollCountSetting = $boardGame->settings->where('code', '=', 'item_roll_count')->first();
+            $itemRollCountSetting = $boardGame->settings->where('code', '=', 'item_roll_default_count')->first();
+            $stepCountSetting = $boardGame->settings->where('code', '=', 'step_default_count')->first();
             $typeSettings = $boardGame->settings->where('code', '=', 'type')->first();
 
             if ($boardGame) {
@@ -22,6 +23,7 @@ class PlayerGameService
                     'user_id' => $user->id,
                     'board_game_id' => $boardGame->id,
                     'item_roll_count' => $itemRollCountSetting ? $itemRollCountSetting->value : 2,
+                    'step_count' => $stepCountSetting ? $stepCountSetting->value : 1,
                     'active' => $typeSettings ? ($typeSettings->value === 'upon-request' ? false : true) : true,
                     'not_active_reason' => $typeSettings ? ($typeSettings->value === 'upon-request' ? 'Ожидает одобрения модератора' : null) : null,
                     'created_by' => $user->id,

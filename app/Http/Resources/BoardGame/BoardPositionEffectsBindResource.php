@@ -4,7 +4,7 @@ namespace App\Http\Resources\BoardGame;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PlayerInteractionResource extends JsonResource
+class BoardPositionEffectsBindResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,15 +16,14 @@ class PlayerInteractionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'type' => $this->type,
-            'status' => $this->status,
+            'position_effect_id' => $this->position_effect_id,
             'board_game_id' => $this->board_game_id,
-            'with_player' => $this->with_player,
-            'with_player_data' => $this->withPlayerData,
-            'created_by' => $this->created_by,
-            'entity_id' => $this->entity_type,
+            'position' => $this->position,
             'active' => $this->active,
+            'created_by' => $this->created_by,
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'boardPositionEffect' => BoardPositionEffectResource::make($this->boardPositionEffect),
         ];
     }
 }

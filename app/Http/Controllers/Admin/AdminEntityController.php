@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\BoardGame\StatusEffectResource;
+use App\Http\Resources\BoardGame\BoardPositionEffectResource;
 use App\Http\Resources\Entity\EntityListResource;
 use App\Services\CacheService;
 use App\Services\MediaService;
@@ -22,6 +23,7 @@ class AdminEntityController extends Controller {
 
     public const ENTITY_RESOURCE_RELATIONS = [
         'App\Models\BoardGame\StatusEffect' => StatusEffectResource::class,
+        'App\Models\BoardGame\BoardPositionEffect' => BoardPositionEffectResource::class,
     ];
 
     public function index($firstParam, $secondParam = null)

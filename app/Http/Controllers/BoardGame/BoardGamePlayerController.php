@@ -397,6 +397,7 @@ class BoardGamePlayerController extends Controller
             foreach ($actions as $action) {
                 if (
                     $action
+                    && isset($action->type, $action->target, $action->value)
                     && $action->type === 'applyStatusEffect'
                     && $action->target === 'current'
                     && $action->value
@@ -450,7 +451,7 @@ class BoardGamePlayerController extends Controller
             $playerInteractions = PlayerInteractions::where('board_game_id', $conditionData['boardGame']->id)
                 ->where(function($query) use ($conditionData) {
                     $query->where('created_by', '=', $conditionData['user']->id)->orWhere('with_player', '=', $conditionData['user']->id);
-                })->active()
+                })->active()->orderByDesc('id')
                 ->get();
 
             return [

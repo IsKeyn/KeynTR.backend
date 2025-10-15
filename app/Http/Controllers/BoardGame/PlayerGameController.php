@@ -58,39 +58,88 @@ class PlayerGameController extends Controller
 
     public function update(Request $request, PlayerGame $playerGame)
     {
-        $user = $request->user();
+        $conditionData = PlayerGameService::checkConditions($request->slug);
 
-        $playerCurrentGame = $playerGame::where('board_game_id', $request->board_game_id)
-            ->where('user_id', $user->id)
-            ->where('status', PlayerGame::CURRENT)->first();
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        } else {
+            $playerCurrentGame = $playerGame::where('board_game_id', $conditionData['boardGame']->id)
+                ->where('user_id', $conditionData['user']->id)
+                ->where('status', PlayerGame::CURRENT)->first();
 
-        if ($playerCurrentGame) {
-            $fields = $this->getFields($request);
+            if ($playerCurrentGame) {
+                $fields = $this->getFields($request);
 
-            if ($result = $playerCurrentGame->update($fields)) {
-                if ($request->type === 1) {
-                    $fields = $request->validate([
-                        'board_game_id' => 'required',
-                    ]);
+                if ($result = $playerCurrentGame->update($fields)) {
+                    /* Рерол игры */
+                    if ($request->type === 1) {
+                        /* Добавление предмета при рероле */
+//                    $fields = $request->validate([
+//                        'board_game_id' => 'required',
+//                    ]);
+//
+//                    $boardGameItems = ItemBind::query()->where('slug', 'tuhlyi-banan')->first();
+//
+//                    $fields['board_game_item_id'] = $boardGameItems->id;
+//                    $fields['user_id'] = $user->id;
+//                    $fields['created_by'] = $user->id;
+//
+//                    BoardGameInventory::create($fields);
 
-                    $boardGameItems = ItemBind::query()->where('slug', 'tuhlyi-banan')->first();
+                        /* Отнимает очки при рероле и сбрасываем стрик при рероле */
+                        $subtractPointsSetting = $conditionData['boardGame']->settings->where('code', '=', '$subtract_points')->first();
+                        $subtractPointsCount = $subtractPointsSetting ? $subtractPointsSetting : 25;
 
-                    $fields['board_game_item_id'] = $boardGameItems->id;
-                    $fields['user_id'] = $user->id;
-                    $fields['created_by'] = $user->id;
+                        $conditionData['player']->points = $conditionData['player']->points - $subtractPointsCount;
+                        $conditionData['player']->streak = 0;
 
-                    BoardGameInventory::create($fields);
+                        $conditionData['player']->update;
+
+                        // TODO если есть игра в очерели ставим её сюда
+                        // TODO добавляем логи
+                    }
+
+                    /* Игра пройдена */
+                    if ($request->type === 2) {
+                        /* Добавляем стрик, если он не достиг максимального */
+                        $maxStreakSetting = $conditionData['boardGame']->settings->where('code', '=', 'max_string')->first();
+                        $maxStreak = $maxStreakSetting ? $maxStreakSetting : 5;
+
+                        if ($conditionData['player']->streak < $maxStreak && $conditionData['player']->streak !== $maxStreak) {
+                            $conditionData['player']->streak++;
+                        }
+
+                        /* Рассчитываем количество очков за игру */
+                        $pointsForGame = round($playerCurrentGame->game->difficult * ($playerCurrentGame->game->game_completion_time / 60));
+                        // Добавляем стрик
+                        if ($conditionData['player']->streak > 0) {
+                            $pointsForGame = $pointsForGame + (($pointsForGame / 100) * ($conditionData['player']->streak * 2));
+                        }
+
+                        $conditionData['player']->points = $conditionData['player']->points + $pointsForGame;
+                        $conditionData['player']->points->update();
+
+                        /* Если есть игра в очереди, то делаем её текущей */
+                        $playerCurrentGame = $playerGame::where('board_game_id', $conditionData['boardGame']->id)
+                            ->where('user_id', $conditionData['user']->id)
+                            ->where('status', PlayerGame::QUEUE)->first();
+
+                        if ($playerCurrentGame) {
+                            $playerCurrentGame->status = PlayerGame::CURRENT;
+                            $playerCurrentGame->update();
+                        }
+
+//                        $boardGamePlayers = BoardGamePlayer::where('user_id', $conditionData['user'])->where('board_game_id', $conditionData['boardGame']->id)->first();
+//
+//                        $points = $boardGamePlayers->points + $playerCurrentGame->game->points;
+//
+//                        $boardGamePlayers->update(['points' => $points]);
+
+                        // TODO добавляем логи
+                    }
+
+                    return $result;
                 }
-
-                if ($request->type === 2) {
-                    $boardGamePlayers = BoardGamePlayer::where('user_id', $user->id)->where('board_game_id', $request->board_game_id)->first();
-
-                    $points = $boardGamePlayers->points + $playerCurrentGame->game->points;
-
-                    $boardGamePlayers->update(['points' => $points]);
-                }
-
-                return $result;
             }
         }
     }

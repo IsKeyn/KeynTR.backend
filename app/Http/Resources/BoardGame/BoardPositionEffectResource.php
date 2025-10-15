@@ -2,9 +2,10 @@
 
 namespace App\Http\Resources\BoardGame;
 
+use App\Http\Resources\MediaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PlayerInteractionResource extends JsonResource
+class BoardPositionEffectResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,15 +17,16 @@ class PlayerInteractionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'type' => $this->type,
-            'status' => $this->status,
-            'board_game_id' => $this->board_game_id,
-            'with_player' => $this->with_player,
-            'with_player_data' => $this->withPlayerData,
-            'created_by' => $this->created_by,
-            'entity_id' => $this->entity_type,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'action' => $this->action,
+            'title_image' => $this->title_image ? MediaResource::make($this->title_image) : null,
+            'sort' => $this->sort,
             'active' => $this->active,
+            'created_by' => $this->created_by,
             'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }
