@@ -20,7 +20,7 @@ class BoardPositionEffectResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'action' => $this->action,
+            'actions' => $this->actions,
             'title_image' => $this->title_image ? MediaResource::make($this->title_image) : null,
             'sort' => $this->sort,
             'active' => $this->active,

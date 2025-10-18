@@ -4,6 +4,7 @@ namespace App\Services\BoardGame;
 
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
+use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\PlayerGame;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,6 +20,14 @@ class PlayerGameService
             $typeSettings = $boardGame->settings->where('code', '=', 'type')->first();
 
             if ($boardGame) {
+                $positionFields = [
+                    'user_id' => $user->id,
+                    'position' => 1,
+                    'board_game_id' => $boardGame->id,
+                    'created_by' => $user->id,
+                ];
+                BoardGamePlayerPosition::create($positionFields);
+
                 $fields = [
                     'user_id' => $user->id,
                     'board_game_id' => $boardGame->id,

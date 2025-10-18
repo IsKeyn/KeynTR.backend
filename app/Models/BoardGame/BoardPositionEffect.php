@@ -16,7 +16,7 @@ class BoardPositionEffect extends Model
         'name',
         'slug',
         'description',
-        'action',
+        'actions',
         'sort',
         'active',
         'created_by',

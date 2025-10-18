@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\User\AllNotifications;
 use App\Http\Controllers\User\MessageController;
 use App\Services\User\UserService;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -57,6 +58,11 @@ Route::prefix('auth/')->middleware('auth:sanctum')->group(function() {
 //        Route::post('set', 'set')->name('set');
 //        Route::post('set-viewed', 'SetViewed')->name('set-viewed');
     });
+
+    Route::controller(AllNotifications::class)->prefix('allNotifications/')->name('allNotifications')->group(function () {
+        Route::get('get', 'get')->name('getNotifications');
+    });
+
 });
 
 // Общие действия как для авторизованного, так и для не авторизованного пользователя

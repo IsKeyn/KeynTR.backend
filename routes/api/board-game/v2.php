@@ -68,6 +68,10 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
         Route::get('player-interaction/{slug}/{name}', 'get')->name('get');
     });
 
+    Route::prefix('boardStatusEffect/')->controller(BoardController::class)->name('board-status-effect.')->group(function () {
+        Route::post('use', 'usePositionEffect')->name('use');
+    });
+
     Route::prefix('item/')->controller(ItemController::class)->name('item.')->group(function() {
         Route::get('list', 'list')->name('list');
         Route::get('list/{slug}', 'getList')->name('getList');

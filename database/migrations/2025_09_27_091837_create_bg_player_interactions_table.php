@@ -17,6 +17,7 @@ class CreateBgPlayerInteractionsTable extends Migration
             $table->id();
             $table->string('type');
             $table->integer('status')->nullable();
+            $table->text('description')->nullable();
             $table->foreignId('board_game_id')->nullable();
             $table->foreignId('with_player')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

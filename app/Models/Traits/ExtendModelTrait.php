@@ -4,6 +4,7 @@ namespace App\Models\Traits;
 
 use App\Models\Block;
 use App\Models\Media;
+use App\Models\Seo;
 use Illuminate\Database\Eloquent\Builder;
 
 trait ExtendModelTrait
@@ -43,6 +44,11 @@ trait ExtendModelTrait
         return $this->titleImage()
             ->wherePivot('type', '=', Media::TITLE_TYPE)
             ->first();
+    }
+
+    public function seo()
+    {
+        return $this->morphOne(Seo::class, 'entity');
     }
 
     public function blocks()

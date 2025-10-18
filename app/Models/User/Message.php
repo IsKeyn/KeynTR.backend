@@ -14,6 +14,7 @@ class Message extends Model
     protected $fillable = [
         'message',
         'recipient',
+        'viewed',
         'created_by',
         'created_at',
     ];

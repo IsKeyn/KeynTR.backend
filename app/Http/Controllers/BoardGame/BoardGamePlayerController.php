@@ -115,13 +115,37 @@ class BoardGamePlayerController extends Controller
     }
 
     public function getListWithInventory(
+        Request $request,
         $slug,
         BoardGame $BoardGame,
         BoardGamePlayer $BoardGamePlayer
     )
     {
             $boardGameId = $BoardGame->findBySlug($slug)->value('id');
-            $players = $BoardGamePlayer->where('board_game_id', $boardGameId)->active()->get();
+            $players = $BoardGamePlayer->where('board_game_id', $boardGameId)->active();
+
+            $user = Auth::user();
+
+            if ($user && $request->type === 'battleForPoints')
+            {
+                $boardGameInteractions = PlayerInteractions::query()
+                    ->findByBoardGame($boardGameId)
+                    ->where('created_by', $user->id)
+                    ->where('type', 'battleForPoints')
+                    ->select('with_player')->get();
+
+                $playerInteractionsIds = [];
+
+                foreach ($boardGameInteractions as $interaction) {
+                    if (!array_search($interaction->with_player, $playerInteractionsIds)) {
+                        $playerInteractionsIds[] = $interaction->with_player;
+                    }
+                }
+
+                $players->whereNotIn('user_id', $interaction);
+            }
+
+            $players = $players->get();
 
             return BoardGamePlayerWithInventoryResource::collection($players);
     }

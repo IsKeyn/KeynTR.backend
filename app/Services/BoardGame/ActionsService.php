@@ -2,11 +2,11 @@
 
 namespace App\Services\BoardGame;
 
-use App\Models\BoardGame\Board;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Models\BoardGame\BoardPositionEffectsBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
@@ -131,7 +131,7 @@ class ActionsService
     }
 
 
-    private function setFieldsWithPoints($player, $action)
+    public function setFieldsWithPoints($player, $action, $logMessage = null)
     {
         $value = $this->getValue($action->value);
 
@@ -230,16 +230,11 @@ class ActionsService
                 ->where('board_game_id', $this->conditionData['boardGame']->id)
                 ->orderBy('id', 'desc')->first();
 
-            $playerPositionFields = [
-                'user_id' => $player->user_id,
-                'board_game_id' => $this->conditionData['boardGame']->id,
-                'created_by' => $this->conditionData['user']->id,
-            ];
+            $playerPositionFields = [];
 
             $value = $this->getValue($action->value);
 
-            /* Проверяем, что игрок не дальше позиции указанной в $action->target */
-            if (str_contains($action->target, 'noFurther')) {
+            if (str_contains($action->target, 'noFurther')) {  // Проверяем, что игрок не дальше позиции указанной в $action->target
                 /* Позиция игрока, который использует предмет */
                 $usedItemPlayerPosition = $this->BoardGamePlayerPosition::query()
                     ->where('user_id', $this->conditionData['user']->id)
@@ -274,7 +269,13 @@ class ActionsService
                 );
             }
 
-            $this->BoardGamePlayerPosition::create($playerPositionFields);
+            $positionParams = [
+                'position' => $playerPositionFields['position'],
+                'boardGame' => $this->conditionData['boardGame']->id,
+                'player' => $player,
+            ];
+
+            BoardService::setPosition($positionParams, false, false);
 
             $dontSendNotification = false;
 
@@ -447,13 +448,13 @@ class ActionsService
         if ($action->value) {
             $players = $this->target($request, $action);
 
-            $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
-                ->where('user_id', $this->conditionData['user']->id)
-                ->where('status', PlayerGame::CURRENT)->first();
-
             foreach ($players as $player) {
                 switch ($action->value) {
                     case 'switchGame':
+                        $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
+                            ->where('user_id', $this->conditionData['user']->id)
+                            ->where('status', PlayerGame::CURRENT)->first();
+
                         // TODO проверять, что текущая игра не ультра мошна и не переденная игра
                         if (!$currentUserCurrentGame) {
                             return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
@@ -469,11 +470,18 @@ class ActionsService
                             return ErrorService::message('У данного игрока отсуствует текущая игра');
                         }
                     case 'playForMe':
+                        $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
+                            ->where('user_id', $this->conditionData['user']->id)
+                            ->where('status', PlayerGame::CURRENT)->first();
+
                         // TODO проверять, что текущая игра не ультра мошна и не переденная игра
                         if (!$currentUserCurrentGame) {
                             return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
                         }
 
+                        return $this->createInteraction($request, $action, $player);
+
+                    case 'battleForPoints':
                         return $this->createInteraction($request, $action, $player);
                 }
             }
@@ -491,11 +499,17 @@ class ActionsService
             'created_by' => $this->conditionData['user']->id,
             'with_player' => $player->user_id,
             'active' => true,
+            'description' => $action->description ? $action->description : null,
         ];
 
         if ($request && $request->id && $this->type === 'item') {
             $fields['entity_id'] = $request->id;
-            $fields['entity_type'] = 'App\Models\BoardGame\BoardGameInventory';
+            $fields['entity_type'] = BoardGameInventory::class;
+        }
+
+        if ($request && $request->id && $this->type === 'positionEffect') {
+            $fields['entity_id'] = $request->id;
+            $fields['entity_type'] = BoardPositionEffectsBind::class;
         }
 
         if (PlayerInteractions::create($fields)) {

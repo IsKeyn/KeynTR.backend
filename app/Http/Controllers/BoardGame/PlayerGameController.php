@@ -6,10 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\GameListResource;
 use App\Models\BoardGame\BoardGameGameList;
-use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\ItemBind;
-use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
+use App\Services\BoardGame\InteractionsService;
 use App\Services\BoardGame\PlayerGameService;
 use App\Services\BoardGame\TimerService;
 use App\Services\CommentService;
@@ -17,11 +15,6 @@ use Illuminate\Http\Request;
 
 class PlayerGameController extends Controller
 {
-//    public function getPlayerList(Request $request)
-//    {
-//        return GameListResource::collection($this->getFilteredGameList($request));
-//    }
-
     public function getPlayerList($slug, Request $request)
     {
         $conditionData = PlayerGameService::checkConditions($slug);
@@ -97,6 +90,10 @@ class PlayerGameController extends Controller
 
                         // TODO если есть игра в очерели ставим её сюда
                         // TODO добавляем логи
+
+                        /* Проверяем взаимодействия */
+                        $interactionsService = new InteractionsService();
+                        $interactionsService->checkInteractionAfterActionWithGame($request->type, $conditionData);
                     }
 
                     /* Игра пройдена */
@@ -136,6 +133,10 @@ class PlayerGameController extends Controller
 //                        $boardGamePlayers->update(['points' => $points]);
 
                         // TODO добавляем логи
+
+                        /* Проверяем взаимодействия */
+                        $interactionsService = new InteractionsService();
+                        $interactionsService->checkInteractionAfterActionWithGame($request->type, $conditionData);
                     }
 
                     return $result;

@@ -14,6 +14,14 @@ class BoardGame extends Model
 {
     use HasFactory, SoftDeletes, ExtendModelTrait;
 
+    /*
+     * Настройки BoardGame
+     * upon-request = true/false - закрытая, открытая игра
+     * item_roll_default_count - достуное количество круток рулетки предметов, для нового игрока
+     * step_default_count - доступное количество шагов по игровой доске, для нового игрока
+     * board_type - тип доски, который используется в настольной игре
+     */
+
     const CLOSE_STATUS = 0;
     const OPEN_STATUS = 1;
     const COMING_SOON = 2;

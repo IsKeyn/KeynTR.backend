@@ -18,6 +18,7 @@ class CreateBoardGamePlayerPositionsTable extends Migration
             $table->foreignId('user_id')->nullable();
             $table->integer('position');
             $table->foreignId('board_game_id')->nullable();
+            $table->boolean('has_use_effect')->default(false);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
