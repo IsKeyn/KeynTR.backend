@@ -40,6 +40,7 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
         Route::get('item/gamblingGame/{slug}', 'getDataForItemGamblingGame')->name('getDataForItemGamblingGame');
         Route::post('rollItem/{slug}', 'rollItem')->name('rollItem');
+        Route::post('rollGame/{slug}', 'rollGame')->name('rollGame');
 
         Route::get('interactions/get/{slug}', 'getInteractions')->name('getInteractions');
     });
@@ -58,10 +59,11 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
     Route::prefix('player-game/')->controller(PlayerGameController::class)->name('player-game.')->group(function () {
         Route::get('get-player-list/{slug}', 'getPlayerList')->name('get-player-list');
-//        Route::get('get-spend-time', 'getSpendTime')->name('get-spend-time');
-//        Route::post('roll', 'roll')->name('roll');
-//        Route::post('add', 'add')->name('add');
-//        Route::post('update', 'update')->name('update');
+        Route::get('get-spend-time', 'getSpendTime')->name('get-spend-time');
+        Route::post('roll/{slug}', 'roll')->name('roll');
+        Route::post('add', 'add')->name('add');
+        Route::post('update', 'update')->name('update');
+        Route::post('invite-to-coop', 'inviteToCoop')->name('invite-to-coop');
     });
 
     Route::prefix('player-interaction/')->controller(PlayerInteractionController::class)->name('player-interaction.')->group(function () {

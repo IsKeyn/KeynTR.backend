@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColumnDescriptionToBgPlayerInteractions extends Migration
+class AddColumnCoopToBgItemsBindsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddColumnDescriptionToBgPlayerInteractions extends Migration
      */
     public function up()
     {
-        Schema::table('bg_player_interactions', function (Blueprint $table) {
-            $table->text('description')->after('status');
+        Schema::table('board_game_game_lists', function (Blueprint $table) {
+            $table->boolean('coop')->default(0)->after('game_completion_time');
         });
     }
 
@@ -25,8 +25,8 @@ class AddColumnDescriptionToBgPlayerInteractions extends Migration
      */
     public function down()
     {
-        Schema::table('bg_player_interactions', function (Blueprint $table) {
-            $table->dropColumn('description');
+        Schema::table('board_game_game_lists', function (Blueprint $table) {
+            $table->dropColumn('coop');
         });
     }
 }
