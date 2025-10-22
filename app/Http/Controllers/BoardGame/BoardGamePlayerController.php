@@ -412,32 +412,34 @@ class BoardGamePlayerController extends Controller
              * то на игрока необходимо наложить статус эффект,
              * а не класть предмет в инвентарь
              */
-            $setStatusEffect = false;
-
-            $actions = json_decode($randItem->item->actions);
-
             $useStatusEffect = false;
 
-            foreach ($actions as $action) {
-                if (
-                    $action
-                    && isset($action->type, $action->target, $action->value)
-                    && $action->type === 'applyStatusEffect'
-                    && $action->target === 'current'
-                    && $action->value
-                ) {
-                    /* Применяем статус эффект */
-                    $statusEffectObj = StatusEffect::where('slug', $action->value)->first();
+            if ($randItem->item->actions) {
+                $actions = json_decode($randItem->item->actions);
 
-                    $PlayerStatusEffectFields = [
-                        'user_id' => $conditionData['user']->id,
-                        'board_game_id' => $conditionData['boardGame']->id,
-                        'status_effect_id' => $statusEffectObj->id,
-                        'created_by' => $conditionData['user']->id,
-                    ];
+                $useStatusEffect = false;
 
-                    PlayerStatusEffect::create($PlayerStatusEffectFields);
-                    $useStatusEffect = true;
+                foreach ($actions as $action) {
+                    if (
+                        $action
+                        && isset($action->type, $action->target, $action->value)
+                        && $action->type === 'applyStatusEffect'
+                        && $action->target === 'current'
+                        && $action->value
+                    ) {
+                        /* Применяем статус эффект */
+                        $statusEffectObj = StatusEffect::where('slug', $action->value)->first();
+
+                        $PlayerStatusEffectFields = [
+                            'user_id' => $conditionData['user']->id,
+                            'board_game_id' => $conditionData['boardGame']->id,
+                            'status_effect_id' => $statusEffectObj->id,
+                            'created_by' => $conditionData['user']->id,
+                        ];
+
+                        PlayerStatusEffect::create($PlayerStatusEffectFields);
+                        $useStatusEffect = true;
+                    }
                 }
             }
 

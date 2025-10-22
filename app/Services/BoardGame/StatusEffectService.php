@@ -60,7 +60,7 @@ class StatusEffectService
 
             $usedSeFields = ['active' => false];
 
-            if ($result) {
+            if ($result && is_string($result)) {
                 $logMessage = $result;
             } else if (isset($request->additionalParams['logMessage'])) {
                 $logMessage = $request->additionalParams['logMessage'];
@@ -81,7 +81,7 @@ class StatusEffectService
             );
 
             if ($usedStatusEffect->update($usedSeFields)) {
-                if ($result) {
+                if ($result && is_string($result)) {
                     return [
                         'message' => $result,
                     ];

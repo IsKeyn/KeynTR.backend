@@ -18,7 +18,7 @@ class BgBoardPositionEffect extends Migration
             $table->string('name');
             $table->string('slug');
             $table->text('description')->nullable();
-            $table->json('actions');
+            $table->json('actions')->nullable();
             $table->integer('sort')->nullable();
             $table->boolean('active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

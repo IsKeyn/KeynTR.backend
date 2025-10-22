@@ -20,6 +20,7 @@ class BoardGame extends Model
      * item_roll_default_count - достуное количество круток рулетки предметов, для нового игрока
      * step_default_count - доступное количество шагов по игровой доске, для нового игрока
      * board_type - тип доски, который используется в настольной игре
+     * subtract_points - количество очков, которое отнимается при рероле
      */
 
     const CLOSE_STATUS = 0;

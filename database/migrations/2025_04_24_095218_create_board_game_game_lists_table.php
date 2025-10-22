@@ -22,6 +22,7 @@ class CreateBoardGameGameListsTable extends Migration
             $table->bigInteger('points')->nullable();
             $table->bigInteger('difficult')->default(0)->nullable();
             $table->bigInteger('game_completion_time')->default(0)->nullable();
+            $table->boolean('coop')->default(0);
             $table->boolean('active')->default(1);
             $table->foreignId('added_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

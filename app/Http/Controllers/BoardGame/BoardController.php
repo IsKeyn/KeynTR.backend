@@ -15,7 +15,7 @@ use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\BoardPositionEffectsBind;
 use App\Models\BoardGame\PlayerInteractions;
 use App\Models\Setting;
-use App\Services\BoardGame\ActionsService;
+use App\Services\BoardGame\BoardService;
 use App\Services\BoardGame\PlayerGameService;
 use App\Services\ErrorService;
 use Illuminate\Http\Request;
@@ -90,32 +90,13 @@ class BoardController extends Controller
                 $boardPositionEffectBind = BoardPositionEffectsBind::query()
                     ->where('id', $request->id)->first();
 
-                     $position = BoardGamePlayerPosition::query()
-                         ->findByBoardGame($conditionData['boardGame']->id)
-                         ->findByUserId($conditionData['user']->id)
-                         ->where('position', $boardPositionEffectBind->position)
-                         ->first();
+                $position = BoardGamePlayerPosition::query()
+                    ->findByBoardGame($conditionData['boardGame']->id)
+                    ->findByUserId($conditionData['user']->id)
+                    ->where('position', $boardPositionEffectBind->position)
+                    ->first();
 
-                     if (!$position->has_use_effect) {
-                         if ($boardPositionEffectBind && $boardPositionEffectBind->boardPositionEffect) {
-                             /* Эффект должен иметь JSON действий */
-                             if ($boardPositionEffectBind->boardPositionEffect->actions) {
-                                 $actionService = new ActionsService($conditionData, 'positionEffect', $boardPositionEffectBind->boardPositionEffect);
-
-                                 foreach (json_decode($boardPositionEffectBind->boardPositionEffect->actions) as $action) {
-                                     $result = $actionService->activateAction($request, $action);
-                                 }
-
-                                 return $result;
-                             } else {
-                                 return ErrorService::message('Не возможно применить, не найден JSON действий');
-                             }
-                         } else {
-                             return ErrorService::message('Не найден эффект позиции или привязки эффекта к доске');
-                         }
-                     } else {
-                         return ErrorService::message('Вы уже использовали эффект данной ячейки');
-                     }
+                 return BoardService::activateCellEffect($boardPositionEffectBind, $position, $conditionData, $request);
             } else {
                 return ErrorService::message('Не получен ID предмета инвентаря');
             }

@@ -154,10 +154,6 @@ class InteractionsService
 
     private function systemRefuse()
     {
-        if ($this->interaction->with_player !== $this->conditionData['user']->id) {
-            return ErrorService::message('Вы не можете отозвать взаимодействие, которое отправлено не вам');
-        }
-
         if ($this->interaction->created_by) {
             $message = 'предложение было отозвано системой "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
 
@@ -190,6 +186,7 @@ class InteractionsService
 
         $this->interaction->status = PlayerInteractions::STATUS_REFUSED;
         $this->interaction->active = false;
+
         return $this->interaction->save();
     }
 

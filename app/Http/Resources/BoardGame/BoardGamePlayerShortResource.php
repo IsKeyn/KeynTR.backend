@@ -19,7 +19,11 @@ class BoardGamePlayerShortResource extends JsonResource
 
     public function toArray($request)
     {
-        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->first();
+        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)
+            ->where('user_id', $this->user_id)
+            ->orderBy('updated_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
 
         $fullPoints = $this->points;
 

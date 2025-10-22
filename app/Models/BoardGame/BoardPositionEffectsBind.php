@@ -2,6 +2,7 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Traits\ExtendModelForBoardGameTrait;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,7 @@ class BoardPositionEffectsBind extends Model
 {
     protected $table = 'bg_board_position_effect_binds';
 
-    use HasFactory, ExtendModelTrait;
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
 
     protected $fillable = [
         'position_effect_id',
@@ -23,11 +24,6 @@ class BoardPositionEffectsBind extends Model
     protected $casts = [
         'active' => 'boolean',
     ];
-
-    public function scopeFindByBoardGame($query, $boardGameId)
-    {
-        return $query->where('board_game_id', $boardGameId);
-    }
 
     public function boardPositionEffect()
     {

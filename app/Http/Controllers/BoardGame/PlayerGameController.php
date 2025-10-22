@@ -7,10 +7,14 @@ use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\GameListResource;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\PlayerGame;
+use App\Services\BoardGame\ActionsService;
+use App\Services\BoardGame\GameService;
 use App\Services\BoardGame\InteractionsService;
+use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
 use App\Services\BoardGame\TimerService;
 use App\Services\CommentService;
+use App\Services\ErrorService;
 use Illuminate\Http\Request;
 
 class PlayerGameController extends Controller
@@ -22,7 +26,7 @@ class PlayerGameController extends Controller
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
         } else {
-            $games = $this->getFilteredGameList($request, $conditionData);
+            $games = $this->getFilteredGameList($request->platform_id, $conditionData);
 
             return [
                 'status' => 1,
@@ -34,19 +38,47 @@ class PlayerGameController extends Controller
 
     public function add(Request $request)
     {
-        $user = $request->user();
+        $conditionData = PlayerGameService::checkConditions($request->slug);
 
-        $fields = array_merge(
-            [
-                'user_id' => $user->id,
-                'board_game_game_list_id' => $request->board_game_game_list_id,
-                'board_game_id' => $request->board_game_id,
-                'created_by' => $user->id,
-            ],
-            $this->getFields($request),
-        );
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        } else {
+            $fields = array_merge(
+                [
+                    'user_id' => $conditionData['user']->id,
+                    'board_game_game_list_id' => $request->board_game_game_list_id,
+                    'board_game_id' => $conditionData['boardGame']->id,
+                    'created_by' => $conditionData['user']->id,
+                ],
+                $this->getFields($request),
+            );
 
-        return PlayerGame::create($fields);
+            $game = PlayerGame::create($fields);
+
+            if ($game) {
+                $message = 'отметил игру ' . $game->game->name . ' как ';
+
+                if ($request->type === PlayerGame::CURRENT) {
+                    $message .= 'текущую';
+                } else if ($request->type === PlayerGame::REROLLED) {
+                    $message .= 'рерольнутую';
+                } else if ($request->type === PlayerGame::COMPLETED) {
+                    $message .= 'пройденную';
+                } else if ($request->type === PlayerGame::GIVEN_AWAY) {
+                    $message .= 'отданную';
+                }
+
+                if ($message) {
+                    if ($request->comment) {
+                        $message .= ' и оставил мнение об игре ' . $request->comment;
+                    }
+
+                    LogService::addLog($conditionData['user']->id, $conditionData['boardGame']->id, $message);
+                }
+            }
+
+            return $game;
+        }
     }
 
     public function update(Request $request, PlayerGame $playerGame)
@@ -65,7 +97,7 @@ class PlayerGameController extends Controller
 
                 if ($result = $playerCurrentGame->update($fields)) {
                     /* Рерол игры */
-                    if ($request->type === 1) {
+                    if ($request->type === PlayerGame::REROLLED) {
                         /* Добавление предмета при рероле */
 //                    $fields = $request->validate([
 //                        'board_game_id' => 'required',
@@ -80,7 +112,7 @@ class PlayerGameController extends Controller
 //                    BoardGameInventory::create($fields);
 
                         /* Отнимает очки при рероле и сбрасываем стрик при рероле */
-                        $subtractPointsSetting = $conditionData['boardGame']->settings->where('code', '=', '$subtract_points')->first();
+                        $subtractPointsSetting = $conditionData['boardGame']->settings->where('code', '=', 'subtract_points')->first();
                         $subtractPointsCount = $subtractPointsSetting ? $subtractPointsSetting : 25;
 
                         $conditionData['player']->points = $conditionData['player']->points - $subtractPointsCount;
@@ -89,7 +121,8 @@ class PlayerGameController extends Controller
                         $conditionData['player']->update;
 
                         // TODO если есть игра в очерели ставим её сюда
-                        // TODO добавляем логи
+
+                        $message = 'рерольну игру ' .  $playerCurrentGame->game->name . ' и потерял ' . $subtractPointsCount . ' очков';
 
                         /* Проверяем взаимодействия */
                         $interactionsService = new InteractionsService();
@@ -97,7 +130,7 @@ class PlayerGameController extends Controller
                     }
 
                     /* Игра пройдена */
-                    if ($request->type === 2) {
+                    if ($request->type === PlayerGame::COMPLETED) {
                         /* Добавляем стрик, если он не достиг максимального */
                         $maxStreakSetting = $conditionData['boardGame']->settings->where('code', '=', 'max_string')->first();
                         $maxStreak = $maxStreakSetting ? $maxStreakSetting : 5;
@@ -107,7 +140,8 @@ class PlayerGameController extends Controller
                         }
 
                         /* Рассчитываем количество очков за игру */
-                        $pointsForGame = round($playerCurrentGame->game->difficult * ($playerCurrentGame->game->game_completion_time / 60));
+                        $pointsForGame = GameService::calcPoints($playerCurrentGame);
+
                         // Добавляем стрик
                         if ($conditionData['player']->streak > 0) {
                             $pointsForGame = $pointsForGame + (($pointsForGame / 100) * ($conditionData['player']->streak * 2));
@@ -132,11 +166,36 @@ class PlayerGameController extends Controller
 //
 //                        $boardGamePlayers->update(['points' => $points]);
 
-                        // TODO добавляем логи
+                        $message = 'прошел игру ' .  $playerCurrentGame->game->name . ' и получил за неё ' . $pointsForGame . ' очков';
+
+                        if ($request->time) {
+                            $formattedTime = sprintf("%02d:%02d:%02d",
+                                floor($request->time / 3600),
+                                floor(($request->time % 3600) / 60),
+                                $request->time % 60
+                            );
+                        }
+
+                        if ($formattedTime) {
+                            $message .= ', затратил ' . $formattedTime;
+                        }
 
                         /* Проверяем взаимодействия */
                         $interactionsService = new InteractionsService();
                         $interactionsService->checkInteractionAfterActionWithGame($request->type, $conditionData);
+                    }
+
+                    /* Игра отдана */
+                    if ($request->type === PlayerGame::GIVEN_AWAY) {
+                        $message = 'отдал игру ' .  $playerCurrentGame->game->name;
+                    }
+
+                    if ($message) {
+                        if ($request->comment) {
+                            $message .= ' и оставил мнение об игре ' . $request->comment;
+                        }
+
+                        LogService::addLog($conditionData['user']->id, $conditionData['boardGame']->id, $message);
                     }
 
                     return $result;
@@ -145,20 +204,38 @@ class PlayerGameController extends Controller
         }
     }
 
+    public function inviteToCoop(Request $request)
+    {
+        if ($request->slug) {
+            $conditionData = PlayerGameService::checkConditions($request->slug);
+
+            if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+                return $conditionData;
+            } else {
+                $boardGameGameList = BoardGameGameList::findById($request->board_game_game_list_id)->first();
+                // [{"name": "ТМNT 4 (NES)", "type": "playerInteractions", "value": "battleForPoints", "target": "other", "description": "Битва за 20 очков в игре ТМNT 4 (NES) с другим участником ивента", "pointsForWin": 20}]
+
+                $action = (Object)[
+                    'type' => 'playerInteractions',
+                    'target' => 'other',
+                    'value' => 'inviteToCoop',
+                    'description' => 'Приглашение пройти в коопе игру ' . $boardGameGameList->game->name,
+                ];
+
+                $actionService = new ActionsService($conditionData, 'interactions', null);
+                return $actionService->activateAction($request, $action);
+            }
+        } else {
+            return ErrorService::message('Не получен slug');
+        }
+    }
+
     public function getFields($request)
     {
-        $fields = [];
-
-        switch ($request->type) {
-            case 0: $fields['status'] = PlayerGame::CURRENT; break;
-            case 1: $fields['status'] = PlayerGame::REROLLED; break;
-            case 2: $fields['status'] = PlayerGame::COMPLETED; break;
-            case 3: $fields['status'] = PlayerGame::GIVEN_AWAY; break;
-        }
-
-        if ($request->hourCount) {
-            $fields['time'] = $request->hourCount;
-        }
+        $fields = [
+            'status' => $request->type,
+            'time' => $request->time,
+        ];
 
         if ($request->comment) {
             $newComment = [
@@ -175,52 +252,63 @@ class PlayerGameController extends Controller
         return $fields;
     }
 
-    public function roll(Request $request, PlayerGame $playerGame) {
-        $gameListFiltered = $this->getFilteredGameList($request);
+    public function roll($slug, Request $request, PlayerGame $playerGame) {
 
-        if ($gameListFiltered->count() > 0) {
-            $randomGame = $gameListFiltered->random();
+        $conditionData = PlayerGameService::checkConditions($slug);
 
-        if ($randomGame) {
-            $user = $request->user();
-
-            $currentGame = PlayerGame::query()
-                ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
-                ->where('status', PlayerGame::CURRENT)
-                ->first();
-
-            if ($currentGame) {
-                $currentGame->update(['status' => PlayerGame::REROLLED]);
-            }
-
-            $status = PlayerGame::CURRENT;
-
-            $fields = [
-                'user_id' => $user->id,
-                'status' => $status,
-                'board_game_game_list_id' => $randomGame->id,
-                'board_game_id' => $request->board_game_id,
-                'created_by' => $user->id,
-            ];
-
-            $playerGame::create($fields);
-
-            return GameListResource::make($randomGame);
-            } else {
-                return false;
-            }
+        // Проверяем, что игрок может крутить рулетку игр
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
         } else {
-            return false;
+            $gameListFiltered = $this->getFilteredGameList(
+                $request->platform_id ? $request->platform_id : null,
+                $conditionData
+            );
+
+            if ($gameListFiltered->count() > 0) {
+                $randomGame = $gameListFiltered->random();
+
+                if ($randomGame) {
+                    // Если у игрока есть текущая игра, отмечаем её как рерольнутую
+                    $currentGame = PlayerGame::query()
+                        ->where('user_id', $conditionData['user']->id)
+                        ->where('board_game_id', $conditionData['boardGame']->id)
+                        ->where('status', PlayerGame::CURRENT)
+                        ->first();
+
+                    if ($currentGame) {
+                        $currentGame->update(['status' => PlayerGame::REROLLED]);
+                    }
+
+                    // Создаем новую текущую игру
+                    $fields = [
+                        'user_id' => $conditionData['user']->id,
+                        'status' => PlayerGame::CURRENT,
+                        'board_game_game_list_id' => $randomGame->id,
+                        'board_game_id' => $conditionData['boardGame']->id,
+                        'created_by' => $conditionData['user']->id,
+                    ];
+
+                    if ($playerGame::create($fields)) {
+                        return GameListResource::make($randomGame);
+                    } else {
+                        return ErrorService::message('Ошибка создания новой текущей игры');
+                    }
+                } else {
+                    return ErrorService::message('Ошибка выбора игры');
+                }
+            } else {
+                return ErrorService::message('У вас не осталось игр, для рулетки');
+            }
         }
     }
 
-    private function getFilteredGameList($request, $conditionData)
+    private function getFilteredGameList($platformId, $conditionData)
     {
         $boardGameGameQuery = BoardGameGameList::query()->where('board_game_id', $conditionData['boardGame']->id);
 
-        if ($request->platform_id) {
-            $boardGameGameQuery->where('gaming_platform_id', $request->platform_id);
+        if ($platformId) {
+            $boardGameGameQuery->where('gaming_platform_id', $platformId);
         }
 
         $boardGameGameList = $boardGameGameQuery->get();
@@ -243,12 +331,15 @@ class PlayerGameController extends Controller
 
     public function getSpendTime(Request $request)
     {
-        $user = $request->user();
+        $conditionData = PlayerGameService::checkConditions($request->slug);
 
-        if ($user) {
+        // Проверяем, что игрок может крутить рулетку игр
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        } else {
             $playerGame = PlayerGame::query()
-                ->where('user_id', $user->id)
-                ->where('board_game_id', $request->board_game_id)
+                ->where('user_id', $conditionData['user']->id)
+                ->where('board_game_id', $conditionData['boardGame']->id)
                 ->where('status', PlayerGame::CURRENT)
                 ->first();
 

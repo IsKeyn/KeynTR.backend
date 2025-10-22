@@ -67,11 +67,10 @@ class DiceController extends Controller
                     $positionParams = [
                         'type' => 'forward',
                         'count' => $rollResult,
-                        'boardGame' => $conditionData['boardGame'],
                         'player' => $conditionData['player'],
                     ];
 
-                    $positionData = BoardService::setPosition($positionParams);
+                    $positionData = BoardService::setPosition($positionParams, $conditionData);
                 }
 
                 $returnData = [

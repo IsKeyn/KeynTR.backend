@@ -4,6 +4,8 @@ namespace App\Models\BoardGame;
 
 use App\Models\Game;
 use App\Models\GamingPlatform;
+use App\Models\Traits\ExtendModelForBoardGameTrait;
+use App\Models\Traits\ExtendModelTrait;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BoardGameGameList extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
 
     protected $fillable = [
         'game_id',
@@ -20,6 +22,7 @@ class BoardGameGameList extends Model
         'points',
         'difficult',
         'game_completion_time',
+        'coop',
         'description',
         'active',
         'added_by',

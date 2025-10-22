@@ -45,7 +45,8 @@ class LogController extends Controller
         if ($id) {
             $query = BoardGameLog::query()
                 ->where('board_game_id', $id)
-                ->orderByDesc('created_at');
+                ->orderByDesc('created_at')
+                ->orderByDesc('id');
 
             $result = $request->perPage ? $query->paginate($request->perPage) : $query->get();
 

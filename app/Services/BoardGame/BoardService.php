@@ -2,31 +2,32 @@
 namespace App\Services\BoardGame;
 
 use App\Models\BoardGame\Board;
+use App\Models\BoardGame\BoardPositionEffectsBind;
 use App\Models\BoardGame\PlayerInteractions;
 use App\Services\ErrorService;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 
 class BoardService
 {
-    public static function setPosition($params, $setLogs = true, $useStepCount = true)
+    public static function setPosition($params, $conditionData, $setLogs = true, $useStepCount = true)
     {
         if (
             $params
-            && $params['boardGame']
+            && $conditionData
             && $params['player']
         ) {
             if ($useStepCount && $params['player']->step_count <= 0) {
                 return ErrorService::message('Нет доступных ходов');
             }
 
-            if ($params['position']) {
-                $position = $params['position'];
-            } elseif ($params['type'] && $params['count']) {
-                $oldPosition = BoardGamePlayerPosition::query()
-                    ->where('board_game_id', $params['boardGame']->id)
-                    ->where('user_id', $params['player']->user_id)
-                    ->orderBy('id', 'desc')->first();
+            $oldPosition = BoardGamePlayerPosition::query()
+                ->where('board_game_id', $conditionData['boardGame']->id)
+                ->where('user_id', $params['player']->user_id)
+                ->orderBy('id', 'desc')->first();
 
+            if (isset($params['position'])) {
+                $position = $params['position'];
+            } elseif (isset($params['type']) && isset($params['count'])) {
                 if ($params['type'] === 'forward') {
                     $position = $oldPosition->position + $params['count'];
                 }
@@ -36,12 +37,12 @@ class BoardService
                 }
             }
 
-            $position = self::checkPosition($position, $params['boardGame']);
+            $position = self::checkPosition($position, $conditionData['boardGame']);
 
             if ($position !== $oldPosition->position) {
                 $newPosition = [
                     'position' => $position,
-                    'board_game_id' => $params['boardGame']->id,
+                    'board_game_id' => $conditionData['boardGame']->id,
                     'user_id' => $params['player']->user_id,
                     'created_by' => $params['player']->user_id,
                 ];
@@ -53,7 +54,7 @@ class BoardService
 
                         LogService::addLog(
                             $params['player']->user_id,
-                            $params['boardGame']->id,
+                            $conditionData['boardGame']->id,
                             $logMessage
                         );
                     }
@@ -63,8 +64,9 @@ class BoardService
                         $params['player']->update();
                     }
 
+                    // Отключаем взаимодействия, связанные с ячейкой игрового поля, так как игрок её покинул
                     $boardInteraction = PlayerInteractions::query()
-                        ->findByBoardGame($params['boardGame']->id)
+                        ->findByBoardGame($conditionData['boardGame']->id)
                         ->where('created_by', $params['player']->user_id)
                         ->where('type', 'battleForPoints')
                         ->active()
@@ -74,15 +76,75 @@ class BoardService
                         $interactionsService = new InteractionsService();
 
                         foreach ($boardInteraction as $interaction) {
-                            $interactionsService->init($params['boardGame']->slug, $interaction->id, 'systemRefuse');
+                            $interactionsServiceRes = $interactionsService->init($conditionData['boardGame']->slug, $interaction->id, 'systemRefuse');
                         }
                     }
 
-                    // TODO активация эффекта, если эффект автоматический, например смена позиции, добавление очков и т.д.
+                    // Активация эффекта, если эффект автоматический, например смена позиции, добавление очков и т.д.
+                    $boardPositionEffectBinds = BoardPositionEffectsBind::query()
+                        ->findByBoardGame($conditionData['boardGame']->id)
+                        ->where('position', $position)->active()->get();
 
-                    return $entry;
+                    foreach ($boardPositionEffectBinds as $boardPositionEffectBind) {
+                        self::activateCellEffect($boardPositionEffectBind, $entry, $conditionData, null, true);
+                    }
+
+                    $finalPosition = BoardGamePlayerPosition::query()
+                        ->findByBoardGame($conditionData['boardGame']->id)
+                        ->findByUserId($conditionData['user']->id)
+                        ->orderByDesc('id')
+                        ->first();
+
+                    return ['firstPosition' => $entry, 'finalPosition' => $finalPosition];
                 }
             }
+        }
+    }
+
+    public static function activateCellEffect($boardPositionEffectBind, $position, $conditionData, $data = null, $onlyAutoUse = false)
+    {
+        if (!$position->has_use_effect) {
+            if ($boardPositionEffectBind && $boardPositionEffectBind->boardPositionEffect) {
+                /* Эффект должен иметь JSON действий */
+                if ($boardPositionEffectBind->boardPositionEffect->actions) {
+                    $actionService = new ActionsService($conditionData, 'positionEffect', $boardPositionEffectBind->boardPositionEffect);
+
+                    $result = null;
+
+                    foreach (json_decode($boardPositionEffectBind->boardPositionEffect->actions) as $action) {
+                        $activateEffect = true;
+
+                        if ($onlyAutoUse && (!isset($action->autoUse) || !$action->autoUse)) {
+                            $activateEffect = false;
+                        }
+
+                        if ($activateEffect) {
+                            $result = $actionService->activateAction($data, $action);
+
+                            if ($result
+                                && (
+                                    (isset($data) && ($data->type === 'fightWithBoss-win'))
+                                    || (isset($action->autoUse) && $action->autoUse)
+                                )
+                            ) {
+                                BoardService::setUsePositionEffect(
+                                    $conditionData['user']->id,
+                                    $conditionData['boardGame']->id,
+                                    $boardPositionEffectBind->position
+                                );
+                            }
+                        }
+                    }
+
+                    return $result;
+                } else {
+                    return ErrorService::message('Не возможно применить, не найден JSON действий');
+                }
+            } else {
+                return ErrorService::message('Не найден эффект позиции или привязки эффекта к доске');
+            }
+        } else {
+            return ErrorService::message('Вы уже использовали эффект данной ячейки');
         }
     }
 

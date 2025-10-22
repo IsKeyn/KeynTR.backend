@@ -7,6 +7,7 @@ use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\BoardPositionEffectsBind;
+use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
@@ -42,13 +43,13 @@ class ActionsService
         }
     }
 
-    public function activateAction($request, $action)
+    public function activateAction($data, $action)
     {
         switch ($action->type) {
             case 'removePoints':
             case 'addPoints':
                 $result = $this->actionsWithPoints(
-                    $request,
+                    $data,
                     $action,
                 );
                 break;
@@ -56,7 +57,7 @@ class ActionsService
             case 'movePlayer':
             case 'pushPlayer':
                 $result = $this->actionsWithPosition(
-                    $request,
+                    $data,
                     $action,
                 );
                 break;
@@ -65,15 +66,16 @@ class ActionsService
             case 'stealItem':
             case 'changeUserOwner':
             case 'removeItem':
+            case 'addItem':
                 $result = $this->actionsWithItems(
-                    $request,
+                    $data,
                     $action,
                 );
                 break;
 
             case 'applyStatusEffect':
                 $result = $this->activateEffect(
-                    $request,
+                    $data,
                     $action,
                 );
                 break;
@@ -81,14 +83,14 @@ class ActionsService
 
             case 'addTime':
                 $result = $this->actionsWithTime(
-                    $request,
+                    $data,
                     $action,
                 );
                 break;
 
             case 'playerInteractions':
                 $result = $this->actionsWithPlayerInteractions(
-                    $request,
+                    $data,
                     $action,
                 );
                 break;
@@ -100,10 +102,10 @@ class ActionsService
         return $result;
     }
 
-    private function actionsWithPoints($request, $action)
+    private function actionsWithPoints($data, $action)
     {
         /* Функция выполняет действия связанные с очками игрока */
-        $players = $this->target($request, $action);
+        $players = $this->target($data, $action);
 
         if (isset($players['error'])) {
             return $players['error'];
@@ -114,22 +116,12 @@ class ActionsService
                 $playerFields = $this->setFieldsWithPoints($player, $action);
                 $player->update($playerFields);
 
-                $dontSendNotification = false;
-
-                if (isset($action->sendNotification) && $action->sendNotification === false) {
-                    $dontSendNotification = true;
-                }
-
-                if (!$dontSendNotification) {
-                    if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
-                        $notificationMessage = $request->additionalParams['message'];
-                        $this->createNotification($player, $notificationMessage);
-                    }
-                }
+                $this->notificationHandler($data, $player, $action);
             }
+
+            return true;
         }
     }
-
 
     public function setFieldsWithPoints($player, $action, $logMessage = null)
     {
@@ -203,13 +195,17 @@ class ActionsService
             }
         }
 
-        if ($this->type === 'item') {
-            $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->points . ' - ' . $playerFields["points"] . ')';
-        } else if ($this->type === 'statusEffect') {
-            $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (' . $player->points . ' - ' . $playerFields["points"] . ')';
+        if (isset($action->logMessage) && $action->logMessage) {
+            $logMessage = $this->prepareMessage($action, 'logMessage');
+        } else {
+            if ($this->type === 'item') {
+                $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->points . ' - ' . $playerFields["points"] . ')';
+            } else if ($this->type === 'statusEffect') {
+                $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (' . $player->points . ' - ' . $playerFields["points"] . ')';
+            }
         }
 
-        if ($logMessage) {
+        if (isset($logMessage)) {
             LogService::addLog(
                 $this->conditionData['user']->id,
                 $this->conditionData['boardGame']->id,
@@ -261,7 +257,7 @@ class ActionsService
                 $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (' . $player->points . ' - ' . $playerPositionFields["points"] . ')';
             }
 
-            if ($logMessage) {
+            if (isset($logMessage)) {
                 LogService::addLog(
                     $this->conditionData['user']->id,
                     $this->conditionData['boardGame']->id,
@@ -271,33 +267,23 @@ class ActionsService
 
             $positionParams = [
                 'position' => $playerPositionFields['position'],
-                'boardGame' => $this->conditionData['boardGame']->id,
                 'player' => $player,
             ];
 
-            BoardService::setPosition($positionParams, false, false);
+            BoardService::setPosition($positionParams, $this->conditionData,false, false);
 
-            $dontSendNotification = false;
-
-            if (isset($action->sendNotification) && $action->sendNotification === false) {
-                $dontSendNotification = true;
-            }
-
-            if (!$dontSendNotification) {
-                if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
-                    $notificationMessage = $request->additionalParams['message'];
-                    $this->createNotification($player, $notificationMessage);
-                }
-            }
+            $this->notificationHandler($request, $player, $action);
         }
+
+        return true;
     }
 
-    private function actionsWithItems($request, $action)
+    private function actionsWithItems($data, $action)
     {
         /* Удаление предмета у всех игроков */
         if ($action->type === 'removeItem' && $action->target === 'all' && $action->itemId) {
             // TODO переделать, должен брать не привязанный предмет ид а оригинальный
-            $items = $this->BoardGameInventory->where('board_game_item_id', $action->itemId);
+            $items = $this->BoardGameInventory::query()->where('board_game_item_id', $action->itemId);
 
             $arUserIds = [];
 
@@ -309,7 +295,7 @@ class ActionsService
                         'message' => $this->conditionData['user']->name . ' использовал предмет "' . $item->item->name . '"',
                     ];
 
-                    $this->notification->create($fields);
+                    $this->notification::create($fields);
 
                     $arUserIds[] = $item->user_id;
                 }
@@ -317,17 +303,19 @@ class ActionsService
                 $items->delete();
             }
         } else {
-            $players = $this->target($request, $action);
+            $players = $this->target($data, $action);
 
             foreach ($players as $player) {
-                if (isset($request->additionalParams['item']) && $request->additionalParams['item']) {
-                    $inventoryItem = $this->BoardGameInventory
-                        ->where('user_id', $player->user_id)
-                        ->where('id', $request->additionalParams['item'])
-                        ->where('has_used', false)
-                        ->first();
+                if (isset($data->additionalParams['item']) && $data->additionalParams['item']) {
+                    if ($data->additionalParams['item']) {
+                        $inventoryItem = $this->BoardGameInventory::query()
+                            ->where('user_id', $player->user_id)
+                            ->where('id', $data->additionalParams['item'])
+                            ->where('has_used', false)
+                            ->first();
+                    }
 
-                    if ($inventoryItem) {
+                    if (isset($inventoryItem)) {
                         switch ($action->type) {
                             case 'removeNegativeItem':
                                 if ($inventoryItem->item->type === 1) {
@@ -340,8 +328,8 @@ class ActionsService
                                     }
 
                                     if (!$dontSendNotification) {
-                                        if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
-                                            $notificationMessage = $request->additionalParams['message'];
+                                        if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                                            $notificationMessage = $data->additionalParams['message'];
                                             $this->createNotification($player, $notificationMessage);
                                         }
                                     }
@@ -363,18 +351,18 @@ class ActionsService
                                 }
 
                                 if (!$dontSendNotification) {
-                                    if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
-                                        $notificationMessage = $request->additionalParams['message'];
+                                    if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                                        $notificationMessage = $data->additionalParams['message'];
                                         $this->createNotification($player, $notificationMessage);
                                     }
                                 }
                                 break;
                             case 'changeUserOwner':
                                 if (
-                                    isset($request->additionalParams['secondPlayer'])
-                                    && $request->additionalParams['secondPlayer']
+                                    isset($data->additionalParams['secondPlayer'])
+                                    && $data->additionalParams['secondPlayer']
                                 ) {
-                                    $secondPlayer = $this->BoardGamePlayer->where('id', $request->additionalParams['secondPlayer'])->first();
+                                    $secondPlayer = $this->BoardGamePlayer::query()->where('id', $data->additionalParams['secondPlayer'])->first();
 
                                     if ($secondPlayer) {
                                         $playerFields = [
@@ -390,8 +378,8 @@ class ActionsService
                                         }
 
                                         if (!$dontSendNotification) {
-                                            if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
-                                                $notificationMessage = $request->additionalParams['message'];
+                                            if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                                                $notificationMessage = $data->additionalParams['message'];
                                                 $this->createNotification($player, $notificationMessage);
                                                 $this->createNotification($secondPlayer, $notificationMessage);
                                             }
@@ -404,6 +392,26 @@ class ActionsService
                         }
                     } else {
                         return $this->error('Предмета не существует');
+                    }
+                } else if ($action->value ?? null) {
+                    $ItemBind = ItemBind::findByBoardGame($this->conditionData['boardGame']->id)->where('slug', $action->value)->active()->first();
+
+                    if ($ItemBind) {
+                        $inventoryFields = [
+                            'user_id' => $this->conditionData['user']->id,
+                            'board_game_id' => $this->conditionData['boardGame']->id,
+                            'board_game_item_id' => $ItemBind->id,
+                        ];
+
+                        $result = $this->BoardGameInventory::create($inventoryFields);
+
+                        if ($result) {
+                            $this->notificationHandler($data, $player, $action);
+                        }
+
+                        return $result;
+                    } else {
+                        return ErrorService::message('Предмет не найден');
                     }
                 }
             }
@@ -482,6 +490,7 @@ class ActionsService
                         return $this->createInteraction($request, $action, $player);
 
                     case 'battleForPoints':
+                    case 'inviteToCoop':
                         return $this->createInteraction($request, $action, $player);
                 }
             }
@@ -539,7 +548,7 @@ class ActionsService
     {
         /* Функция выполняет действия связанные с эффектами игрока */
         if ($action->value) {
-            $statusEffectObj = $this->statusEffect->where('slug', $action->value)->first();
+            $statusEffectObj = $this->statusEffect::query()->where('slug', $action->value)->first();
 
             if ($statusEffectObj) {
                 $players = $this->target($request, $action);
@@ -553,7 +562,7 @@ class ActionsService
                             'created_by' => $this->conditionData['user']->id,
                         ];
 
-                        $this->PlayerStatusEffect->create($PlayerStatusEffectFields);
+                        $this->PlayerStatusEffect::create($PlayerStatusEffectFields);
 
                         $dontSendNotification = false;
 
@@ -655,11 +664,47 @@ class ActionsService
         return $players;
     }
 
-    public function createNotification($player, $message) {
+    private function notificationHandler($data, $player, $action)
+    {
+        $dontSendNotification = false;
+
+        if (isset($action->sendNotification) && $action->sendNotification === false) {
+            $dontSendNotification = true;
+        }
+
+        if (!$dontSendNotification) {
+            if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                $notificationMessage = $data->additionalParams['message'];
+                $this->createNotification($player, $notificationMessage);
+            } elseif (isset($action->message) && $action->message) {
+                $message = $this->prepareMessage($action, 'message');
+                $this->createNotification($player, $message, true);
+            }
+        }
+    }
+
+    private function prepareMessage($action, $keyMessage)
+    {
+        if (property_exists($action, $keyMessage)) {
+            $message = $action->$keyMessage;
+
+            if (property_exists($action, 'name') && $action->name) {
+                $message = str_replace('*name', $action->name, $message);
+            }
+
+            if (property_exists($action, 'value') && $action->value) {
+                $message = str_replace('*value', $action->value, $message);
+            }
+
+            return $message;
+        }
+    }
+
+    public function createNotification($player, $message, $ignoreSelf = false) {
         if (
             isset($player) && $player
             && $message
-            && $player->user_id !== $this->conditionData['user']->id
+            && ($ignoreSelf || $player->user_id !== $this->conditionData['user']->id)
         ) {
             $fields = [
                 'user_id' => $player->user_id,

@@ -4,6 +4,7 @@ namespace App\Http\Resources\BoardGame;
 
 use App\Http\Resources\Game\GameShortResource;
 use App\Http\Resources\UserPublicResource;
+use App\Services\BoardGame\GameService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class GameListResource extends JsonResource
@@ -26,6 +27,9 @@ class GameListResource extends JsonResource
             'board_game_id' => $this->board_game_id,
             'description' => $this->description,
             'points' => $this->points,
+            'computed_points' => GameService::calcPoints($this),
+            'rerolled_points' => GameService::rerollPoints($this->boardGame),
+            'coop' => $this->coop,
             'active' => $this->active,
             'added_by' => $this->added_by,
             'created_by' => $this->created_by,
