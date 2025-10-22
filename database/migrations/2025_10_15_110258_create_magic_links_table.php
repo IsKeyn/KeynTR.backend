@@ -17,6 +17,7 @@ class CreateMagicLinksTable extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('token')->unique();
+            $table->string('qr_code')->nullable();
             $table->timestamp('expires_at');
             $table->timestamps();
         });

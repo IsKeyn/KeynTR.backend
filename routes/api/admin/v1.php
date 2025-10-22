@@ -71,9 +71,3 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
         Route::get('generate/{userId}', 'createLink')->name('generate');
     });
 });
-
-Route::prefix('admin/')->name('v1.')->group(function() {
-    Route::prefix('magical-link/')->controller(MagicLinkController::class)->name('magic-link.')->group(function() {
-        Route::get('/login/{token}','login')->name('login');
-    });
-});

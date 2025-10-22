@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\User\AllNotifications;
+use App\Http\Controllers\User\MagicLinkController;
 use App\Http\Controllers\User\MessageController;
 use App\Services\User\UserService;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -43,6 +44,7 @@ Route::prefix('auth/')->middleware('auth:sanctum')->group(function() {
         Route::post('update-profile', 'updateProfile')->name('updateProfile');
         Route::put('set-settings', 'setSettings')->name('setSettings');
         Route::post('change-password', 'changePassword')->name('changePassword');
+        Route::post('generate-auth-link', 'generateAuthLink')->name('generate-auth-link');
     });
 
     Route::controller(NotificationController::class)->prefix('notification/')->name('notification')->group(function () {
@@ -68,6 +70,9 @@ Route::prefix('auth/')->middleware('auth:sanctum')->group(function() {
 // Общие действия как для авторизованного, так и для не авторизованного пользователя
 Route::prefix('auth/')->controller(UserController::class)->group(function() {
     Route::get('getFullProfile/{name}', 'getFullProfile')->name('getFullProfile');
+    Route::prefix('magical-link/')->controller(MagicLinkController::class)->name('magic-link.')->group(function() {
+        Route::get('/login/{token}','login')->name('login');
+    });
 });
 
 //    Route::get('user', [UserController::class, 'authUser'])->name('user'); // TODO где используется данный роут?

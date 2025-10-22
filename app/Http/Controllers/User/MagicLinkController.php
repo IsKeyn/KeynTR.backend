@@ -5,27 +5,24 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\User\MagicLink;
 use App\Services\ErrorService;
-use Illuminate\Http\Request;
+use App\Services\User\MagicLinkService;
 use Illuminate\Support\Facades\Auth;
 
 class MagicLinkController extends Controller
 {
     public function createLink($userId)
     {
-        if (!$userId) {
-            return ErrorService::message('Не получен ID пользователя');
+        $link = MagicLinkService::createLink($userId);
+
+        if (isset($link['error'])) {
+            return $link['error'];
         }
 
-        $user = User::findOrFail($userId);
-
-        if (!$user) {
-            return ErrorService::message('Пользователь не найден');
-        }
-
-        $link = MagicLink::generateFor($user);
-
-
-        return response()->json(['token' => $link->token]);
+        return response()->json([
+            'token' => $link->token,
+            'qr_code' => $link->qr_code,
+            'expires_at' => $link->expires_at,
+        ]);
     }
 
     public function login($token)
@@ -38,7 +35,10 @@ class MagicLinkController extends Controller
 
         Auth::login($link->user);
 
-        // Можно удалить токен, чтобы нельзя было использовать повторно
+        // Удаляем QR код
+        MagicLinkService::deleteQrFile(basename($link->qr_code));
+
+        // Удаляем токен, чтобы нельзя было использовать повторно
         $link->delete();
 
         // Возвращать пользователя

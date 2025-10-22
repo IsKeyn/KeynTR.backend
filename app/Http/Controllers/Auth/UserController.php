@@ -7,6 +7,7 @@ use App\Http\Resources\UserResource;
 use App\Models\Media;
 use App\Models\User;
 use App\Services\MediaService;
+use App\Services\User\MagicLinkService;
 use App\Services\User\UserPasswordService;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
@@ -120,5 +121,22 @@ class UserController extends Controller
         $userPasswordService = new UserPasswordService();
 
        return $userPasswordService->changePassword($user, $validated);
+    }
+
+    public function generateAuthLink()
+    {
+        $user = Auth::user();
+
+        $link = MagicLinkService::createLink($user->id);
+
+        if (isset($link['error'])) {
+            return $link['error'];
+        }
+
+        return response()->json([
+            'token' => $link->token,
+            'expires_at' => $link->expires_at,
+            'qr_code' => $link->qr_code,
+        ]);
     }
 }
