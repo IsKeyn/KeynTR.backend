@@ -3,6 +3,8 @@
 namespace App\Models\BoardGame;
 
 use App\Models\Comments;
+use App\Models\Traits\ExtendModelForBoardGameTrait;
+use App\Models\Traits\ExtendModelTrait;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PlayerGame extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
 
     const CURRENT = 0;
     const REROLLED = 1;

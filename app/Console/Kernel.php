@@ -26,6 +26,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('auth:clear-resets')->everyFifteenMinutes(); // Сброс истекших токенов сброса пароля
         $schedule->command('views:count')->everyFifteenMinutes(); // Подсчет просмотров
         $schedule->command('user:clear-magic-links')->daily(); // Очистка истекших токенов автологина и qr кодов с ссылкой для авторизации
+        $schedule->command('board-game:unset-players-streak')->sundays()->at('23:59'); // Очистка стриков игроков, которые не прошли не одной игры за неделю
         // $schedule->command('log:set')->everyMinute();
         // $schedule->command('inspire')->hourly();
     }

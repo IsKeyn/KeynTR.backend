@@ -113,6 +113,16 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'streak' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/streak.log'),
+            'level' => 'info',
+            'formatter' => Monolog\Formatter\LineFormatter::class,
+            'formatter_with' => [
+                'format' => "[%datetime%] %channel%.%level_name%: %message% %context%\n"
+            ],
+        ],
     ],
 
 ];
