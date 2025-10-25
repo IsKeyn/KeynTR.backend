@@ -126,12 +126,13 @@ class BoardGamePlayerController extends Controller
 
             $user = Auth::user();
 
-            if ($user && $request->type === 'battleForPoints')
+            if ($user && ($request->type === 'battleForPoints' || $request->type === 'inviteToCoop'))
             {
                 $boardGameInteractions = PlayerInteractions::query()
                     ->findByBoardGame($boardGameId)
                     ->where('created_by', $user->id)
-                    ->where('type', 'battleForPoints')
+                    ->where('type', $request->type)
+                    ->whereIn('status', [PlayerInteractions::STATUS_ACCEPTED, PlayerInteractions::I_WIN, PlayerInteractions::I_LOSE])
                     ->select('with_player')->get();
 
                 $playerInteractionsIds = [];
@@ -142,12 +143,16 @@ class BoardGamePlayerController extends Controller
                     }
                 }
 
-                $players->whereNotIn('user_id', $interaction);
+                $players->whereNotIn('user_id', $playerInteractionsIds);
             }
 
             $players = $players->get();
 
-            return BoardGamePlayerWithInventoryResource::collection($players);
+            if ($request->type === 'battleForPoints' || $request->type === 'inviteToCoop') {
+                return BoardGamePlayerShortResource::collection($players);
+            } else {
+                return BoardGamePlayerWithInventoryResource::collection($players);
+            }
     }
 
     public function getEvents(

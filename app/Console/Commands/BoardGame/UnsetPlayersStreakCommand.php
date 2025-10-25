@@ -4,6 +4,7 @@ namespace App\Console\Commands\BoardGame;
 
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\PlayerGame;
+use App\Services\BoardGame\LogService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -73,6 +74,8 @@ class UnsetPlayersStreakCommand extends Command
                                 'streak' => $player->streak,
                             ]
                         );
+
+                        LogService::addLog(1, $boardGame->id, 'Игрок ' . $player->user->name . ' потерял стрик, так как не прошел не одной игры за неделю');
                     } else {
                         $this->line('Игрок ' . $player->user->name . ' стрик НЕ сброшен в ' . $boardGame->name);
                         Log::channel('streak')->info(

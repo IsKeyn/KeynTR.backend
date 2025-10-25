@@ -20,6 +20,7 @@ class PlayerGameService
             $typeSettings = $boardGame->settings->where('code', '=', 'type')->first();
 
             if ($boardGame) {
+                // Ставим игрока на игровое поле
                 $positionFields = [
                     'user_id' => $user->id,
                     'position' => 1,
@@ -27,6 +28,9 @@ class PlayerGameService
                     'created_by' => $user->id,
                 ];
                 BoardGamePlayerPosition::create($positionFields);
+
+                // Устанавливаем таймер для игрока
+                TimerService::createTimer($boardGame->id, $user, 'main');
 
                 $fields = [
                     'user_id' => $user->id,

@@ -2,12 +2,14 @@
 
 namespace App\Models\BoardGame;
 
+use App\Models\Traits\ExtendModelForBoardGameTrait;
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Timer extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
 
     protected $fillable = [
         'name',

@@ -2,13 +2,35 @@
 
 namespace App\Services\BoardGame;
 
+use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayerTimer;
-use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\Timer;
 use Carbon\Carbon;
 
 class TimerService
 {
+    public static function createTimer($boardGameId, $user, $slug = 'main')
+    {
+        $boardGame = BoardGame::query()->where('id', $boardGameId)->first();
+
+        $limit = 100*60*60;
+
+        if ($bgTimeLimit = $boardGame->settings->where('code', '=', 'time_limit')->first()) {
+            $limit = $bgTimeLimit->value * 60;
+        }
+
+        $timerFields = [
+            'user_id' => $user->id,
+            'board_game_id' => $boardGameId,
+            'name' => $boardGame->name,
+            'limit' => $limit,
+            'slug' => $slug,
+            'created_by' => $user->id,
+        ];
+
+        return Timer::create($timerFields);
+    }
+
     public static function getTimerStatus($timer)
     {
         $status = [
@@ -29,11 +51,62 @@ class TimerService
 
             $status['name'] = $timer->name;
             $status['limit'] = $timer->limit;
+
+            if ($status['active'] && $status['limit'] && $status['time'] >= $status['limit']) {
+                $fields = [
+                    'time_stop' => Carbon::now(),
+                ];
+
+                $BoardGamePlayerTimer = $timer->playerTimer->last();
+
+                if ($BoardGamePlayerTimer) {
+                    $BoardGamePlayerTimer->update($fields);
+                    LogService::addLog(1, $timer->board_game_id, 'таймер был остановлен, так как достиг лимита');
+                }
+            }
         } else {
 //                return response()->json(['error' => 'Таймер не найден'])->setStatusCode(Response::HTTP_OK);
         }
 
         return $status;
+    }
+
+    public function toggleTimer($user, $timer, $action, $request)
+    {
+        $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
+            ->where('timer_id', $timer->id)
+            ->where('time_stop', null)
+            ->orderBy('id', 'desc')->first();
+
+        if ($action === 'start') {
+            if ($BoardGamePlayerTimer) {
+                return response()->json(['error' => 'Таймер уже запущен'])->setStatusCode(Response::HTTP_OK);
+            } else {
+                $fields = [
+                    'timer_id' => $timer->id,
+                    'time_start' => Carbon::now(),
+                    'created_by' => $user->id,
+                ];
+
+                if (BoardGamePlayerTimer::create($fields)) {
+                    return $this->status($request);
+                }
+            }
+        }
+
+        if ($action === 'stop') {
+            if ($BoardGamePlayerTimer) {
+                $fields = [
+                    'time_stop' => Carbon::now(),
+                ];
+
+                if ($BoardGamePlayerTimer->update($fields)) {
+                    return $this->status($request);
+                }
+            } else {
+                return response()->json(['error' => 'Таймер уже остановлен'])->setStatusCode(Response::HTTP_OK);
+            }
+        }
     }
 
     public static function timeInGame($playerGame)

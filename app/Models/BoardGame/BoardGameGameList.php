@@ -15,6 +15,8 @@ class BoardGameGameList extends Model
 {
     use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
 
+    const GOLDEN_LIST = 1;
+
     protected $fillable = [
         'game_id',
         'board_game_id',
@@ -23,6 +25,7 @@ class BoardGameGameList extends Model
         'difficult',
         'game_completion_time',
         'coop',
+        'list_type',
         'description',
         'active',
         'added_by',

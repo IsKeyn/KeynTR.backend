@@ -52,6 +52,7 @@ class BoardGamePlayerFullResource extends JsonResource
             'user_id' => $this->user_id,
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
+            'streak' => $this->streak,
             'item_roll_count' => $this->item_roll_count,
             'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,

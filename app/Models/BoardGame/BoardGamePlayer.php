@@ -20,6 +20,7 @@ class BoardGamePlayer extends Model
         'item_roll_count',
         'step_count',
         'streak',
+        'rerolled_own_game_count',
         'not_active_reason',
         'active',
         'created_by',

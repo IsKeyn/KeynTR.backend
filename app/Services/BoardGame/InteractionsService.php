@@ -95,7 +95,7 @@ class InteractionsService
                 $secondPlayerGame->update();
             }
 
-            if ($this->interaction->type === 'battleForPoints') {
+            if ($this->interaction->type === 'battleForPoints' || $this->interaction->type === 'inviteToCoop') {
                 $active = true;
             }
         } else {
@@ -227,6 +227,7 @@ class InteractionsService
                 }
             }
 
+            $this->interaction->status = PlayerInteractions::RECALLED;
             $this->interaction->active = false;
             return $this->interaction->save();
         } else {
@@ -427,10 +428,18 @@ class InteractionsService
                     $this->interaction = $interaction;
 
                     if ($interaction->with_player) {
-                        $this->refuse();
+                        $this->systemRefuse();
                     }
 
                     if ($interaction->created_by) {
+                        $this->recall();
+                    }
+                }
+
+                if ($interaction->type === 'inviteToCoop') {
+                    if ($interaction->created_by) {
+                        $this->interaction = $interaction;
+
                         $this->recall();
                     }
                 }

@@ -34,18 +34,7 @@ class TimerController extends Controller
             if ($timer) {
                 return $this->toggleTimer($user, $timer, 'start', $request);
             } else {
-                $boardGame = BoardGame::query()->where('id', $boardGameId)->first();
-
-                $timerFields = [
-                    'user_id' => $user->id,
-                    'board_game_id' => $boardGameId,
-                    'name' => $boardGame->name,
-                    'limit' => 100*60*60,
-                    'slug' => $request->slug ? $request->slug : 'main',
-                    'created_by' => $user->id,
-                ];
-
-                if ($timer = Timer::create($timerFields)) {
+                if ($timer = TimerService::createTimer($boardGameId, $user, $request->slug ? $request->slug : 'main')) {
                     return $this->toggleTimer($user, $timer, 'start', $request);
                 }
             }

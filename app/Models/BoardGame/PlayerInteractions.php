@@ -20,15 +20,18 @@ class PlayerInteractions extends Model
     public const STATUS_REFUSED = 3;
     public const I_WIN = 4;
     public const I_LOSE = 5;
+    public const RECALLED = 6;
 
     public const TYPE_NAME = [
       'ru' => [
           'switchGame' => 'Обмен игрой',
           'battleForPoints' => 'Битва за очки',
+          'inviteToCoop' => 'Приглашение в кооп',
       ],
       'en' => [
           'switchGame' => 'Switch game',
           'battleForPoints' => 'Battle for points',
+          'inviteToCoop' => 'Invite to coop',
       ],
     ];
 

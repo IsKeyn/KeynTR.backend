@@ -21,6 +21,7 @@ class CreateBoardGamePlayersTable extends Migration
             $table->integer('item_roll_count')->default(0);
             $table->integer('step_count')->default(0);
             $table->integer('streak')->default(0);
+            $table->integer('rerolled_own_game_count')->default(0);
             $table->boolean('active')->default(true);
             $table->text('not_active_reason')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
