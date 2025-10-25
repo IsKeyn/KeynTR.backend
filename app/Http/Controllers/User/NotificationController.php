@@ -27,6 +27,14 @@ class NotificationController extends Controller
         return $notification->update(['viewed' => true]);
     }
 
+    public function setViewedAll(Notification $notification, Request $request)
+    {
+        $user = Auth::user();
+
+        $notifications = $notification::where('user_id', $user->id);
+        return $notifications->update(['viewed' => true]);
+    }
+
     public function getCurrentUserNotifications(Notification $notification, Request $request)
     {
         $user = Auth::user();

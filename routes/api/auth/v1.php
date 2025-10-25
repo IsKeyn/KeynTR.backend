@@ -52,6 +52,7 @@ Route::prefix('auth/')->middleware('auth:sanctum')->group(function() {
         Route::get('getCount', 'getCountUserNotifications')->name('getCountUserNotifications');
         Route::post('set', 'set')->name('set');
         Route::post('set-viewed', 'setViewed')->name('setViewed');
+        Route::post('set-viewed-all', 'setViewedAll')->name('setViewedAll');
     });
 
     Route::controller(MessageController::class)->prefix('message/')->name('message')->group(function () {
