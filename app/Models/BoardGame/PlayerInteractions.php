@@ -27,11 +27,13 @@ class PlayerInteractions extends Model
           'switchGame' => 'Обмен игрой',
           'battleForPoints' => 'Битва за очки',
           'inviteToCoop' => 'Приглашение в кооп',
+          'playForMe' => 'Пройди игру за меня',
       ],
       'en' => [
           'switchGame' => 'Switch game',
           'battleForPoints' => 'Battle for points',
           'inviteToCoop' => 'Invite to coop',
+          'playForMe' => 'Play for me',
       ],
     ];
 

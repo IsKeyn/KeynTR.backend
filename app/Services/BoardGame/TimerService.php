@@ -51,8 +51,9 @@ class TimerService
 
             $status['name'] = $timer->name;
             $status['limit'] = $timer->limit;
+            $status['reached_the_limit'] = $status['limit'] && $status['time'] >= $status['limit'];
 
-            if ($status['active'] && $status['limit'] && $status['time'] >= $status['limit']) {
+            if ($status['active'] && $status['reached_the_limit']) {
                 $fields = [
                     'time_stop' => Carbon::now(),
                 ];

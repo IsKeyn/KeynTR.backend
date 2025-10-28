@@ -25,6 +25,7 @@ class PlayerGameShortResource extends JsonResource
             'game' => GameListResource::make($this->game),
             'board_game_game_list_id' => $this->board_game_game_list_id,
             'status' => $this->status,
+            'type' => $this->type,
             'board_game_id' => $this->board_game_id,
             'comment_id' => $this->comment_id,
             'comment' => CommentResource::make($this->comment),

@@ -88,15 +88,72 @@ class InteractionsService
                     ->where('board_game_id', $this->conditionData['boardGame']->id)
                     ->where('status', PlayerGame::CURRENT)->first();
 
-                $firstPlayerGame->user_id = $this->interaction->created_by;
-                $secondPlayerGame->user_id = $this->interaction->with_player;
+                // Делаем текущие игры переданными
+                $firstPlayerGame->status = PlayerGame::GIVEN_AWAY;
+                $secondPlayerGame->status = PlayerGame::GIVEN_AWAY;
 
                 $firstPlayerGame->update();
                 $secondPlayerGame->update();
+
+                // Создаем новые игры
+                $newGameFieldsForFirstPlayer = [
+                    'user_id' => $this->interaction->with_player,
+                    'board_game_game_list_id' => $secondPlayerGame->board_game_game_list_id,
+                    'status' => PlayerGame::CURRENT,
+                    'board_game_id' => $this->conditionData['boardGame']->id,
+                    'created_by' => $this->interaction->created_by,
+                ];
+
+                PlayerGame::create($newGameFieldsForFirstPlayer);
+
+                $newGameFieldsForSecondPlayer = [
+                    'user_id' => $this->interaction->created_by,
+                    'board_game_game_list_id' => $firstPlayerGame->board_game_game_list_id,
+                    'status' => PlayerGame::CURRENT,
+                    'board_game_id' => $this->conditionData['boardGame']->id,
+                    'created_by' => $this->conditionData['user']->id,
+                ];
+
+                PlayerGame::create($newGameFieldsForSecondPlayer);
             }
 
             if ($this->interaction->type === 'battleForPoints' || $this->interaction->type === 'inviteToCoop') {
                 $active = true;
+            }
+
+            if ($this->interaction->type === 'playForMe') {
+                $firstPlayerGame = PlayerGame::query()
+                    ->where('user_id', $this->interaction->with_player)
+                    ->where('board_game_id', $this->conditionData['boardGame']->id)
+                    ->where('status', PlayerGame::CURRENT)->first();
+
+                $secondPlayerGame = PlayerGame::query()
+                    ->where('user_id', $this->interaction->created_by)
+                    ->where('board_game_id', $this->conditionData['boardGame']->id)
+                    ->where('status', PlayerGame::CURRENT)->first();
+
+                if ($secondPlayerGame) {
+                    if ($firstPlayerGame) {
+                        $status = PlayerGame::QUEUE;
+                    } else {
+                        $status = PlayerGame::CURRENT;
+                    }
+
+                    $newGameFields = [
+                        'user_id' => $this->interaction->with_player,
+                        'board_game_game_list_id' => $secondPlayerGame->board_game_game_list_id,
+                        'status' => $status,
+                        'board_game_id' => $this->conditionData['boardGame']->id,
+                        'type' => PlayerGame::TYPE_TAKEN,
+                        'created_by' => $this->conditionData['user']->id,
+                        'from_user_id' => $this->interaction->created_by,
+                    ];
+
+                    PlayerGame::create($newGameFields);
+
+                    $secondPlayerGame->status = PlayerGame::GIVEN_AWAY;
+                    $secondPlayerGame->save();
+                }
             }
         } else {
             return ErrorService::message('Вы не можете принять взаимодействие, которое находится в статусе отличном от "Отправлено"');
@@ -111,11 +168,11 @@ class InteractionsService
     private function refuse()
     {
         if ($this->interaction->with_player !== $this->conditionData['user']->id) {
-            return ErrorService::message('Вы не можете отозвать взаимодействие, которое отправлено не вам');
+            return ErrorService::message('Вы не можете отказаться от взаимодействия, которое отправлено не вам');
         }
         if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE) {
             if ($this->interaction->created_by) {
-                $message = 'Отозвал предложение "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
+                $message = 'Отказался от предложения "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
 
                 $fields = [
                     'user_id' => $this->interaction->created_by,
@@ -132,7 +189,7 @@ class InteractionsService
             }
 
             if ($this->interaction->entity_id && $this->interaction->entity_type) {
-                if ($this->interaction->type === 'switchGame') {
+                if ($this->interaction->type === 'switchGame' || $this->interaction->type === 'playForMe') {
                     if ($this->interaction->entity_type === 'App\Models\BoardGame\BoardGameInventory') {
                         $inventoryItem = $this->interaction->entity_type::findById($this->interaction->entity_id)->first();
 

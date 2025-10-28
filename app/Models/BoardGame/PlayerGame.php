@@ -14,17 +14,25 @@ class PlayerGame extends Model
 {
     use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
 
+    /* Статусы */
+    // TODO в будущем добавить префикс STATUS_ , пример STATUS_CURRENT
     const CURRENT = 0;
     const REROLLED = 1;
     const COMPLETED = 2;
     const GIVEN_AWAY = 3;
     const QUEUE = 4;
 
+    /* Типы игры */
+    const TYPE_TAKEN = 0;
+    const TYPE_PURSE = 1;
+
     protected $fillable = [
         'user_id',
         'board_game_game_list_id',
         'status',
         'board_game_id',
+        'type',
+        'from_user_id',
         'comment_id',
         'time',
         'created_by',

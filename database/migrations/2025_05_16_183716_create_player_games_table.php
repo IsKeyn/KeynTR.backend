@@ -19,6 +19,8 @@ class CreatePlayerGamesTable extends Migration
             $table->foreignId('board_game_game_list_id');
             $table->integer('status')->nullable();
             $table->foreignId('board_game_id');
+            $table->integer('type')->nullable();
+            $table->foreignId('from_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('comment_id')->nullable();
             $table->bigInteger('time')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

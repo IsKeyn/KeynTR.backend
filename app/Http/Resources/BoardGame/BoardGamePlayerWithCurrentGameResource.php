@@ -29,10 +29,6 @@ class BoardGamePlayerWithCurrentGameResource extends JsonResource
             $fullPoints += $position->position;
         }
 
-        $playerCurrentGame = PlayerGame::where('board_game_id', $this->board_game_id)
-            ->where('user_id', $this->user_id)
-            ->where('status', PlayerGame::CURRENT)->first();
-
         $timer = Timer::query()
             ->where('user_id', $this->user_id)
             ->where('board_game_id', $this->board_game_id)
@@ -52,10 +48,11 @@ class BoardGamePlayerWithCurrentGameResource extends JsonResource
             'item_roll_count' => $this->item_roll_count,
             'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,
+            'timer_status' => $status,
             'seconds' => $status['time'],
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
-            'current_game' => PlayerGameResource::make($playerCurrentGame),
+            'current_game' => PlayerGameResource::make($this->current_game->first()),
         ];
     }
 }

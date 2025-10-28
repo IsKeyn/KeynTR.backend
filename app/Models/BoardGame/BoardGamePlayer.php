@@ -35,6 +35,14 @@ class BoardGamePlayer extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function current_game()
+    {
+        return $this
+            ->hasMany(PlayerGame::class, 'user_id', 'user_id')
+            ->where('board_game_id', '=', $this->board_game_id)
+            ->where('status', PlayerGame::CURRENT);
+    }
+
     public function inventory()
     {
         return $this

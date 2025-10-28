@@ -10,6 +10,7 @@ use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
+use App\Models\BoardGame\Timer;
 use App\Services\BoardGame\ActionsService;
 use App\Services\BoardGame\GameService;
 use App\Services\BoardGame\InteractionsService;
@@ -30,20 +31,28 @@ class PlayerGameController extends Controller
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
         } else {
-            $games = $this->getFilteredGameList($request->platform_id, $conditionData);
-
             $coopInteractions = PlayerInteractions::findByBoardGame($conditionData['boardGame']->id)->active()
                 ->where('type', 'inviteToCoop')
                 ->whereIn('status', [PlayerInteractions::STATUS_ACTIVE, PlayerInteractions::STATUS_ACCEPTED])
                 ->where('created_by', $conditionData['user']->id)->get();
 
-            return [
-                'status' => 1,
-                'coopInteraction' => PlayerInteractionResource::collection($coopInteractions),
-                'games' => isset($games['gameList']) ? GameListResource::collection($games['gameList']) : null,
-                'listType' => isset($games['listType']) ? $games['listType'] : null,
-                'player' => BoardGamePlayerWithCurrentGameResource::make($conditionData['player']),
-            ];
+            if ($conditionData['player']->current_game->first()) {
+                return [
+                    'status' => 1,
+                    'coopInteraction' => PlayerInteractionResource::collection($coopInteractions),
+                    'player' => BoardGamePlayerWithCurrentGameResource::make($conditionData['player']),
+                ];
+            } else {
+                $games = $this->getFilteredGameList($request->platform_id, $conditionData);
+
+                return [
+                    'status' => 1,
+                    'coopInteraction' => PlayerInteractionResource::collection($coopInteractions),
+                    'games' => isset($games['gameList']) ? GameListResource::collection($games['gameList']) : null,
+                    'listType' => isset($games['listType']) ? $games['listType'] : null,
+                    'player' => BoardGamePlayerWithCurrentGameResource::make($conditionData['player']),
+                ];
+            }
         }
     }
 
@@ -123,8 +132,7 @@ class PlayerGameController extends Controller
 //                    BoardGameInventory::create($fields);
 
                         /* Отнимает очки при рероле и сбрасываем стрик при рероле */
-                        $subtractPointsSetting = $conditionData['boardGame']->settings->where('code', '=', 'subtract_points')->first();
-                        $subtractPointsCount = $subtractPointsSetting ? $subtractPointsSetting->value : 25;
+                        $subtractPointsCount = GameService::rerollPoints($conditionData['boardGame'], $playerCurrentGame);
 
                         $conditionData['player']->points = $conditionData['player']->points - $subtractPointsCount;
                         $conditionData['player']->streak = 0;
@@ -141,6 +149,38 @@ class PlayerGameController extends Controller
 
                         $message = 'рерольнул игру ' .  $playerCurrentGame->game->game->name . ' и потерял ' . $subtractPointsCount . ' очков';
 
+                        // Взвращаем предмет, если была рерольнута отданная игра
+                        if ($playerCurrentGame->from_user_id) {
+                            // Получаем взаимодействие
+                            $playerInteraction = PlayerInteractions::query()
+                                ->where('type', 'playForMe')
+                                ->where('status', PlayerInteractions::STATUS_ACCEPTED)
+                                ->findByBoardGame($conditionData['boardGame']->id)
+                                ->where('with_player', $conditionData['player']->user_id)
+                                ->where('created_by', $playerCurrentGame->from_user_id)
+                                ->orderByDesc('id')
+                                ->first();
+
+                            if ($playerInteraction && $playerInteraction->entity_id && $playerInteraction->entity_type) {
+                                $entity = $playerInteraction->entity_type::query()->find($playerInteraction->entity_id);
+                                $entity->has_used = false;
+                                $entity->save();
+
+                                // Добавляем лог и уведомление
+                                LogService::addLog(
+                                    $playerCurrentGame->from_user_id,
+                                    $conditionData['boardGame']->id,
+                                    'получил назад предмет ' . $entity->item->name . ', так как переданная им игра ' . $playerCurrentGame->game->game->name . ' была рерольнута',
+                                );
+
+                                NotificationService::set(
+                                    [
+                                        'user_id' => $playerCurrentGame->from_user_id,
+                                        'message' => 'предмет ' . $entity->item->name . ', снова у вас в инвентаре, так как переданная им игра ' . $playerCurrentGame->game->game->name . ' была рерольнута',
+                                    ]
+                                );
+                            }
+                        }
                         /* Проверяем взаимодействия */
                         $interactionsService = new InteractionsService();
                         $interactionsService->checkInteractionAfterActionWithGame($request->type, $conditionData);
@@ -151,10 +191,24 @@ class PlayerGameController extends Controller
                         /* Рассчитываем количество очков за игру */
                         $pointsForGame = GameService::calcPoints($playerCurrentGame->game);
 
-                        // Добавляем очки за стрик
-                        if ($conditionData['player']->streak > 0) {
-                            $finalPoints = $pointsForGame + ($pointsForGame / 100 * ($conditionData['player']->streak * 2));
+                        if ($playerCurrentGame->type === PlayerGame::TYPE_TAKEN) {
+                            $pointsForGame = round($pointsForGame / 2);
+
+                            // Даем очки, игроку, который передал игру
+                            if ($playerCurrentGame->from_user_id) {
+                                // Получаем игрока
+                                $playerFrom = BoardGamePlayer::findByBoardGame($conditionData['boardGame']->id)->findByUserId($playerCurrentGame->from_user_id)->active()->first();
+
+                                // Добавляем очки
+                                if ($playerFrom) {
+                                    $playerFrom->points = $playerFrom->points + $pointsForGame;
+                                    $playerFrom->save();
+                                }
+                            }
                         }
+
+                        // Добавляем очки за стрик
+                        $finalPoints = $conditionData['player']->streak > 0 ? $pointsForGame + ($pointsForGame / 100 * ($conditionData['player']->streak * 2)) : $pointsForGame;
 
                         $conditionData['player']->points = $conditionData['player']->points + $finalPoints;
 
@@ -276,7 +330,6 @@ class PlayerGameController extends Controller
                 return $conditionData;
             } else {
                 $boardGameGameList = BoardGameGameList::findById($request->board_game_game_list_id)->first();
-                // [{"name": "ТМNT 4 (NES)", "type": "playerInteractions", "value": "battleForPoints", "target": "other", "description": "Битва за 20 очков в игре ТМNT 4 (NES) с другим участником ивента", "pointsForWin": 20}]
 
                 $action = (Object)[
                     'type' => 'playerInteractions',
@@ -322,6 +375,23 @@ class PlayerGameController extends Controller
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
         } else {
+            // Проверяем, не превысил ли игрок таймер
+            $timer = Timer::query()
+                ->where('user_id', $conditionData['user']->id)
+                ->where('board_game_id', $conditionData['boardGame']->id)
+                ->where('slug','main')
+                ->where('active', true)
+                ->orderBy('id', 'desc')->first();
+
+            $status = TimerService::getTimerStatus($timer);
+
+            if ($status['reached_the_limit']) {
+                return [
+                    'status' => 'error',
+                    'status_message' => 'Вы не можете крутить игру, так как исчерпали время таймера',
+                ];
+            }
+
             $gameListFiltered = $this->getFilteredGameList(
                 $request->platform_id ? $request->platform_id : null,
                 $conditionData

@@ -2,6 +2,8 @@
 
 namespace App\Services\BoardGame;
 
+use App\Models\BoardGame\PlayerGame;
+
 class GameService
 {
     public static function calcPoints($playerCurrentGame)
@@ -21,9 +23,14 @@ class GameService
         return $finalPoints;
     }
 
-    public static function rerollPoints($boardGame)
+    public static function rerollPoints($boardGame, $game = null)
     {
-        $subtractPointsSetting = $boardGame->settings->where('code', '=', 'subtract_points')->first();
-        return $subtractPointsSetting ? $subtractPointsSetting->value : 25;
+        if ($game && $game->type === PlayerGame::TYPE_PURSE) {
+            $points = GameService::calcPoints($game->game);
+            return round(($points / 100) * 75);
+        } else {
+            $subtractPointsSetting = $boardGame->settings->where('code', '=', 'subtract_points')->first();
+            return $subtractPointsSetting ? $subtractPointsSetting->value : 25;
+        }
     }
 }

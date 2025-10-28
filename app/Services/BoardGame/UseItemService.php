@@ -8,10 +8,12 @@ use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
 use App\Models\BoardGame\Timer;
 use App\Models\User\Notification;
+use App\Services\ErrorService;
 use Illuminate\Http\Request;
 
 class UseItemService
@@ -67,79 +69,6 @@ class UseItemService
                                 } else {
                                     $result = $actionService->activateAction($request, $action);
                                 }
-
-//                                switch ($action->type) {
-//                                    case 'removePoints':
-//                                    case 'addPoints':
-//                                        $result = $this->actionsWithPoints(
-//                                            $request,
-//                                            $action,
-//                                            $this->conditionData['user'],
-//                                            $BoardGamePlayer,
-//                                            $BoardGamePlayerPosition,
-//                                            $notification
-//                                        );
-//                                        break;
-//
-//                                    case 'movePlayer':
-//                                    case 'pushPlayer':
-//                                        $result = $this->actionsWithPosition(
-//                                            $request,
-//                                            $this->conditionData['user'],
-//                                            $action,
-//                                            $BoardGamePlayer,
-//                                            $BoardGamePlayerPosition,
-//                                            $notification
-//                                        );
-//                                        break;
-//
-//                                    case 'removeNegativeItem':
-//                                    case 'stealItem':
-//                                    case 'changeUserOwner':
-//                                    case 'removeItem':
-//                                        $result = $this->actionsWithItems(
-//                                            $request,
-//                                            $this->conditionData['user'],
-//                                            $action,
-//                                            $BoardGamePlayer,
-//                                            $BoardGameInventory,
-//                                            $BoardGamePlayerPosition,
-//                                            $notification
-//                                        );
-//                                        break;
-//
-//                                    case 'applyStatusEffect':
-//                                        $result = $this->activateEffect(
-//                                            $request,
-//                                            $this->conditionData['user'],
-//                                            $action,
-//                                            $statusEffect,
-//                                            $BoardGamePlayer,
-//                                            $PlayerStatusEffect,
-//                                            $BoardGamePlayerPosition,
-//                                            $notification
-//                                        );
-//                                        break;
-//
-//                                    case 'addTime':
-//                                        $result = $this->actionsWithTime(
-//                                            $request,
-//                                            $action,
-//                                            $this->conditionData['user']
-//                                        );
-//                                        break;
-//                                    case 'customItem':
-//                                        $result = $this->customItem(
-//                                            $request,
-//                                            $action,
-//                                            $this->conditionData['user'],
-//                                            $BoardGamePlayer,
-//                                            $BoardGamePlayerPosition,
-//                                            $notification,
-//                                        );
-//                                        break;
-//
-//                                }
                             } elseif (isset($action->target) && $action->target) {
                                 $players = $this->target($request, $this->conditionData['user'], $action, $BoardGamePlayer,
                                     $BoardGamePlayerPosition);
@@ -840,6 +769,90 @@ class UseItemService
                         } else {
                             return $this->error('Не примениму к этому игроку, у него нет предметов');
                         }
+                    }
+                }
+                break;
+            case 'ultra-moshna':
+                $message = '';
+                $players = $this->target($request, $user, $action, $BoardGamePlayer, $BoardGamePlayerPosition);
+
+                if (gettype($players) === 'array') {
+                    foreach ($players as $player) {
+                        // Проверяем игру текущего игрока и может ли он её передать
+                        $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
+                            ->where('user_id', $this->conditionData['user']->id)
+                            ->where('status', PlayerGame::CURRENT)->first();
+
+                        if ($currentUserCurrentGame) {
+                            // Проверяем, что текущая игра не ультра мошна и не переданная игра
+                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
+                                return ErrorService::message('Вы не можете это сделать, так как текущую игру, вы получили от другого игрока');
+                            }
+
+                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
+                                return ErrorService::message('Вы не можете это сделать, так как текущая игра - это ультра мошна');
+                            }
+                        } else if (!$currentUserCurrentGame) {
+                            return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
+                        }
+
+                        // Проверяем, что у игрока, которуму хотим передеать этой игры не было
+                        $playerGameCheck = PlayerGame::query()->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
+                            ->findByBoardGame($this->conditionData['boardGame']->id)->findByUserId($player->user_id)->first();
+
+                        if ($playerGameCheck) {
+                            return ErrorService::message('У данного игрока уже была игра, которой вы хотите обменяться');
+                        }
+
+                        $firstPlayerGame = PlayerGame::query()
+                            ->where('user_id', $player->user_id)
+                            ->where('board_game_id', $this->conditionData['boardGame']->id)
+                            ->where('status', PlayerGame::CURRENT)->first();
+
+                        if ($firstPlayerGame) {
+                            $status = PlayerGame::QUEUE;
+                        } else {
+                            $status = PlayerGame::CURRENT;
+                        }
+
+                        $newGameFields = [
+                            'user_id' => $player->user_id,
+                            'board_game_game_list_id' => $currentUserCurrentGame->board_game_game_list_id,
+                            'status' => $status,
+                            'board_game_id' => $this->conditionData['boardGame']->id,
+                            'type' => PlayerGame::TYPE_PURSE,
+                            'created_by' => $this->conditionData['user']->id,
+                        ];
+
+                        if (PlayerGame::create($newGameFields)) {
+                            $currentUserCurrentGame->status = PlayerGame::GIVEN_AWAY;
+                            $currentUserCurrentGame->save();
+
+                            $message .= 'Использовал предмет ' . $this->item->item->name . ' и выбрал игру ' . $currentUserCurrentGame->game->game->name;
+
+                            if ($message) {
+                                $message .= ' ';
+                            }
+
+                            $notificationMessage = $message . 'Сообщение от игрока: ' . $request->additionalParams['message'];
+
+                            $dontSendNotification = false;
+
+                            if (isset($action->sendNotification) && $action->sendNotification === false) {
+                                $dontSendNotification = true;
+                            }
+
+                            if (!$dontSendNotification) {
+                                $this->createNotification(
+                                    $player,
+                                    $this->conditionData['user'],
+                                    $notificationMessage,
+                                    $notification
+                                );
+                            }
+                        }
+
+                        return $message;
                     }
                 }
                 break;
