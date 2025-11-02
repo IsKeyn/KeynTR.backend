@@ -315,36 +315,42 @@ class BoardGamePlayerController extends Controller
 
     public function add(Request $request, BoardGamePlayer $BoardGamePlayer)
     {
-        $user = $request->user();
+        $user = Auth::user();
 
-        $currentPlayer = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $request->board_game_id)->first();
-
-        if (!$currentPlayer) {
-            $fields = [
-                'user_id' => $user->id,
-                'board_game_id' => $request->board_game_id,
-                'created_by' => $user->id,
+        if (!$user) {
+            return [
+                'status' => 'error',
+                'status_message' => 'Функционал доступен только авторизованному пользователю',
             ];
-
-            $currentPlayer = $BoardGamePlayer::create($fields);
-
-            if ($currentPlayer) {
-                $boardGame = BoardGame::query()->where('id', $request->board_game_id)->first();
-
-                $timerFields = [
-                    'user_id' => $user->id,
-                    'board_game_id' => $request->board_game_id,
-                    'name' => $boardGame->name,
-                    'limit' => 100*60*60,
-                    'slug' => 'main',
-                    'created_by' => $user->id,
-                ];
-
-                Timer::create($timerFields);
-            }
         }
 
-        return BoardGamePlayerResource::make($currentPlayer);
+        $boardGame = BoardGame::findBySlug($request->slug)->active()->first();
+
+        if (!$boardGame) {
+            return [
+                'status' => 'error',
+                'status_message' => 'Ивент не найден или не активен',
+            ];
+        }
+
+        if ($boardGame->status === 0) {
+            return [
+                'status' => 'error',
+                'status_message' => 'Ивент закончился',
+            ];
+        }
+
+        $currentPlayer = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $boardGame->id)->first();
+
+        // Если игрок не участвует в этом ивенте, то создаем нового игрока
+        if (!$currentPlayer) {
+            return PlayerGameService::joinTheGame($user, $request->slug);
+        } else {
+            return [
+                'status' => 'error',
+                'status_message' => 'Вы уже участвуете в этом ивенте',
+            ];
+        }
     }
 
     public function updatedPoints (Request $request, BoardGamePlayer $BoardGamePlayer)

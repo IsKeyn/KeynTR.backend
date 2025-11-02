@@ -11,6 +11,7 @@ use App\Http\Controllers\BoardGame\LogController;
 use App\Http\Controllers\BoardGame\PlayerGameController;
 use App\Http\Controllers\BoardGame\PlayerInteractionController;
 use App\Http\Controllers\BoardGame\PlayerStatusEffectController;
+use App\Http\Controllers\BoardGame\StatsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('board-game/v2/')->name('v2.')->group(function() {
@@ -26,6 +27,7 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
     });
 
     Route::prefix('player/')->controller(BoardGamePlayerController::class)->name('player.')->group(function() {
+        Route::post('add', 'add')->name('add');
         Route::get('get/{slug}/{name}', 'getPlayer')->name('getPlayer');
         Route::get('current/{slug}', 'getCurrent')->middleware('auth:sanctum')->name('getCurrent');
         Route::get('list/{slug}', 'getList')->name('getList');
@@ -40,7 +42,6 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
         Route::get('item/gamblingGame/{slug}', 'getDataForItemGamblingGame')->name('getDataForItemGamblingGame');
         Route::post('rollItem/{slug}', 'rollItem')->name('rollItem');
-        Route::post('rollGame/{slug}', 'rollGame')->name('rollGame');
 
         Route::get('interactions/get/{slug}', 'getInteractions')->name('getInteractions');
     });
@@ -82,5 +83,9 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
     Route::prefix('log/')->controller(LogController::class)->name('log.')->group(function() {
         Route::get('get/{slug}/{name}', 'getPlayerLog')->name('getPlayerLog');
         Route::get('list/{slug}', 'getList')->name('getList');
+    });
+
+    Route::prefix('stats/')->controller(StatsController::class)->name('stats.')->group(function() {
+        Route::get('get', 'get')->name('get');
     });
 });

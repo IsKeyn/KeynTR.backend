@@ -392,6 +392,14 @@ class PlayerGameController extends Controller
                 ];
             }
 
+            // Проверяем использовал ли игрок доступные крутки предметов и доступные ходы
+            if ($conditionData['player']->step_count > 0 && $conditionData['player']->item_roll_count > 0) {
+                return [
+                    'status' => 'error',
+                    'status_message' => 'Перед круткой рулетки игр вы должны использовать доступные крутки рулетки предметов, а такж использовать доступные ходы на игровом поле',
+                ];
+            }
+
             $gameListFiltered = $this->getFilteredGameList(
                 $request->platform_id ? $request->platform_id : null,
                 $conditionData

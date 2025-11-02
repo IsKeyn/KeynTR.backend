@@ -20,6 +20,13 @@ class PlayerGameService
             $typeSettings = $boardGame->settings->where('code', '=', 'type')->first();
 
             if ($boardGame) {
+                if ($typeSettings === 'registrationIsClose') {
+                    return [
+                        'status' => 'error',
+                        'status_message' => 'Регистрация на ивент закрыта',
+                    ];
+                }
+
                 // Ставим игрока на игровое поле
                 $positionFields = [
                     'user_id' => $user->id,
@@ -42,7 +49,34 @@ class PlayerGameService
                     'created_by' => $user->id,
                 ];
 
-                return PlayerGame::create($fields);
+                if (BoardGamePlayer::create($fields)) {
+                    switch ($typeSettings->value) {
+                        case 'upon-request':
+                            $returnMessage = 'Заявка на участие успешно отправлена и рассматривается модераторами';
+                            $logMessage = 'подал заявку на участие в ивенте';
+                            break;
+                        default:
+                            $returnMessage = 'Вы успешно зарегистрированы в ивенте';
+                            $logMessage = 'присоединился к ивенту';
+                            break;
+                    }
+
+                    LogService::addLog(
+                        $user->id,
+                        $boardGame->id,
+                        $logMessage
+                    );
+
+                    return [
+                        'status' => 'success',
+                        'status_message' => $returnMessage,
+                    ];
+                }
+            } else {
+                return [
+                    'status' => 'error',
+                    'status_message' => 'Ивент не найден',
+                ];
             }
         }
     }

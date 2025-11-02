@@ -15,9 +15,11 @@
         "jenssegers/agent": "^2.6",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
+        "laravel/socialite": "*",
         "laravel/telescope": "^4.10",
         "laravel/tinker": "^2.5",
-        "laravel/ui": "^3.4"
+        "laravel/ui": "^3.4",
+        "socialiteproviders/twitch": "^5.4"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^2.0",

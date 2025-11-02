@@ -5,6 +5,7 @@ namespace App\Http\Resources\BoardGame;
 use App\Http\Resources\BlockResource;
 use App\Http\Resources\MediaResource;
 use App\Http\Resources\SeoResource;
+use App\Http\Resources\SettingResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class BoardGameShortResource extends JsonResource
@@ -30,6 +31,7 @@ class BoardGameShortResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'settings' => SettingResource::collection($this->settings),
             'media' => $this->title_image ? MediaResource::make($this->title_image) : null,
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
             'blocks' => BlockResource::collection($this->blocks),

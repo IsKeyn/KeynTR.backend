@@ -46,6 +46,7 @@ class BoardGamePlayerWithCurrentGameResource extends JsonResource
             'points' => $this->points,
             'streak' => $this->streak,
             'item_roll_count' => $this->item_roll_count,
+            'step_count' => $this->step_count,
             'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,
             'timer_status' => $status,

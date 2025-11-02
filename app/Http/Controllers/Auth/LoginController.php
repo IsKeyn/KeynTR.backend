@@ -130,7 +130,7 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         // Удаление текущего токена пользователя
-        $request->user()->currentAccessToken()->delete();
+//        $request->user()->currentAccessToken()->delete();
 
         // Запись логов
         $userActionLogParams = [

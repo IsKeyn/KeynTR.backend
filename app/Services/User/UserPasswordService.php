@@ -34,4 +34,27 @@ class UserPasswordService
             'status_code' => $status,
         ];
     }
+
+    public function generatePassword($length = 8)
+    {
+        $letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $digits = '0123456789';
+
+        // Гарантируем минимум 1 цифру и 1 букву
+        $password = [
+            $letters[rand(0, strlen($letters) - 1)],
+            $digits[rand(0, strlen($digits) - 1)]
+        ];
+
+        // Добавляем остальные символы
+        $allChars = $letters . $digits;
+        for ($i = 2; $i < $length; $i++) {
+            $password[] = $allChars[rand(0, strlen($allChars) - 1)];
+        }
+
+        // Перемешиваем
+        shuffle($password);
+
+        return implode('', $password);
+    }
 }

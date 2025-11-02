@@ -16,7 +16,7 @@ class BoardGame extends Model
 
     /*
      * Настройки BoardGame
-     * upon-request = true/false - закрытая, открытая игра
+     * type: upon-request - закрытая игра, registrationIsClose - регистрация закрыта
      * item_roll_default_count - достуное количество круток рулетки предметов, для нового игрока
      * step_default_count - доступное количество шагов по игровой доске, для нового игрока
      * board_type - тип доски, который используется в настольной игре
@@ -73,6 +73,6 @@ class BoardGame extends Model
 
     public function settings()
     {
-        return $this->morphMany(Setting::class, 'entity');
+        return $this->morphMany(Setting::class, 'entity')->where('entity_type', BoardGame::class)->where('entity_id', $this->id);
     }
 }

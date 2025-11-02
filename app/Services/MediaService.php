@@ -11,7 +11,8 @@ use phpDocumentor\Reflection\Types\Boolean;
 
 class MediaService
 {
-    public function addMedia($fileArray, $user) {
+    public function addMedia($fileArray, $user, $name = null)
+    {
         $fileData = [];
 
         if (isset($fileArray['name'])) $fileData['name'] = $fileArray['name'];
@@ -29,7 +30,10 @@ class MediaService
             }
         }
 
-        $name = $fileArray['src']->getClientOriginalName();
+        if (!$name) {
+            $name = $fileArray['src']->getClientOriginalName();
+        }
+
         $path = $fileArray['src']->storeAs(
             'media/' . $media->id,
             $name,

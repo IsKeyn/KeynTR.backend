@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\TwitchController;
 use App\Http\Controllers\User\AllNotifications;
 use App\Http\Controllers\User\MagicLinkController;
 use App\Http\Controllers\User\MessageController;
@@ -24,6 +25,11 @@ Route::prefix('auth/')->middleware('guest:api')->group(function() {
     Route::controller(ResetPasswordController::class)->group(function() {
         Route::post('forgot-password', 'sendResetLink')->name('sendResetLink');
         Route::post('reset-password', 'resetPassword')->name('resetPassword');
+    });
+
+    Route::controller(TwitchController::class)->prefix('twitch/')->name('twitch')->group(function() {
+        Route::get('redirect', [TwitchController::class, 'redirect'])->name('redirect');
+        Route::post('apiCallback', [TwitchController::class, 'apiCallback'])->name('apiCallback');
     });
 });
 
