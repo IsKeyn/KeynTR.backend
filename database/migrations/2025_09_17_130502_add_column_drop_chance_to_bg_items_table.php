@@ -14,7 +14,7 @@ class AddColumnDropChanceToBgItemsTable extends Migration
     public function up()
     {
         Schema::table('bg_items', function (Blueprint $table) {
-            $table->integer('drop_chance')->default(10)->after('type');
+//            $table->integer('drop_chance')->default(10)->after('type');
         });
     }
 
@@ -26,7 +26,7 @@ class AddColumnDropChanceToBgItemsTable extends Migration
     public function down()
     {
         Schema::table('bg_items', function (Blueprint $table) {
-            Schema::dropIfExists('drop_chance');
+//            Schema::dropIfExists('drop_chance');
         });
     }
 }
