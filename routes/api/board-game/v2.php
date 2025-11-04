@@ -5,6 +5,7 @@ use App\Http\Controllers\BoardGame\BoardGameController;
 use App\Http\Controllers\BoardGame\BoardGameInventoryController;
 use App\Http\Controllers\BoardGame\BoardGamePlayerController;
 use App\Http\Controllers\BoardGame\DiceController;
+use App\Http\Controllers\BoardGame\GameListController;
 use App\Http\Controllers\BoardGame\InteractionsController;
 use App\Http\Controllers\BoardGame\ItemController;
 use App\Http\Controllers\BoardGame\LogController;
@@ -48,6 +49,10 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
     Route::prefix('inventory/')->controller(BoardGameInventoryController::class)->name('inventory.')->group(function() {
         Route::post('use', 'useItem')->name('use-item');
+    });
+
+    Route::prefix('game-list/')->controller(GameListController::class)->name('game-list.')->group(function() {
+        Route::get('list', 'list')->name('list');
     });
 
     Route::prefix('status-effect/')->controller(PlayerStatusEffectController::class)->name('status-effect.')->group(function() {

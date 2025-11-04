@@ -49,24 +49,28 @@ class BoardController extends Controller
                         $user = Auth::user();
 
                         if ($user) {
-                            $player = BoardGamePlayer::query()->findByBoardGame($boardGame->id)->findByUserId($user->id)->first();
-                            $positionHistory = BoardGamePlayerPosition::query()
-                                ->findByBoardGame($boardGame->id)
-                                ->findByUserId($user->id)
-                                ->where('has_use_effect', true)
-                                ->get();
-                            $boardInteraction = PlayerInteractions::query()
-                                ->findByBoardGame($boardGame->id)
-                                ->where('created_by', $user->id)
-                                ->where('type', 'battleForPoints')
-                                ->active()
-                                ->get();
+                            $player = BoardGamePlayer::query()->where('user_id', $user->id)->findByBoardGame($boardGame->id)->first();
 
-                            $returnData['current_player'] = [
-                                'info' => BoardGamePlayerShortResource::make($player),
-                                'position_has_use_effect' => BoardGamePlayerPositionsResource::collection($positionHistory),
-                                'board_interaction' => PlayerInteractionResource::collection($boardInteraction),
-                            ];
+                            if ($player) {
+                                $player = BoardGamePlayer::query()->findByBoardGame($boardGame->id)->findByUserId($user->id)->first();
+                                $positionHistory = BoardGamePlayerPosition::query()
+                                    ->findByBoardGame($boardGame->id)
+                                    ->findByUserId($user->id)
+                                    ->where('has_use_effect', true)
+                                    ->get();
+                                $boardInteraction = PlayerInteractions::query()
+                                    ->findByBoardGame($boardGame->id)
+                                    ->where('created_by', $user->id)
+                                    ->where('type', 'battleForPoints')
+                                    ->active()
+                                    ->get();
+
+                                $returnData['current_player'] = [
+                                    'info' => BoardGamePlayerShortResource::make($player),
+                                    'position_has_use_effect' => BoardGamePlayerPositionsResource::collection($positionHistory),
+                                    'board_interaction' => PlayerInteractionResource::collection($boardInteraction),
+                                ];
+                            }
                         }
 
                         return $returnData;

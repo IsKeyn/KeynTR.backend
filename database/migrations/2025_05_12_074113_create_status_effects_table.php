@@ -15,7 +15,7 @@ class CreateStatusEffectsTable extends Migration
     {
         Schema::create('status_effects', function (Blueprint $table) {
             $table->id();
-            $table->integer('type')->default(0);
+            $table->integer('type')->nullable();
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();

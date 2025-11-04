@@ -20,6 +20,7 @@ class StatusEffectResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'type' => $this->type,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,

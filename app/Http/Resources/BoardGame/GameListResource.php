@@ -34,6 +34,7 @@ class GameListResource extends JsonResource
             'game_completion_time' => $this->game_completion_time,
             'type' => $this->type,
             'active' => $this->active,
+            'source' => $this->source,
             'added_by' => $this->added_by,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,

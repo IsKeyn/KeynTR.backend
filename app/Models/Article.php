@@ -32,6 +32,12 @@ class Article extends Model
         'created_at',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+        'show_author' => 'boolean',
+        'show_editor' => 'boolean',
+    ];
+
     public function getModelAttribute()
     {
         return get_class($this);

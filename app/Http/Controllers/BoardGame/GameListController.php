@@ -4,6 +4,7 @@ namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\GameListResource;
+use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
 use Illuminate\Http\Request;
 
@@ -11,6 +12,10 @@ class GameListController extends Controller
 {
     public function list(Request $request, BoardGameGameList $BoardGameGameList)
     {
-        return GameListResource::collection($BoardGameGameList::query()->where('board_game_id', $request->board_game_id)->get());
+        $boardGame = BoardGame::findBySlug($request->slug)->active()->first();
+
+        if ($boardGame) {
+            return GameListResource::collection($BoardGameGameList::query()->where('board_game_id', $boardGame->id)->get());
+        }
     }
 }

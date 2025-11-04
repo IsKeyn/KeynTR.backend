@@ -28,6 +28,7 @@ class BoardGameGameList extends Model
         'list_type',
         'description',
         'active',
+        'source',
         'added_by',
         'created_by',
     ];

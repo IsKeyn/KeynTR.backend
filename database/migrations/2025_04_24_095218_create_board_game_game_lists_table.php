@@ -25,6 +25,7 @@ class CreateBoardGameGameListsTable extends Migration
             $table->boolean('coop')->default(0);
             $table->integer('list_type')->nullable();
             $table->boolean('active')->default(1);
+            $table->text('source')->nullable();
             $table->foreignId('added_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
