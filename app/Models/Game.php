@@ -108,7 +108,7 @@ class Game extends Model
 
     public function company()
     {
-        return $this->morphToMany(Company::class, 'company_bind');
+        return $this->morphToMany(Company::class, 'company_bind')->withPivot('additional_info');
     }
 
     public function link()

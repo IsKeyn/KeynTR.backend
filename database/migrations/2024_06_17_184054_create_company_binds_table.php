@@ -18,6 +18,7 @@ class CreateCompanyBindsTable extends Migration
             $table->integer('company_id');
             $table->integer('company_bind_id');
             $table->string('company_bind_type');
+            $table->string('additional_info')->nullable();
             $table->integer('type')->nullable();
             $table->timestamps();
         });

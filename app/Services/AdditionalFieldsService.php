@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-
 use App\Models\AdditionalField;
 
 class AdditionalFieldsService
@@ -15,7 +14,7 @@ class AdditionalFieldsService
         foreach ($fields as $key => $field) {
             if (isset($field['id']) && $field['id']) {
                 $currentFieldsKeys[$field['id']] = $key;
-            } else {
+            } else if ($field['name'] ?? null) {
                 $newFields[] = $field;
             }
         }

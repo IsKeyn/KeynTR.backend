@@ -32,6 +32,7 @@ class CompanyResource extends JsonResource
         return [
             'company' => $this->id,
             'company_role' => $group ? $group->id : null,
+            'additional_info' => $this?->pivot?->additional_info,
         ];
     }
 }
