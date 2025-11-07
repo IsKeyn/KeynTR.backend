@@ -27,7 +27,6 @@ use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
-use App\Models\BoardGame\Timer;
 use App\Models\User;
 use App\Services\BoardGame\ItemService;
 use App\Services\BoardGame\LogService;
@@ -57,7 +56,7 @@ class BoardGamePlayerController extends Controller
                 $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
 
                 if ($player) {
-                    return BoardGamePlayerFullResource::make($player);
+                    return BoardGamePlayerShortResource::make($player);
                 } else {
                     return false;
                 }
