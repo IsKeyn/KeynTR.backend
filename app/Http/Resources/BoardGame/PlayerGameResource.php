@@ -35,7 +35,7 @@ class PlayerGameResource extends JsonResource
             'comment' => CommentResource::make($this->comment),
             'time' => $this->time,
             'timeSpend' => TimerService::timeInGame($this),
-            'rerolled_points' => GameService::rerollPoints($this->boardGame, $this),
+            'rerollPenalty' => GameService::rerollPenalty($this->boardGame, $this),
             'additional_data' => $this->additional_data,
             'other_players_actions' => $otherPlayersActions ?  PlayerGameShortResource::collection($otherPlayersActions) : null,
             'created_by' => $this->created_by,

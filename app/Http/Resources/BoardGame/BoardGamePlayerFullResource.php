@@ -23,7 +23,7 @@ class BoardGamePlayerFullResource extends JsonResource
     public function toArray($request)
     {
         $user = User::where('id', $this->user_id)->first();
-        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->first();
+        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('id', 'desc')->first();
         $inventory = BoardGameInventory::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->get();
         $playerStatusEffect = PlayerStatusEffect::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->get();
         $playerCurrentGame = PlayerGame::where('board_game_id', $this->board_game_id)

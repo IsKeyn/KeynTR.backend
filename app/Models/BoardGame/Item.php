@@ -3,6 +3,7 @@
 namespace App\Models\BoardGame;
 
 use App\Models\Media;
+use App\Models\Traits\ExtendModelTrait;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ class Item extends Model
 {
     protected $table = 'bg_items';
 
-    use HasFactory;
+    use HasFactory, ExtendModelTrait;
 
     const TYPES = [
         0 => 'positive',

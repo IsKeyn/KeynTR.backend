@@ -15,7 +15,7 @@ class GameListController extends Controller
         $boardGame = BoardGame::findBySlug($request->slug)->active()->first();
 
         if ($boardGame) {
-            return GameListResource::collection($BoardGameGameList::query()->where('board_game_id', $boardGame->id)->get());
+            return GameListResource::collection($BoardGameGameList::query()->findByBoardGame($boardGame->id)->active()->get());
         }
     }
 }

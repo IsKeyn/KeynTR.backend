@@ -103,7 +103,14 @@ class BoardService
 
     public static function activateCellEffect($boardPositionEffectBind, $position, $conditionData, $data = null, $onlyAutoUse = false)
     {
-        if (!$position->has_use_effect) {
+        $hasUsePosition = BoardGamePlayerPosition::query()
+            ->findByBoardGame($conditionData['boardGame']->id)
+            ->findByUserId($conditionData['user']->id)
+            ->where('position', $position->position)
+            ->where('has_use_effect', true)
+            ->exists();
+
+        if (!$hasUsePosition) {
             if ($boardPositionEffectBind && $boardPositionEffectBind->boardPositionEffect) {
                 /* Эффект должен иметь JSON действий */
                 if ($boardPositionEffectBind->boardPositionEffect->actions) {
@@ -154,36 +161,51 @@ class BoardService
             return 1;
         }
 
-        if ($boardGameType = $boardGame->settings()->where('code', '=', 'board_type')->value('value')) {
-            if ($board = Board::query()->where('slug', '=', $boardGameType)->first()) {
-                $maxIndex = 0;
+        $maxBoardPosition = self::getMaxBoardPosition($boardGame);
 
-                foreach (json_decode($board->columns) as $row) {
-                    foreach ($row->cols as $col) {
-                        if (isset($col->index) && $maxIndex < $col->index) {
-                            $maxIndex = $col->index;
-                        }
-                    }
-                }
-
-                if ($position > $maxIndex) {
-                    return $maxIndex;
-                }
-            }
+        if ($position > $maxBoardPosition) {
+            return $maxBoardPosition;
         }
 
         return $position;
     }
 
+    public static function getMaxBoardPosition($boardGame)
+    {
+        $maxBoardPosition = 0;
+
+        if ($boardGameType = $boardGame->settings()->where('code', '=', 'board_type')->value('value')) {
+            if ($board = Board::query()->where('slug', '=', $boardGameType)->first()) {
+                foreach (json_decode($board->columns) as $row) {
+                    foreach ($row->cols as $col) {
+                        if (isset($col->index) && $maxBoardPosition < $col->index) {
+                            $maxBoardPosition = $col->index;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $maxBoardPosition;
+    }
+
     public static function setUsePositionEffect($userId, $boardGameId, $position)
     {
         $positionRow = BoardGamePlayerPosition::query()
-            ->findByBoardGame($boardGameId)->findByUserId($userId)
-            ->where('position', $position)->first();
+            ->findByBoardGame($boardGameId)
+            ->findByUserId($userId)
+            ->where('position', $position)
+            ->orderBy('id', 'desc')
+            ->first();
 
         if ($positionRow) {
             $positionRow->has_use_effect = true;
             $positionRow->save();
         }
+    }
+
+    public static function fillBoardGame()
+    {
+
     }
 }

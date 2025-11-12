@@ -21,7 +21,7 @@ class BoardGamePlayerWithCurrentGameResource extends JsonResource
 
     public function toArray($request)
     {
-        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->orderBy('updated_at', 'desc')->first();
+        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->orderBy('id', 'desc')->first();
 
         $fullPoints = $this->points;
 
@@ -47,6 +47,7 @@ class BoardGamePlayerWithCurrentGameResource extends JsonResource
             'streak' => $this->streak,
             'item_roll_count' => $this->item_roll_count,
             'step_count' => $this->step_count,
+            'finishBoard' => $this->finishBoard,
             'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,
             'timer_status' => $status,

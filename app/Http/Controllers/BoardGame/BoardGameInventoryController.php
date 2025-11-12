@@ -66,18 +66,9 @@ class BoardGameInventoryController extends Controller
         }
     }
 
-    public function useItem(
-        Request $request,
-        BoardGamePlayer $BoardGamePlayer,
-        StatusEffect $statusEffect,
-        PlayerStatusEffect $PlayerStatusEffect,
-        BoardGamePlayerPosition $BoardGamePlayerPosition,
-        ItemBind $BoardGameItem,
-        BoardGameInventory $BoardGameInventory,
-        Notification $notification
-    ) {
+    public function useItem(Request $request) {
         $useItemService = new UseItemService();
-        return $useItemService->useItem($request, $BoardGamePlayer, $statusEffect, $PlayerStatusEffect, $BoardGamePlayerPosition, $BoardGameItem, $BoardGameInventory, $notification);
+        return $useItemService->useItem($request);
     }
 
     public function createNotification($player, $user, $request, $notification) {

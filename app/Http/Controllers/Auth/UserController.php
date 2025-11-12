@@ -123,11 +123,13 @@ class UserController extends Controller
        return $userPasswordService->changePassword($user, $validated);
     }
 
-    public function generateAuthLink()
+    public function generateAuthLink(Request $request)
     {
         $user = Auth::user();
 
-        $link = MagicLinkService::createLink($user->id);
+        $redirectUrl = $request->redirectUrl ?? null;
+
+        $link = MagicLinkService::createLink($user->id, $redirectUrl);
 
         if (isset($link['error'])) {
             return $link['error'];

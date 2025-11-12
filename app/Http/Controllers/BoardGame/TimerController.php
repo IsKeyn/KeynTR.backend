@@ -289,6 +289,11 @@ class TimerController extends Controller
             if ($request->name) {
                 $slug = str_replace('-', '_', Str::slug($request->name));
 
+                // main - зарезервированный под BoardGame slug
+                if ($slug === 'main') {
+                    return response()->json(['error' => 'Вы не можете завести таймер с таким названием, пожалуйста выберите другое название'])->setStatusCode(Response::HTTP_OK);
+                }
+
                 $timer = Timer::query()
                     ->where('user_id', $user->id)
                     ->where('board_game_id', $boardGameId)

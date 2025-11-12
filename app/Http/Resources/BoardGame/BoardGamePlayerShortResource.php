@@ -21,7 +21,6 @@ class BoardGamePlayerShortResource extends JsonResource
     {
         $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)
             ->where('user_id', $this->user_id)
-            ->orderBy('updated_at', 'desc')
             ->orderBy('id', 'desc')
             ->first();
 

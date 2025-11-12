@@ -31,6 +31,7 @@ use App\Models\User;
 use App\Services\BoardGame\ItemService;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
+use App\Services\BoardGame\UseItemService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -121,7 +122,9 @@ class BoardGamePlayerController extends Controller
     )
     {
             $boardGameId = $BoardGame->findBySlug($slug)->value('id');
-            $players = $BoardGamePlayer->where('board_game_id', $boardGameId)->active();
+
+            // TODO сделать жадную загрузку для внутренних связей
+            $players = $BoardGamePlayer->with(['user', 'positions', 'inventory', 'statusEffects', 'mainTimers'])->findByBoardGame($boardGameId)->active();
 
             $user = Auth::user();
 
@@ -388,7 +391,7 @@ class BoardGamePlayerController extends Controller
 
     public function rollItem($slug, $withDropChance = true)
     {
-        /* Проверяем условия рола */
+        /* Проверяем что участник может крутить предмет */
         $conditionData = PlayerGameService::checkConditions($slug);
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
@@ -397,7 +400,7 @@ class BoardGamePlayerController extends Controller
             $items = ItemBind::active()->where('board_game_id', $conditionData['boardGame']->id)->get();
 
             if ($withDropChance) {
-                /* Формируем массив, для учета шанса дропа, елемент добавляется в массив столько раз, каков его процент шанса дропа */
+                /* Формируем массив, для учета шанса дропа, элемент добавляется в массив столько раз, каков его процент шанса дропа */
                 $arItemChance = [];
 
                 foreach ($items as $item) {
@@ -417,43 +420,74 @@ class BoardGamePlayerController extends Controller
                 $randItem = $items->random();
             }
 
-            /*
-             * Если предмет накладывает статус эффект,
-             * то на игрока необходимо наложить статус эффект,
-             * а не класть предмет в инвентарь
-             */
-            $useStatusEffect = false;
+            /* Добавление в логи */
+            LogService::addLog(
+                $conditionData['user']->id,
+                $conditionData['boardGame']->id,
+                'крутанул рулетку предметов и ему выпало "' . $randItem->item->name . '"',
+            );
+
+            $dontAddToInventory = false;
 
             if ($randItem->item->actions) {
                 $actions = json_decode($randItem->item->actions);
 
-                $useStatusEffect = false;
-
                 foreach ($actions as $action) {
+                    /*
+                    * Если предмет авто-применяемый, то его эффект должен быть применен и в инвентарь не добаляется
+                    */
                     if (
                         $action
-                        && isset($action->type, $action->target, $action->value)
-                        && $action->type === 'applyStatusEffect'
-                        && $action->target === 'current'
+                        && isset($action->type, $action->target, $action->value, $action->autoUse)
+                        && $action->autoUse === true
                         && $action->value
                     ) {
+                        $inventoryItem = ItemService::addToInventory(
+                            $conditionData['user']->id,
+                            $conditionData['boardGame']->id,
+                            $randItem->id,
+                        );
+
                         /* Применяем статус эффект */
-                        $statusEffectObj = StatusEffect::where('slug', $action->value)->first();
+                        $useItemService = new UseItemService($conditionData);
 
-                        $PlayerStatusEffectFields = [
-                            'user_id' => $conditionData['user']->id,
-                            'board_game_id' => $conditionData['boardGame']->id,
-                            'status_effect_id' => $statusEffectObj->id,
-                            'created_by' => $conditionData['user']->id,
-                        ];
+                        $data = (object)['id' => $inventoryItem->id];
 
-                        PlayerStatusEffect::create($PlayerStatusEffectFields);
-                        $useStatusEffect = true;
+                        $useItemResult = $useItemService->useItem($data);
+
+                        $dontAddToInventory = true;
+                        break;
                     }
+
+                    /*
+                     * Если предмет накладывает статус эффект,
+                     * то на игрока необходимо наложить статус эффект,
+                     * а не класть предмет в инвентарь
+                     */
+//                    if (
+//                        $action
+//                        && isset($action->type, $action->target, $action->value)
+//                        && $action->type === 'applyStatusEffect'
+//                        && $action->target === 'current'
+//                        && $action->value
+//                    ) {
+//                        /* Применяем статус эффект */
+//                        $statusEffectObj = StatusEffect::where('slug', $action->value)->first();
+//
+//                        $PlayerStatusEffectFields = [
+//                            'user_id' => $conditionData['user']->id,
+//                            'board_game_id' => $conditionData['boardGame']->id,
+//                            'status_effect_id' => $statusEffectObj->id,
+//                            'created_by' => $conditionData['user']->id,
+//                        ];
+//
+//                        PlayerStatusEffect::create($PlayerStatusEffectFields);
+//                        $dontAddToInventory = true;
+//                    }
                 }
             }
 
-            if (!$useStatusEffect) {
+            if (!$dontAddToInventory) {
                 /* Добавление предмета в инвентарь */
                 ItemService::addToInventory(
                     $conditionData['user']->id,
@@ -461,13 +495,6 @@ class BoardGamePlayerController extends Controller
                     $randItem->id,
                 );
             }
-
-            /* Добавление в логи */
-            LogService::addLog(
-                $conditionData['user']->id,
-                $conditionData['boardGame']->id,
-                'крутанул рулетку предметов и ему выпало "' . $randItem->item->name . '"',
-            );
 
             /* Уменьшаем доступное количество ролов */
             $conditionData['player']->item_roll_count--;

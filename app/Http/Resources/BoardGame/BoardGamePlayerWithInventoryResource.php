@@ -3,9 +3,6 @@
 namespace App\Http\Resources\BoardGame;
 
 use App\Http\Resources\UserPublicResource;
-use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\BoardGamePlayerPosition;
-use App\Models\BoardGame\Timer;
 use App\Services\BoardGame\TimerService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,39 +17,28 @@ class BoardGamePlayerWithInventoryResource extends JsonResource
 
     public function toArray($request)
     {
-        $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->orderBy('updated_at', 'desc')->first();
+        $position = $this->whenLoaded('positions', $this->positions->where('board_game_id', $this->board_game_id)->sortByDesc('id')->first());
 
         $fullPoints = $this->points;
+        if ($position) $fullPoints += $position->position;
 
-        if ($position) {
-            $fullPoints += $position->position;
-        }
-
-        $inventory = BoardGameInventory::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('created_at', 'desc')->get();
-
-        $timer = Timer::query()
-            ->where('user_id', $this->user_id)
-            ->where('board_game_id', $this->board_game_id)
-            ->where('slug','main')
-            ->where('active', true)
-            ->orderBy('id', 'desc')->first();
-
+        $timer = $this->whenLoaded('mainTimers', $this->mainTimers->where('board_game_id', $this->board_game_id)->first());
         $status = TimerService::getTimerStatus($timer);
 
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
-            'user' => UserPublicResource::make($this->user),
+            'user' => $this->whenLoaded('user', UserPublicResource::make($this->user)),
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
-            'item_roll_count' => $this->item_roll_count,
-            'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,
-            'seconds' => $status['time'],
+            'item_roll_count' => $this->item_roll_count,
+            'inventory' => $this->whenLoaded('inventory', BoardGameInventoryResource::collection($this->inventory->where('board_game_id', $this->board_game_id)->sortByDesc('created_at'))),
+            'status_effects' => $this->whenLoaded('statusEffects', PlayerStatusEffectResource::collection($this->statusEffects->where('board_game_id', $this->board_game_id)->sortByDesc('created_at'))),
+            'position' => $position->position ?? null,
+            'seconds' => $status['time'] ?? null,
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
-            'inventory' => BoardGameInventoryResource::collection($inventory),
-            'status_effects' => PlayerStatusEffectResource::collection($this->statusEffects),
         ];
     }
 }

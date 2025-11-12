@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class MagicLinkService
 {
-    public static function createLink($userId)
+    public static function createLink($userId, $redirectUrl = null)
     {
         if (!$userId) {
             return ErrorService::message('Не получен ID пользователя');
@@ -21,7 +21,7 @@ class MagicLinkService
             return ErrorService::message('Пользователь не найден');
         }
 
-        $link = MagicLink::generateFor($user);
+        $link = MagicLink::generateFor($user, $redirectUrl);
 
         return $link;
     }

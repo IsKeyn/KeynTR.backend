@@ -19,6 +19,8 @@ class CreateNotificationsTable extends Migration
             $table->text('message');
             $table->boolean('viewed')->default(false);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->integer('entity_id')->nullable();
+            $table->string('entity_type')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

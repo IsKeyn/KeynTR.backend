@@ -31,12 +31,16 @@ class DiceController extends Controller
 
                 $rollResult = null;
 
-                $playerStatusEffects = $playerStatusEffect->where('user_id', $conditionData['user']->id)->where('active', true)->get();
+                $playerStatusEffects = $playerStatusEffect
+                    ->findByUserId($conditionData['user']->id)
+                    ->findByBoardGame($conditionData['boardGame']->id)
+                    ->active()
+                    ->get();
 
                 $updateData = false;
 
                 foreach ($playerStatusEffects as $statusEffect) {
-                    if ($statusEffect->statusEffect->type === StatusEffect::DICE_TYPE) {
+                    if ((int)$statusEffect->statusEffect->type === StatusEffect::DICE_TYPE) {
                         foreach (json_decode($statusEffect->statusEffect->actions) as $action) {
                             if ($action->value) {
                                 $rollResult = $action->value;

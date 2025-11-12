@@ -17,13 +17,13 @@ class MagicLink extends Model
 
     protected $dates = ['expires_at'];
 
-    public static function generateFor($user)
+    public static function generateFor($user, $redirectUrl = null)
     {
         $qrCodeService = new QrCodeService();
 
         $token = Str::random(64);
 
-        $publicUrl = config('publicApp.public_url') . '/auth/autologin/' . $token;
+        $publicUrl = config('publicApp.public_url') . '/auth/autologin/' . $token . '?redirectUrl=' . $redirectUrl;
         $qrCode = $qrCodeService->makeSvgUrl($publicUrl);
 
         $magicLink = self::create([

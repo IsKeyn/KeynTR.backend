@@ -7,6 +7,7 @@ use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\BoardPositionEffectsBind;
+use App\Models\BoardGame\Item;
 use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
@@ -94,8 +95,40 @@ class ActionsService
                     $action,
                 );
                 break;
-            case 'customItem':
+            case 'itemRoll':
+                $result = $this->actionsWithPlayerNumberField(
+                    $data,
+                    $action,
+                    'item_roll_count',
+                    'количетво круток рулетки с предметами'
+                );
+                break;
 
+            case 'stepCount':
+                $result = $this->actionsWithPlayerNumberField(
+                    $data,
+                    $action,
+                    'step_count',
+                    'доступное количество шагов по игровому полю'
+                );
+                break;
+
+            case 'streak':
+                $result = $this->actionsWithPlayerNumberField(
+                    $data,
+                    $action,
+                    'streak',
+                    'стрик'
+                );
+                break;
+
+            case 'rerolledOwnGame':
+                $result = $this->actionsWithPlayerNumberField(
+                    $data,
+                    $action,
+                    'rerolled_own_game_count',
+                    'количество своих рерольнутых игр'
+                );
                 break;
         }
 
@@ -146,6 +179,10 @@ class ActionsService
                     ->get()->sortByDesc('created_at')->unique('user_id');
 
                 $playersAheadCount = count($playersAhead);
+
+                if ($action->count) {
+                    $playersAheadCount = $playersAheadCount * $action->count;
+                }
 
                 if ($action->type === 'addPoints') {
                     $playerFields = ['points' => $player->points + $playersAheadCount];
@@ -199,7 +236,7 @@ class ActionsService
             $logMessage = $this->prepareMessage($action, 'logMessage');
         } else {
             if ($this->type === 'item') {
-                $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->points . ' - ' . $playerFields["points"] . ')';
+                $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' предметом ' . $this->itemElement->item->name . ' (' . $player->points . ' - ' . $playerFields["points"] . ')';
             } else if ($this->type === 'statusEffect') {
                 $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (' . $player->points . ' - ' . $playerFields["points"] . ')';
             }
@@ -252,7 +289,7 @@ class ActionsService
             }
 
             if ($this->type === 'item') {
-                $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $playerPosition->position . ' - ' . $playerPositionFields['position'] . ')';
+                $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' предметом ' . $this->itemElement->item->name . ' (' . $playerPosition->position . ' - ' . $playerPositionFields['position'] . ')';
             } else if ($this->type === 'statusEffect') {
                 $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (' . $player->points . ' - ' . $playerPositionFields["points"] . ')';
             }
@@ -394,7 +431,9 @@ class ActionsService
                         return $this->error('Предмета не существует');
                     }
                 } else if ($action->value ?? null) {
-                    $ItemBind = ItemBind::findByBoardGame($this->conditionData['boardGame']->id)->where('slug', $action->value)->active()->first();
+                    $item = Item::findBySlug($action->value)->active()->first();
+
+                    $ItemBind = ItemBind::findByBoardGame($this->conditionData['boardGame']->id)->where('item_id', $item->id)->active()->first();
 
                     if ($ItemBind) {
                         $inventoryFields = [
@@ -403,10 +442,14 @@ class ActionsService
                             'board_game_item_id' => $ItemBind->id,
                         ];
 
-                        $result = $this->BoardGameInventory::create($inventoryFields);
+                        $result = null;
 
-                        if ($result) {
-                            $this->notificationHandler($data, $player, $action);
+                        if ($action->type === 'addItem') {
+                            $result = $this->BoardGameInventory::create($inventoryFields);
+
+                            if ($result) {
+                                $this->notificationHandler($data, $player, $action);
+                            }
                         }
 
                         return $result;
@@ -418,7 +461,7 @@ class ActionsService
         }
     }
 
-    private function actionsWithTime($request, $action)
+    private function actionsWithTime($data, $action)
     {
         $timer = Timer::query()
             ->where('user_id', $this->conditionData['user']->id)
@@ -629,7 +672,21 @@ class ActionsService
                                 $this->createNotification($player, $notificationMessage);
                             }
                         }
+
+                        $logMessage = 'Получил статус эффект ' . $statusEffectObj->name;
+
+                        if (isset($logMessage)) {
+                            LogService::addLog(
+                                $this->conditionData['user']->id,
+                                $this->conditionData['boardGame']->id,
+                                $logMessage
+                            );
+                        }
+
+                        $this->notificationHandler($request, $player, $action);
                     }
+
+                    return true;
                 }
             } else {
                 return $this->error('Действие отсутствует');
@@ -637,6 +694,77 @@ class ActionsService
         } else {
             return $this->error('Действие отсутствует');
         }
+    }
+
+    private function actionsWithPlayerNumberField($data, $action, $columnName, $fieldHumanName)
+    {
+        /* Функция выполняет действия связанные с полем игрока из таблицы board_game_players, которое не может быть меньше 0 */
+        $players = $this->target($data, $action);
+
+        if (isset($players['error'])) {
+            return $players['error'];
+        }
+
+        if (gettype($players) === 'array') {
+            foreach ($players as $player) {
+                $value = $this->getValueAndSetLog($action, $player, $columnName, $fieldHumanName);
+                $player->update([$columnName => $value]);
+                $this->notificationHandler($data, $player, $action);
+            }
+
+            return true;
+        }
+    }
+
+    private function getValueAndSetLog($action, $player, $columnName, $fieldHumanName)
+    {
+        if (!isset($action->changeType) || !$action->changeType) {
+            return ErrorService::message('Не получен тип изменения');
+        }
+
+        if (!isset($action->value) || !$action->value) {
+            return ErrorService::message('Не получено значение для изменения');
+        }
+
+        switch ($action->changeType) {
+            case 'add':
+                $value = $player->$columnName + $this->getValue($action->value);
+                break;
+
+            case 'remove':
+                $value = $player->$columnName + $this->getValue($action->value);
+                break;
+
+            case 'set':
+                $value = $this->getValue($action->value);
+                break;
+        }
+
+        if ($value < 0) {
+            $value = 0;
+        }
+
+        if (isset($action->logMessage) && $action->logMessage) {
+            $logMessage = $this->prepareMessage($action, 'logMessage');
+        } else {
+            if ($this->type === 'item') {
+                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' предметом ' . $this->itemElement->item->name . ' (' . $player->points . ' - ' . $value . ')';
+            } else if ($this->type === 'statusEffect') {
+                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (' . $player->points . ' - ' . $value . ')';
+            } else {
+                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' (' . $player->points . ' - ' . $value . ')';
+            }
+        }
+
+        if (isset($logMessage)) {
+            LogService::addLog(
+                $this->conditionData['user']->id,
+                $this->conditionData['boardGame']->id,
+                $logMessage
+            );
+        }
+
+        return $value;
     }
 
     private function getValue($value)
@@ -657,7 +785,7 @@ class ActionsService
         }
     }
 
-    private function target($request, $action)
+    public function target($request, $action)
     {
         $players = [];
 
@@ -717,7 +845,7 @@ class ActionsService
         return $players;
     }
 
-    private function notificationHandler($data, $player, $action)
+    public function notificationHandler($data, $player, $action)
     {
         $dontSendNotification = false;
 
@@ -759,10 +887,14 @@ class ActionsService
             && $message
             && ($ignoreSelf || $player->user_id !== $this->conditionData['user']->id)
         ) {
+            $entity_type = $this->conditionData['boardGame']::class;
+
             $fields = [
                 'user_id' => $player->user_id,
                 'created_by' => $this->conditionData['user']->id,
                 'message' => $message,
+                'entity_type' => $entity_type,
+                'entity_id' => $this->conditionData['boardGame']->id,
             ];
 
             $this->notification::create($fields);

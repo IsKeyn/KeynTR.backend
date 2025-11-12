@@ -28,7 +28,7 @@ class GameListResource extends JsonResource
             'description' => $this->description,
             'points' => $this->points,
             'computed_points' => GameService::calcPoints($this),
-            'rerolled_points' => GameService::rerollPoints($this->boardGame, $this),
+            'rerollPenalty' => GameService::rerollPenalty($this->boardGame, $this),
             'coop' => $this->coop,
             'difficult' => $this->difficult,
             'game_completion_time' => $this->game_completion_time,
