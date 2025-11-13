@@ -74,6 +74,15 @@ class ActionsService
                 );
                 break;
 
+            case 'removeNegativeEffect':
+            case 'stealEffect':
+            case 'changeUserOwnerEffect':
+                $result = $this->actionsWithEffects(
+                    $data,
+                    $action,
+                );
+                break;
+
             case 'applyStatusEffect':
                 $result = $this->activateEffect(
                     $data,
@@ -455,6 +464,154 @@ class ActionsService
                         return $result;
                     } else {
                         return ErrorService::message('Предмет не найден');
+                    }
+                }
+            }
+        }
+    }
+
+    private function actionsWithEffects($data, $action)
+    {
+        /* Удаление статус эффекта у всех игроков */
+        if ($action->type === 'removeStatusEffect' && $action->target === 'all' && $action->slug) {
+            $statusEffect = StatusEffect::findBySlug($action->slug)->first();
+
+            if (!$statusEffect) {
+                ErrorService::message('Не найдено статус эффекта');
+            }
+
+            $usersStatusEffects = PlayerStatusEffect::where('status_effect_id', $statusEffect->id)->active()->get();
+
+            $arUserIds = [];
+
+            foreach ($usersStatusEffects as $userStatusEffect) {
+                if ($userStatusEffect->user_id !== $this->conditionData['user']->id && !in_array($userStatusEffect->user_id, $arUserIds))  {
+                    $fields = [
+                        'user_id' => $userStatusEffect->user_id,
+                        'created_by' => $this->conditionData['user']->id,
+                        'message' => $this->conditionData['user']->name . ' использовал предмет "' . $userStatusEffect->statusEffect->name . '"',
+                    ];
+
+                    $this->notification::create($fields);
+
+                    $arUserIds[] = $userStatusEffect->user_id;
+                }
+
+                $usersStatusEffects->delete();
+            }
+        } else {
+            $players = $this->target($data, $action);
+
+            foreach ($players as $player) {
+                if ($data->additionalParams['selectedEffect'] ?? null) {
+                    $statusEffect = PlayerStatusEffect::findByUserId($player->user_id)
+                        ->where('id', $data->additionalParams['selectedEffect'])
+                        ->active()
+                        ->first();
+
+                    if (isset($statusEffect)) {
+                        switch ($action->type) {
+                            case 'removeNegativeEffect':
+                                if ($statusEffect->statusEffect->debuff === true) {
+                                    $statusEffect->delete();
+
+                                    $dontSendNotification = false;
+
+                                    if (isset($action->sendNotification) && $action->sendNotification === false) {
+                                        $dontSendNotification = true;
+                                    }
+
+                                    if (!$dontSendNotification) {
+                                        if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                                            $notificationMessage = $data->additionalParams['message'];
+                                            $this->createNotification($player, $notificationMessage);
+                                        }
+                                    }
+                                } else {
+                                    return $this->error('Вы пытаетесь удалить статус эффект, который не является предметом с дебафом');
+                                }
+                                break;
+                            case 'stealEffect':
+                                $playerFields = [
+                                    'user_id' => $this->conditionData['user']->id,
+                                ];
+
+                                $statusEffect->update($playerFields);
+
+                                $dontSendNotification = false;
+
+                                if (isset($action->sendNotification) && $action->sendNotification === false) {
+                                    $dontSendNotification = true;
+                                }
+
+                                if (!$dontSendNotification) {
+                                    if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                                        $notificationMessage = $data->additionalParams['message'];
+                                        $this->createNotification($player, $notificationMessage);
+                                    }
+                                }
+                                break;
+                            case 'changeUserOwnerEffect':
+                                if (
+                                    isset($data->additionalParams['secondPlayer'])
+                                    && $data->additionalParams['secondPlayer']
+                                ) {
+                                    $secondPlayer = $this->BoardGamePlayer::query()->where('id', $data->additionalParams['secondPlayer'])->first();
+
+                                    if ($secondPlayer) {
+                                        $playerFields = [
+                                            'user_id' => $secondPlayer->user_id,
+                                        ];
+
+                                        $statusEffect->update($playerFields);
+
+                                        $dontSendNotification = false;
+
+                                        if (isset($action->sendNotification) && $action->sendNotification === false) {
+                                            $dontSendNotification = true;
+                                        }
+
+                                        if (!$dontSendNotification) {
+                                            if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                                                $notificationMessage = $data->additionalParams['message'];
+                                                $this->createNotification($player, $notificationMessage);
+                                                $this->createNotification($secondPlayer, $notificationMessage);
+                                            }
+                                        }
+                                    } else {
+                                        return $this->error('Второй игрок не найден');
+                                    }
+                                }
+                                break;
+                        }
+                    } else {
+                        return $this->error('Статус эффекта не найдено');
+                    }
+                } else if ($action->value ?? null) {
+                    $statusEffect = StatusEffect::findBySlug($action->value)->active()->first();
+
+                    if ($statusEffect) {
+                        $inventoryFields = [
+                            'user_id' => $this->conditionData['user']->id,
+                            'board_game_id' => $this->conditionData['boardGame']->id,
+                            'status_effect_id' => $statusEffect->id,
+                            'active' => true,
+                            'created_by' => $this->conditionData['user']->id,
+                        ];
+
+                        $result = null;
+
+                        if ($action->type === 'addStatusEffect') {
+                            $result = PlayerStatusEffect::create($inventoryFields);
+
+                            if ($result) {
+                                $this->notificationHandler($data, $player, $action);
+                            }
+                        }
+
+                        return $result;
+                    } else {
+                        return ErrorService::message('Статус эффект не найден');
                     }
                 }
             }
