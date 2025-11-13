@@ -409,7 +409,7 @@ class UseItemService
 
                         $newPosition = BoardService::checkPosition($newPosition, $this->conditionData['boardGame']);
 
-                        $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' предметом ' . $this->item . ' (' . $player->position . ' - ' . $newPosition . ')';
+                        $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->position . ' - ' . $newPosition . ')';
 
                         if (isset($logMessage)) {
                             LogService::addLog(
