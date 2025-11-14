@@ -26,9 +26,6 @@ class BoardGamePlayerFullResource extends JsonResource
         $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('id', 'desc')->first();
         $inventory = BoardGameInventory::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->orderBy('updated_at', 'desc')->get();
         $playerStatusEffect = PlayerStatusEffect::where('board_game_id', $this->board_game_id)->where('user_id', $this->user_id)->get();
-        $playerCurrentGame = PlayerGame::where('board_game_id', $this->board_game_id)
-            ->where('user_id', $this->user_id)
-            ->where('status', PlayerGame::CURRENT)->first();
         $playerGames = PlayerGame::where('board_game_id', $this->board_game_id)
             ->where('user_id', $this->user_id)->orderByDesc('id')->get();
 
@@ -57,7 +54,7 @@ class BoardGamePlayerFullResource extends JsonResource
             'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,
             'inventory' => BoardGameInventoryResource::collection($inventory),
-            'current_game' => PlayerGameResource::make($playerCurrentGame),
+            'current_game' => PlayerGameResource::make($this->currentGames->where('board_game_id', $this->board_game_id)->first()),
             'player_games' => PlayerGameResource::collection($playerGames),
             'status_effects' => PlayerStatusEffectResource::collection($playerStatusEffect),
             'seconds' => $status['time'],

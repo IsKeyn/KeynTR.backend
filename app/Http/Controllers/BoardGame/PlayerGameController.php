@@ -40,7 +40,7 @@ class PlayerGameController extends Controller
                 ->whereIn('status', [PlayerInteractions::STATUS_ACTIVE, PlayerInteractions::STATUS_ACCEPTED])
                 ->where('created_by', $conditionData['user']->id)->get();
 
-            if ($conditionData['player']->current_game->first()) {
+            if ($conditionData['player']->currentGames->where('board_game_id', $conditionData['boardGame']->id)->first()) {
                 return [
                     'status' => 1,
                     'coopInteraction' => PlayerInteractionResource::collection($coopInteractions),

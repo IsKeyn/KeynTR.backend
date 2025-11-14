@@ -55,7 +55,7 @@ class BoardGamePlayer extends Model
             ->hasMany(BoardGamePlayerPosition::class, 'user_id', 'user_id');
     }
 
-    public function current_game()
+    public function currentGames()
     {
         return $this
             ->hasMany(PlayerGame::class, 'user_id', 'user_id')

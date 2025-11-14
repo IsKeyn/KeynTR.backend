@@ -54,7 +54,7 @@ class BoardGamePlayerWithCurrentGameResource extends JsonResource
             'seconds' => $status['time'],
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
-            'current_game' => PlayerGameResource::make($this->current_game->first()),
+            'current_game' => PlayerGameResource::make($this->currentGames->where('board_game_id', $this->board_game_id)->first()),
         ];
     }
 }
