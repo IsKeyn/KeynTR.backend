@@ -77,7 +77,7 @@ class ArticleController extends Controller
                         return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
                     }
                 } else {
-                    return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+                    $query->where('entity_type', null)->where('entity_id', null);
                 }
             } elseif (isset($validated['entity_type']) && isset($validated['entity_id'])) {
                 $query->where('entity_type', $validated['entity_type'])->where('entity_id',

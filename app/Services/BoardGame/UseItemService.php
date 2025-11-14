@@ -409,7 +409,9 @@ class UseItemService
 
                         $newPosition = BoardService::checkPosition($newPosition, $this->conditionData['boardGame']);
 
-                        $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->position . ' - ' . $newPosition . ')';
+                        $defaultMessage = 'позицию игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->position . ' - ' . $newPosition . ')';
+                        $logMessage = 'Изменил ' . $defaultMessage;
+                        $message = 'Вы изменили ' . $defaultMessage;
 
                         if (isset($logMessage)) {
                             LogService::addLog(
@@ -427,6 +429,8 @@ class UseItemService
                         BoardService::setPosition($positionParams, $this->conditionData,false, false);
 
                         $this->actionService->notificationHandler($data, $player, $action);
+
+                        return $message;
                     }
                 }
                 break;

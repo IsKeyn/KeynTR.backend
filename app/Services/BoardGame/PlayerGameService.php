@@ -50,7 +50,7 @@ class PlayerGameService
                 ];
 
                 if (BoardGamePlayer::create($fields)) {
-                    switch ($typeSettings->value) {
+                    switch ($typeSettings->value ?? null) {
                         case 'upon-request':
                             $returnMessage = 'Заявка на участие успешно отправлена и рассматривается модераторами';
                             $logMessage = 'подал заявку на участие в ивенте';

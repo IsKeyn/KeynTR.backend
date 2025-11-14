@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Services\BoardGame\PlayerGameService;
 use App\Services\ErrorService;
 use App\Services\MediaService;
 use App\Services\User\UserPasswordService;
@@ -105,6 +106,10 @@ class TwitchController extends Controller
             ];
 
             UserService::setAdditionalFields($user, $additionalFields);
+
+            if ($request->registerOnEventBySlug) {
+                PlayerGameService::joinTheGame($user, $request->registerOnEventBySlug);
+            }
         }
 
         if ($user->email_verified_at) {
