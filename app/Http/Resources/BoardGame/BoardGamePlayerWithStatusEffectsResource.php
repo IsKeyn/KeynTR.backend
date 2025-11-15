@@ -47,7 +47,7 @@ class BoardGamePlayerWithStatusEffectsResource extends JsonResource
             'position' => $position ? $position->position : '',
             'full_points' => $fullPoints,
             'seconds' => $status['time'],
-            'status_effects' => PlayerStatusEffectResource::collection($this->statusEffects),
+            'status_effects' => PlayerStatusEffectResource::collection($this->statusEffects->where('board_game_id', $this->board_game_id)->sortByDesc('created_at')),
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
         ];

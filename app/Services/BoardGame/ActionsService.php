@@ -801,7 +801,10 @@ class ActionsService
     {
         /* Функция выполняет действия связанные с эффектами игрока */
         if ($action->value) {
-            $statusEffectObj = $this->statusEffect::query()->where('slug', $action->value)->first();
+            $statusEffectObj = $this->statusEffect::query()
+                ->where('slug', $action->value)
+                ->where('board_game_id', $this->conditionData['boardGame']->id)
+                ->first();
 
             if ($statusEffectObj) {
                 $players = $this->target($request, $action);
@@ -810,7 +813,7 @@ class ActionsService
                     foreach ($players as $player) {
                         $PlayerStatusEffectFields = [
                             'user_id' => $player->user_id,
-                            'board_game_id' => $statusEffectObj->board_game_id,
+                            'board_game_id' => $this->conditionData['boardGame']->id,
                             'status_effect_id' => $statusEffectObj->id,
                             'created_by' => $this->conditionData['user']->id,
                         ];
