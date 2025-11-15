@@ -16,7 +16,7 @@ class TimerService
         $limit = 100*60*60;
 
         if ($bgTimeLimit = $boardGame->settings->where('code', '=', 'time_limit')->first()) {
-            $limit = $bgTimeLimit->value * 60;
+            $limit = $bgTimeLimit->value * 60 * 60;
         }
 
         $timerFields = [
