@@ -18,6 +18,7 @@ use App\Http\Controllers\ViewsLogController;
 use App\Http\Controllers\VotesLogController;
 use App\Http\Controllers\YouTubeController;
 use App\Services\SearchService;
+use App\Services\User\UserService;
 use Illuminate\Support\Facades\Route;
 use App\Http\Resources\UserResource;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -164,3 +165,8 @@ Route::name('api.')->group(function() {
     // Работа с сущностями
     Route::name('entity.')->group(base_path('routes/api/entity/v1.php'));
 });
+
+// Подтверждение email
+Route::get('/auth/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    return UserService::verifyEmail($request);
+})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');

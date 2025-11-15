@@ -26,11 +26,6 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-// Email Verification Routes
-Route::get('/email/verify', [VerificationController::class, 'show'])->middleware('auth')->name('verification.notice');
-Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['auth', 'signed'])->name('verification.verify');
-Route::post('/email/resend', [VerificationController::class, 'resend'])->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
-
 /* Страницы админки */
 Route::middleware('auth')->middleware('is_admin')->group(function () {
 

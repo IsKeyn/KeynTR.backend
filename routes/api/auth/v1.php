@@ -33,11 +33,6 @@ Route::prefix('auth/')->middleware('guest:api')->group(function() {
     });
 });
 
-// Подтверждение email
-Route::get('/auth/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    return UserService::verifyEmail($request);
-})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
-
 // Действия авторизированного пользователя
 Route::prefix('auth/')->middleware('auth:sanctum')->group(function() {
     Route::get('logout', [LoginController::class, 'logout'])->name('logout');
