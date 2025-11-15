@@ -59,7 +59,7 @@ class PlayerGameController extends Controller
                 foreach ($playerStatusEffects as $statusEffect) {
                     if ((int)$statusEffect->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
                         foreach (json_decode($statusEffect->statusEffect->actions) as $action) {
-                            if ($action->type && $action->type === 'platform' && $action->value) {
+                            if (isset($action->type) && $action->type === 'platform' && $action->value) {
                                 $platformSlug = $action->value;
                             }
                         }
