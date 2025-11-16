@@ -314,7 +314,7 @@ class PlayerGameController extends Controller
                             $player = BoardGamePlayer::findByBoardGame($coopInteraction->board_game_id)->findByUserId($coopInteraction->with_player)->active()->first();
 
                             if ($player) {
-                                $player->points = $player->points + $pointsForGame / 2;
+                                $player->points = $player->points + round($pointsForGame / 2);
                                 $player->save();
 
                                 $coopInteraction->active = false;
@@ -323,7 +323,7 @@ class PlayerGameController extends Controller
                                 NotificationService::set(
                                     [
                                         'user_id' => $player->user->id,
-                                        'message' => 'За помощь в прохождении игры ' . $playerCurrentGame->game->game->name . ' вы получаете ' . $pointsForGame / 2 . ' очков'
+                                        'message' => 'За помощь в прохождении игры ' . $playerCurrentGame->game->game->name . ' вы получаете ' . round($pointsForGame / 2) . ' очков'
                                     ]
                                 );
                             }
@@ -531,6 +531,12 @@ class PlayerGameController extends Controller
                             $conditionData['player']->rerolled_own_game_count = 0;
                             $conditionData['player']->save();
                         }
+
+                        LogService::addLog(
+                            $conditionData['user']->id,
+                            $conditionData['boardGame']->id,
+                            'Крутанул рулетку и выбил игру ' . $randomGame->game->name
+                        );
 
                         return GameListResource::make($randomGame);
                     } else {

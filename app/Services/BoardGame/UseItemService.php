@@ -128,7 +128,7 @@ class UseItemService
                     foreach ($players as $player) {
                         if (mt_rand(1, 100) <= $action->value[2] ?? 10) {
                             if (isset($action->value[1])) {
-                                $arDamage = explode('-', $action->value[0]);
+                                $arDamage = explode('-', $action->value[1]);
 
                                 if (isset($arDamage[0]) && isset($arDamage[1])) {
                                     $damage = mt_rand($arDamage[0], $arDamage[1]);
@@ -182,7 +182,9 @@ class UseItemService
                             );
                         }
 
-                        $notificationMessage = $message . 'Сообщение от игрока: ' . $data->additionalParams['message'];
+                        if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                            $notificationMessage = $message . ' Сообщение от игрока: ' . $data->additionalParams['message'];
+                        }
 
                         $dontSendNotification = false;
 
@@ -210,12 +212,12 @@ class UseItemService
 
                 if (gettype($players) === 'array') {
                     foreach ($players as $player) {
-                        if ($player->inventory->count() > 0) {
+                        if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->count() > 0) {
                             $logMessage = null;
 
-                            if ($player->inventory->count() === 1) {
+                            if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->count() === 1) {
                                 if (mt_rand(1, 100) <= $action->value[1] ?? 50) {
-                                    $inventoryItem = $player->inventory->first;
+                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->first();
 
                                     $playerFields = [
                                         'user_id' => $user->id,
@@ -245,7 +247,7 @@ class UseItemService
                                 }
                             } else {
                                 if (mt_rand(1, 100) <= $action->value[0] ?? 20) {
-                                    $inventoryItem = $player->inventory->random();
+                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->random();
 
                                     $playerFields = [
                                         'user_id' => $user->id,
@@ -283,7 +285,9 @@ class UseItemService
                                 );
                             }
 
-                            $notificationMessage = $message . 'Сообщение от игрока: ' . $data->additionalParams['message'];
+                            if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                                $notificationMessage = $message . ' Сообщение от игрока: ' . $data->additionalParams['message'];
+                            }
 
                             $dontSendNotification = false;
 
@@ -364,7 +368,9 @@ class UseItemService
                                 $message .= ' ';
                             }
 
-                            $notificationMessage = $message . 'Сообщение от игрока: ' . $data->additionalParams['message'];
+                            if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+                                $notificationMessage = $message . ' Сообщение от игрока: ' . $data->additionalParams['message'];
+                            }
 
                             $dontSendNotification = false;
 

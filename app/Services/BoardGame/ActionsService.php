@@ -788,6 +788,8 @@ class ActionsService
                     $notificationMessage = $request->additionalParams['message'];
                 }
 
+                $notificationMessage .= ' Примите решение на странице взаимодействий';
+
                 $this->createNotification($player, $notificationMessage);
             }
 
@@ -908,9 +910,9 @@ class ActionsService
             $logMessage = $this->prepareMessage($action, 'logMessage');
         } else {
             if ($this->type === 'item') {
-                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' предметом ' . $this->itemElement->item->name . ' (' . $player->points . ' - ' . $value . ')';
+                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' предметом ' . $this->itemElement->item->name . ' (' . $player->$columnName . ' - ' . $value . ')';
             } else if ($this->type === 'statusEffect') {
-                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (' . $player->points . ' - ' . $value . ')';
+                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (' . $player->$columnName . ' - ' . $value . ')';
             } else {
                 $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' (' . $player->points . ' - ' . $value . ')';
             }

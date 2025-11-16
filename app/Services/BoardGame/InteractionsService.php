@@ -172,7 +172,7 @@ class InteractionsService
         }
         if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE) {
             if ($this->interaction->created_by) {
-                $message = 'Отказался от предложения "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
+                $message =  $this->interaction->withPlayerData->name . 'Отказался от предложения "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
 
                 $fields = [
                     'user_id' => $this->interaction->created_by,
@@ -212,7 +212,7 @@ class InteractionsService
     private function systemRefuse()
     {
         if ($this->interaction->created_by) {
-            $message = 'предложение было отозвано системой "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
+            $message = 'предложение отправленное ' . $this->interaction->withPlayerData->name . ' было отозвано системой "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
 
             $fields = [
                 'user_id' => $this->interaction->created_by,
@@ -255,7 +255,7 @@ class InteractionsService
 
         if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE) {
             if ($this->interaction->with_player) {
-                $message = 'Отозвал предложение "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
+                $message = 'Отозвал предложение "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '" отправленное ' . $this->interaction->withPlayerData->name;
 
                 $fields = [
                     'user_id' => $this->interaction->with_player,
@@ -302,7 +302,7 @@ class InteractionsService
 
         if ($this->interaction->status === PlayerInteractions::STATUS_ACCEPTED) {
             if ($this->interaction->created_by) {
-                $message = 'Принял решение о своей победе во взаимодействии "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
+                $message = 'Принял решение о своей победе во взаимодействии "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '" c ' . $this->interaction->withPlayerData->name;;
 
                 if ($this->interaction->description) {
                     $message .= ' ' . $this->interaction->description;
