@@ -440,7 +440,15 @@ class ActionsService
                         return $this->error('Предмета не существует');
                     }
                 } else if ($action->value ?? null) {
+                    if (!($action->value ?? null)) {
+                        return ErrorService::message(__('actions.action_value_null'));
+                    }
+
                     $item = Item::findBySlug($action->value)->active()->first();
+
+                    if (!$item) {
+                        return ErrorService::message(__('actions.item_not_found'));
+                    }
 
                     $ItemBind = ItemBind::findByBoardGame($this->conditionData['boardGame']->id)->where('item_id', $item->id)->active()->first();
 
