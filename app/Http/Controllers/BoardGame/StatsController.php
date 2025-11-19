@@ -62,7 +62,7 @@ class StatsController extends Controller
             }
 
             /* Больше всего использовано бомб */
-            $bomb = Item::where('id', '=', 'bomb')->first();
+            $bomb = Item::where('slug', '=', 'bomb')->first();
             if ($bomb) {
                 $playerMostUseBomb = $StatsService->getUserWhoMostUseItem($bomb->id, $boardGame->id, $limit);
             }
