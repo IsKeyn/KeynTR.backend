@@ -355,6 +355,7 @@ class UseItemService
                             'status' => $status,
                             'board_game_id' => $this->conditionData['boardGame']->id,
                             'type' => PlayerGame::TYPE_PURSE,
+                            'from_user_id' => $this->conditionData['user']->id,
                             'created_by' => $this->conditionData['user']->id,
                         ];
 

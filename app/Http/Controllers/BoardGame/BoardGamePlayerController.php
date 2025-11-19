@@ -134,7 +134,7 @@ class BoardGamePlayerController extends Controller
                     ->findByBoardGame($boardGameId)
                     ->where('created_by', $user->id)
                     ->where('type', $request->type)
-                    ->whereIn('status', [PlayerInteractions::STATUS_ACCEPTED, PlayerInteractions::I_WIN, PlayerInteractions::I_LOSE])
+                    ->whereIn('status', [PlayerInteractions::COOP_FINISH, PlayerInteractions::I_WIN, PlayerInteractions::I_LOSE])
                     ->select('with_player')->get();
 
                 $playerInteractionsIds = [];

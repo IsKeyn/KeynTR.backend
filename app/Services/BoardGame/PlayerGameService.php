@@ -92,6 +92,21 @@ class PlayerGameService
         return $playerGame;
     }
 
+    public static function actionsWithGameInOtherEvents($gameListGameId, $boardGameId)
+    {
+        // Исключаем демо ивенты
+        $exceptionsIds = BoardGame::query()->whereIn('slug', ['demo'])->pluck('id')->toArray();
+
+        $playerGame = PlayerGame::query()
+            ->where('board_game_game_list_id', $gameListGameId)
+            ->where('board_game_id', '!=', $boardGameId)
+            ->whereNotIn('id', $exceptionsIds)
+            ->where('status', '!=',PlayerGame::CURRENT)
+            ->get();
+
+        return $playerGame;
+    }
+
     public static function checkConditions($slug)
     {
         $user = Auth::user();

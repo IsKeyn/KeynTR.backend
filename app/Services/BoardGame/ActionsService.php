@@ -798,7 +798,17 @@ class ActionsService
 
                 $notificationMessage .= ' Примите решение на странице взаимодействий';
 
-                $this->createNotification($player, $notificationMessage);
+                $actions = [
+                    [
+                        'type' => 'button',
+                        'button' => [
+                            'name' => 'Открыть взаимодействия',
+                            'href' => '/e/' .  $this->conditionData['boardGame']->slug . '/player-interactions/',
+                        ],
+                    ]
+                ];
+
+                $this->createNotification($player, $notificationMessage, false, $actions);
             }
 
             return 'Ваш запрос успешно отправлен игроку';
@@ -829,19 +839,6 @@ class ActionsService
                         ];
 
                         $this->PlayerStatusEffect::create($PlayerStatusEffectFields);
-
-                        $dontSendNotification = false;
-
-                        if (isset($action->sendNotification) && $action->sendNotification === false) {
-                            $dontSendNotification = true;
-                        }
-
-                        if (!$dontSendNotification) {
-                            if (isset($request->additionalParams['message']) && $request->additionalParams['message']) {
-                                $notificationMessage = $request->additionalParams['message'];
-                                $this->createNotification($player, $notificationMessage);
-                            }
-                        }
 
                         $logMessage = 'Получил статус эффект ' . $statusEffectObj->name;
 
@@ -1024,10 +1021,10 @@ class ActionsService
         }
 
         if (!$dontSendNotification) {
-            if (isset($data->additionalParams['message']) && $data->additionalParams['message']) {
+            if ($data->additionalParams['message'] ?? null) {
                 $notificationMessage = $data->additionalParams['message'];
                 $this->createNotification($player, $notificationMessage);
-            } elseif (isset($action->message) && $action->message) {
+            } elseif ($action->message ?? null) {
                 $message = $this->prepareMessage($action, 'message');
                 $this->createNotification($player, $message, true);
             }
@@ -1051,19 +1048,18 @@ class ActionsService
         }
     }
 
-    public function createNotification($player, $message, $ignoreSelf = false) {
+    public function createNotification($player, $message, $ignoreSelf = false, $actions = null) {
         if (
             isset($player) && $player
             && $message
             && ($ignoreSelf || $player->user_id !== $this->conditionData['user']->id)
         ) {
-            $entity_type = $this->conditionData['boardGame']::class;
-
             $fields = [
                 'user_id' => $player->user_id,
                 'created_by' => $this->conditionData['user']->id,
                 'message' => $message,
-                'entity_type' => $entity_type,
+                'actions' => $actions,
+                'entity_type' => $this->conditionData['boardGame']::class,
                 'entity_id' => $this->conditionData['boardGame']->id,
             ];
 

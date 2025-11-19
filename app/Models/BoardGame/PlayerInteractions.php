@@ -21,6 +21,7 @@ class PlayerInteractions extends Model
     public const I_WIN = 4;
     public const I_LOSE = 5;
     public const RECALLED = 6;
+    public const COOP_FINISH = 7;
 
     public const TYPE_NAME = [
       'ru' => [

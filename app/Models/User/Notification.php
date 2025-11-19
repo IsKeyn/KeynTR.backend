@@ -13,13 +13,25 @@ class Notification extends Model
     protected $fillable = [
         'user_id',
         'message',
+        'actions',
         'viewed',
+        'entity_id',
+        'entity_type',
         'created_by',
         'created_at',
+    ];
+
+    protected $casts = [
+        'actions' => 'array',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function entity()
+    {
+        return $this->morphTo();
     }
 }

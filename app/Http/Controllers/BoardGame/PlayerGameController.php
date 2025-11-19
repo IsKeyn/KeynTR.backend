@@ -264,6 +264,32 @@ class PlayerGameController extends Controller
                                 if ($playerFrom) {
                                     $playerFrom->points = $playerFrom->points + $pointsForGame;
                                     $playerFrom->save();
+
+                                    LogService::addLog(
+                                        $playerCurrentGame->from_user_id,
+                                        $conditionData['boardGame']->id,
+                                        'получил ' . $pointsForGame . ' очков за отданную игру ' .  $playerCurrentGame->game->game->name
+                                    );
+                                }
+                            }
+                        }
+
+                        if ($playerCurrentGame->type === PlayerGame::TYPE_PURSE) {
+                            // Даем очки, игроку, который передал игру
+                            if ($playerCurrentGame->from_user_id) {
+                                // Получаем игрока
+                                $playerFrom = BoardGamePlayer::findByBoardGame($conditionData['boardGame']->id)->findByUserId($playerCurrentGame->from_user_id)->active()->first();
+
+                                // Добавляем очки
+                                if ($playerFrom) {
+                                    $playerFrom->points = $playerFrom->points + round($pointsForGame/2);
+                                    $playerFrom->save();
+
+                                    LogService::addLog(
+                                        $playerCurrentGame->from_user_id,
+                                        $conditionData['boardGame']->id,
+                                        'получил ' . round($pointsForGame/2) . ' очков за переданную мошной игру ' .  $playerCurrentGame->game->game->name
+                                    );
                                 }
                             }
                         }
@@ -318,6 +344,7 @@ class PlayerGameController extends Controller
                                 $player->save();
 
                                 $coopInteraction->active = false;
+                                $coopInteraction->status = PlayerInteractions::COOP_FINISH;
                                 $coopInteraction->save();
 
                                 NotificationService::set(
@@ -325,6 +352,12 @@ class PlayerGameController extends Controller
                                         'user_id' => $player->user->id,
                                         'message' => 'За помощь в прохождении игры ' . $playerCurrentGame->game->game->name . ' вы получаете ' . round($pointsForGame / 2) . ' очков'
                                     ]
+                                );
+
+                                LogService::addLog(
+                                    $player->user_id,
+                                    $conditionData['boardGame']->id,
+                                    'получил ' . round($pointsForGame/2) . ' за помощь в прохождении игры ' .  $playerCurrentGame->game->game->name
                                 );
                             }
                         }
@@ -371,7 +404,9 @@ class PlayerGameController extends Controller
             NotificationService::set(
                 [
                     'user_id' => $conditionData['user']->id,
-                    'message' => 'Игра ' . $playerCurrentGameInQueue->game->game->name . ' установлена как текущая, так как была в очереди'
+                    'message' => 'Игра ' . $playerCurrentGameInQueue->game->game->name . ' установлена как текущая, так как была в очереди',
+                    'entity_type' => $conditionData['boardGame']->model,
+                    'entity_id' => $conditionData['boardGame']->id,
                 ]
             );
             LogService::addLog(

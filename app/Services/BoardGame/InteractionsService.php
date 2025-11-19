@@ -65,6 +65,9 @@ class InteractionsService
                     'user_id' => $this->interaction->created_by,
                     'created_by' => $this->conditionData['user']->id,
                     'message' => $message,
+                    'actions' => $this->getActions(),
+                    'entity_type' => $this->conditionData['boardGame']::class,
+                    'entity_id' => $this->conditionData['boardGame']->id,
                 ];
 
                 NotificationService::set($fields);
@@ -178,6 +181,9 @@ class InteractionsService
                     'user_id' => $this->interaction->created_by,
                     'created_by' => $this->conditionData['user']->id,
                     'message' => $message,
+                    'actions' => $this->getActions(),
+                    'entity_type' => $this->conditionData['boardGame']::class,
+                    'entity_id' => $this->conditionData['boardGame']->id,
                 ];
 
                 NotificationService::set($fields);
@@ -218,6 +224,9 @@ class InteractionsService
                 'user_id' => $this->interaction->created_by,
                 'created_by' => $this->conditionData['user']->id,
                 'message' => $message,
+                'actions' => $this->getActions(),
+                'entity_type' => $this->conditionData['boardGame']::class,
+                'entity_id' => $this->conditionData['boardGame']->id,
             ];
 
             NotificationService::set($fields);
@@ -261,6 +270,9 @@ class InteractionsService
                     'user_id' => $this->interaction->with_player,
                     'created_by' => $this->conditionData['user']->id,
                     'message' => $message,
+                    'actions' => $this->getActions(),
+                    'entity_type' => $this->conditionData['boardGame']::class,
+                    'entity_id' => $this->conditionData['boardGame']->id,
                 ];
 
                 NotificationService::set($fields);
@@ -312,6 +324,9 @@ class InteractionsService
                     'user_id' => $this->interaction->with_player,
                     'created_by' => $this->conditionData['user']->id,
                     'message' => $message,
+                    'actions' => $this->getActions(),
+                    'entity_type' => $this->conditionData['boardGame']::class,
+                    'entity_id' => $this->conditionData['boardGame']->id,
                 ];
 
                 NotificationService::set($fields);
@@ -389,6 +404,9 @@ class InteractionsService
                     'user_id' => $this->interaction->with_player,
                     'created_by' => $this->conditionData['user']->id,
                     'message' => $message,
+                    'actions' => $this->getActions(),
+                    'entity_type' => $this->conditionData['boardGame']::class,
+                    'entity_id' => $this->conditionData['boardGame']->id,
                 ];
 
                 NotificationService::set($fields);
@@ -446,6 +464,19 @@ class InteractionsService
 
         $this->interaction->active = $active;
         return $this->interaction->save();
+    }
+
+    private function getActions()
+    {
+        return [
+            [
+                'type' => 'button',
+                'button' => [
+                    'name' => 'Открыть взаимодействия',
+                    'href' => '/e/' .  $this->conditionData['boardGame']->slug . '/player-interactions/',
+                ],
+            ]
+        ];
     }
 
     private function checkInteraction($id)

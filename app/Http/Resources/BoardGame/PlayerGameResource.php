@@ -21,6 +21,7 @@ class PlayerGameResource extends JsonResource
     public function toArray($request)
     {
         $otherPlayersActions = PlayerGameService::actionsWithGame($this->board_game_game_list_id, $this->board_game_id);
+        $otherPlayersActionsInOtherEvents = PlayerGameService::actionsWithGameInOtherEvents($this->board_game_game_list_id, $this->board_game_id);
 
         return [
             'id' => $this->id,
@@ -38,6 +39,7 @@ class PlayerGameResource extends JsonResource
             'rerollPenalty' => GameService::rerollPenalty($this->boardGame, $this),
             'additional_data' => $this->additional_data,
             'other_players_actions' => $otherPlayersActions ?  PlayerGameShortResource::collection($otherPlayersActions) : null,
+            'other_players_actions_in_other_events' => $otherPlayersActionsInOtherEvents ?  PlayerGameShortResource::collection($otherPlayersActionsInOtherEvents) : null,
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

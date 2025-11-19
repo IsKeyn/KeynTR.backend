@@ -4,6 +4,7 @@ namespace App\Services\BoardGame;
 
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayer;
+use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
 
 class StatsService
@@ -65,31 +66,72 @@ class StatsService
 
     public function getUserWhoMostUseItem($itemId, $boardGameId, $limit = 5)
     {
-        $playerMostUseItem = BoardGameInventory::query()
-            ->where('board_game_item_id', '=', $itemId)
-            ->where('has_used', '=', true)
-            ->where('board_game_id', $boardGameId)
-            ->get();
+        $itemBindId = ItemBind::where('item_id', $itemId)->first();
 
-        $itemUseCount = [];
+        if ($itemBindId) {
+            $playerMostUseItem = BoardGameInventory::query()
+                ->where('board_game_item_id', '=', $itemBindId->id)
+                ->where('has_used', '=', true)
+                ->where('board_game_id', $boardGameId)
+                ->get();
 
-        foreach ($playerMostUseItem as $playerWithItem) {
-            if (isset($itemUseCount[$playerWithItem->user_id])) {
-                $itemUseCount[$playerWithItem->user_id]++;
-            } else {
-                $itemUseCount[$playerWithItem->user_id] = 1;
+            $itemUseCount = [];
+
+            foreach ($playerMostUseItem as $playerWithItem) {
+                if (isset($itemUseCount[$playerWithItem->user_id])) {
+                    $itemUseCount[$playerWithItem->user_id]++;
+                } else {
+                    $itemUseCount[$playerWithItem->user_id] = 1;
+                }
+            }
+
+            $boardGamePlayers = BoardGamePlayer::whereIn('user_id', array_keys($itemUseCount))->findByBoardGame($boardGameId)->get();
+
+            $result = collect([]);
+
+            $i = 0;
+            foreach ($boardGamePlayers as $player) {
+                if (isset($itemUseCount[$player->user_id])) {
+                    $player->setAttribute('additional_data', $itemUseCount[$player->user_id]);
+                    $result->push($player);
+
+                    $i++;
+
+                    if ($i === $limit) {
+                        break;
+                    }
+                }
+            }
+
+            return $result->sortByDesc('additional_data');
+        }
+    }
+
+    public function getUsedItemsList($boardGameId, $sort = 'asc', $limit = 5)
+    {
+        $boarGameInventories = BoardGameInventory::query()->findByBoardGame($boardGameId)->where('has_used', true)->get();
+
+        $itemUseRatio = [];
+
+        foreach ($boarGameInventories as $inventoryItem) {
+            if ($inventoryItem->board_game_item_id) {
+                if (!isset($itemUseRatio[$inventoryItem->board_game_item_id])) {
+                    $itemUseRatio[$inventoryItem->board_game_item_id] = 1;
+                } else {
+                    $itemUseRatio[$inventoryItem->board_game_item_id]++;
+                }
             }
         }
 
-        $boardGamePlayers = BoardGamePlayer::whereIn('user_id', array_keys($itemUseCount))->get();
+        $itemsBinds = ItemBind::whereIn('id', array_keys($itemUseRatio))->findByBoardGame($boardGameId)->get();
 
         $result = collect([]);
 
         $i = 0;
-        foreach ($boardGamePlayers as $player) {
-            if (isset($itemUseCount[$player->user_id])) {
-                $player->setAttribute('additional_data', $itemUseCount[$player->user_id]);
-                $result->push($player);
+        foreach ($itemsBinds as $itemBind) {
+            if (isset($itemUseRatio[$itemBind->id])) {
+                $itemBind->item->setAttribute('additional_data', $itemUseRatio[$itemBind->id]);
+                $result->push($itemBind->item);
 
                 $i++;
 
@@ -99,7 +141,7 @@ class StatsService
             }
         }
 
-        return $result->sortByDesc('additional_data');
+        return $sort === 'asc' ? $result->sortBy('additional_data') : $result->sortByDesc('additional_data');
     }
 
     public function getGamesByTime($boardGameId, $sort = 'asc', $limit = 5)
@@ -160,5 +202,83 @@ class StatsService
         }
 
         return $result;
+    }
+
+    public function playerWhoGamesMostByStatus($boardGameId, $sort = 'asc', $limit = 5, $status)
+    {
+        $userRerollsRatio = [];
+
+        $playerGames = PlayerGame::query()
+            ->findByBoardGame($boardGameId)
+            ->where('status', $status)
+            ->get();
+
+        foreach ($playerGames as $game) {
+            if ($game->game->added_by) {
+                if (!isset($userRerollsRatio[$game->game->added_by])) {
+                    $userRerollsRatio[$game->game->added_by] = 1;
+                } else {
+                    $userRerollsRatio[$game->game->added_by]++;
+                }
+            }
+        }
+
+        $boardGamePlayers = BoardGamePlayer::whereIn('user_id', array_keys($userRerollsRatio))->findByBoardGame($boardGameId)->get();
+
+        $result = collect([]);
+
+        $i = 0;
+        foreach ($boardGamePlayers as $player) {
+            if (isset($userRerollsRatio[$player->user_id])) {
+                $player->setAttribute('additional_data', $userRerollsRatio[$player->user_id]);
+                $result->push($player);
+
+                $i++;
+
+                if ($i === $limit) {
+                    break;
+                }
+            }
+        }
+
+        return $sort === 'asc' ? $result->sortBy('additional_data') : $result->sortByDesc('additional_data');
+    }
+
+    public function playerWhoByStatus($boardGameId, $sort = 'asc', $limit = 5, $status)
+    {
+        $userRerollsRatio = [];
+
+        $playerGames = PlayerGame::query()
+            ->findByBoardGame($boardGameId)
+            ->where('status', $status)
+            ->get();
+
+        foreach ($playerGames as $game) {
+            if (!isset($userRerollsRatio[$game->user_id])) {
+                $userRerollsRatio[$game->user_id] = 1;
+            } else {
+                $userRerollsRatio[$game->user_id]++;
+            }
+        }
+
+        $boardGamePlayers = BoardGamePlayer::whereIn('user_id', array_keys($userRerollsRatio))->findByBoardGame($boardGameId)->get();
+
+        $result = collect([]);
+
+        $i = 0;
+        foreach ($boardGamePlayers as $player) {
+            if (isset($userRerollsRatio[$player->user_id])) {
+                $player->setAttribute('additional_data', $userRerollsRatio[$player->user_id]);
+                $result->push($player);
+
+                $i++;
+
+                if ($i === $limit) {
+                    break;
+                }
+            }
+        }
+
+        return $sort === 'asc' ? $result->sortBy('additional_data') : $result->sortByDesc('additional_data');
     }
 }
