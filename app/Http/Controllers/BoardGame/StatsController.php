@@ -56,13 +56,13 @@ class StatsController extends Controller
             $mostUsedItem = $StatsService->getUsedItemsList($boardGame->id, 'desc', $limit);
 
             /* Больше всего использовано бананов */
-            $bananaItem = Item::where('slug', '=', 'krysa')->first();
+            $bananaItem = Item::where('slug', '=', 'tuhlyi-banan')->first();
             if ($bananaItem) {
                 $playerMostUseBanana = $StatsService->getUserWhoMostUseItem($bananaItem->id, $boardGame->id, $limit);
             }
 
             /* Больше всего использовано бомб */
-            $bomb = ItemBind::where('id', '=', 'bomba')->first();
+            $bomb = ItemBind::where('id', '=', 'bomb')->first();
             if ($bomb) {
                 $playerMostUseBomb = $StatsService->getUserWhoMostUseItem($bomb->id, $boardGame->id, $limit);
             }
@@ -74,7 +74,7 @@ class StatsController extends Controller
             $mostRerolledPlayers = $StatsService->playerWhoGamesMostByStatus($boardGame->id, 'desc', $limit, PlayerGame::REROLLED);
 
             /* Участники, прошли наибольшее количество игр */
-            $playersWhoMostCompleted = $StatsService->playerWhoByStatus($boardGame->id, 'desc', $limit, PlayerGame::REROLLED);
+            $playersWhoMostCompleted = $StatsService->playerWhoByStatus($boardGame->id, 'desc', $limit, PlayerGame::COMPLETED);
 
             /* Участники, кто чаще всего реролили */
             $playersWhoMostRerolled = $StatsService->playerWhoByStatus($boardGame->id, 'desc', $limit, PlayerGame::REROLLED);
