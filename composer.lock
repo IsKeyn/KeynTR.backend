@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1ad27be6cf4a6c113295a3ad42d0da1d",
+    "content-hash": "0afc42db269636c638802d5e9ed1225f",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3720,6 +3720,41 @@
                 }
             ],
             "time": "2025-08-21T11:53:16+00:00"
+        },
+        {
+            "name": "phpredis/phpredis",
+            "version": "6.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpredis/phpredis.git",
+                "reference": "df4fab2de7fc327c54c94a13af2b9542e4fbd720"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpredis/phpredis/zipball/df4fab2de7fc327c54c94a13af2b9542e4fbd720",
+                "reference": "df4fab2de7fc327c54c94a13af2b9542e4fbd720",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">= 7.4.0"
+            },
+            "type": "php-ext",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "PHP-3.01"
+            ],
+            "description": "A PHP extension for Redis",
+            "support": {
+                "issues": "https://github.com/phpredis/phpredis/issues",
+                "source": "https://github.com/phpredis/phpredis/tree/6.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/michael-grunder",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-11-06T19:52:58+00:00"
         },
         {
             "name": "phpseclib/phpseclib",

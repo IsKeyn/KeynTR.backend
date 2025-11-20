@@ -19,6 +19,7 @@
         "laravel/telescope": "^4.10",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.4",
+        "phpredis/phpredis": "^6.3",
         "socialiteproviders/twitch": "^5.4"
     },
     "require-dev": {
