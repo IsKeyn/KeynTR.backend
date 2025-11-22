@@ -85,7 +85,10 @@ class StatsService
                 }
             }
 
-            $boardGamePlayers = BoardGamePlayer::whereIn('user_id', array_keys($itemUseCount))->findByBoardGame($boardGameId)->get();
+            $boardGamePlayers = BoardGamePlayer::whereIn('user_id', array_keys($itemUseCount))
+                ->findByBoardGame($boardGameId)
+                ->with('user')
+                ->get();
 
             $result = collect([]);
 
@@ -123,7 +126,7 @@ class StatsService
             }
         }
 
-        $itemsBinds = ItemBind::whereIn('id', array_keys($itemUseRatio))->findByBoardGame($boardGameId)->get();
+        $itemsBinds = ItemBind::whereIn('id', array_keys($itemUseRatio))->findByBoardGame($boardGameId)->with('item')->get();
 
         $result = collect([]);
 
@@ -211,6 +214,7 @@ class StatsService
         $playerGames = PlayerGame::query()
             ->findByBoardGame($boardGameId)
             ->where('status', $status)
+            ->with('game')
             ->get();
 
         foreach ($playerGames as $game) {

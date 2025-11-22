@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Resources\BoardGame;
+namespace App\Http\Resources\BoardGame\games;
 
-use App\Http\Resources\Game\GameShortResource;
 use App\Http\Resources\UserPublicResource;
-use App\Services\BoardGame\GameService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameListResource extends JsonResource
+class GameListShortResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -27,8 +25,6 @@ class GameListResource extends JsonResource
             'board_game_id' => $this->board_game_id,
             'description' => $this->description,
             'points' => $this->points,
-            'computed_points' => GameService::calcPoints($this),
-            'rerollPenalty' => GameService::rerollPenalty($this->boardGame, $this),
             'coop' => $this->coop,
             'difficult' => $this->difficult,
             'game_completion_time' => $this->game_completion_time,

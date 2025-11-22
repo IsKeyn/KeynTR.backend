@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BoardGame\BoardGamePlayerResource;
-use App\Http\Resources\BoardGame\ItemResource;
-use App\Http\Resources\BoardGame\PlayerGameResource;
+use App\Http\Resources\BoardGame\stats\BoardGamePlayerStatsResource;
+use App\Http\Resources\BoardGame\stats\ItemStatsResource;
+use App\Http\Resources\BoardGame\stats\PlayerGameStatsResource;
 use App\Models\BoardGame\BoardGame;
-use App\Models\BoardGame\BoardGameInventory;
+use App\Models\BoardGame\BoardGameLog;
 use App\Models\BoardGame\Item;
-use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Services\BoardGame\StatsService;
 use App\Services\ErrorService;
@@ -20,70 +19,71 @@ class StatsController extends Controller
 {
     public function get(Request $request)
     {
-        $cacheKey = 'board_game_stats_cache_' . $request->slug . '_' . $request->limit;
+        $cacheKey = 'bg_stats_cache_' . $request->slug . '_' . $request->limit;
         $minutes = 1440; // 24 часа в минутах
 
         return Cache::remember($cacheKey, $minutes, function () use ($request) {
-            $StatsService = new StatsService();
+            $statsService = new StatsService();
 
             if (!$request->slug) {
                 return ErrorService::message('Не получен slug');
             }
 
-            $boardGame = BoardGame::query()->findBySlug($request->slug)->first();
+            $boardGameId = BoardGame::query()->findBySlug($request->slug)->value('id');
 
-            if (!$boardGame) {
+            if (!$boardGameId) {
                 return ErrorService::message('Ивент не найден');
             }
 
-            $playerGames = PlayerGame::query()->where('board_game_id', $boardGame->id)->get();
-            $gameList = $StatsService->getGameList($playerGames);
+            $playerGames = PlayerGame::query()->findByBoardGame($boardGameId)->get();
+            $gameList = $statsService->getGameList($playerGames);
+
             $limit = $request->limit ? (int)$request->limit : 5;
 
             /* Самая часто проходимая игра */
-            $mostCompletedGames = $StatsService->getGamesListByStatus($playerGames, $gameList, PlayerGame::COMPLETED, $limit);
+            $mostCompletedGames = $statsService->getGamesListByStatus($playerGames, $gameList, PlayerGame::COMPLETED, $limit);
 
             /* Самая часто реролящася игра */
-            $mostRerolledGames = $StatsService->getGamesListByStatus($playerGames, $gameList, PlayerGame::REROLLED, $limit);
+            $mostRerolledGames = $statsService->getGamesListByStatus($playerGames, $gameList, PlayerGame::REROLLED, $limit);
 
             /* Самые быстро проходимые игры */
-            $shortestGames = $StatsService->getGamesByTime($boardGame->id, 'asc', $limit);
+            $shortestGames = $statsService->getGamesByTime($boardGameId, 'asc', $limit);
 
             /* Самые долго проходимые игры */
-            $longestGames = $StatsService->getGamesByTime($boardGame->id, 'desc', $limit);
+            $longestGames = $statsService->getGamesByTime($boardGameId, 'desc', $limit);
 
             /* Наиболее используемые предметы */
-            $mostUsedItem = $StatsService->getUsedItemsList($boardGame->id, 'desc', $limit);
+            $mostUsedItem = $statsService->getUsedItemsList($boardGameId, 'desc', $limit);
 
             /* Больше всего использовано бананов */
             $bananaItem = Item::where('slug', '=', 'tuhlyi-banan')->first();
             if ($bananaItem) {
-                $playerMostUseBanana = $StatsService->getUserWhoMostUseItem($bananaItem->id, $boardGame->id, $limit);
+                $playerMostUseBanana = $statsService->getUserWhoMostUseItem($bananaItem->id, $boardGameId, $limit);
             }
 
             /* Больше всего использовано бомб */
             $bomb = Item::where('slug', '=', 'bomb')->first();
             if ($bomb) {
-                $playerMostUseBomb = $StatsService->getUserWhoMostUseItem($bomb->id, $boardGame->id, $limit);
+                $playerMostUseBomb = $statsService->getUserWhoMostUseItem($bomb->id, $boardGameId, $limit);
             }
 
             /* Участники, чьи игры чаще всего проходили */
-            $mostCompletedPlayers = $StatsService->playerWhoGamesMostByStatus($boardGame->id, 'desc', $limit, PlayerGame::COMPLETED);
+            $mostCompletedPlayers = $statsService->playerWhoGamesMostByStatus($boardGameId, 'desc', $limit, PlayerGame::COMPLETED);
 
             /* Участники, чьи игры чаще всего реролили */
-            $mostRerolledPlayers = $StatsService->playerWhoGamesMostByStatus($boardGame->id, 'desc', $limit, PlayerGame::REROLLED);
+            $mostRerolledPlayers = $statsService->playerWhoGamesMostByStatus($boardGameId, 'desc', $limit, PlayerGame::REROLLED);
 
             /* Участники, прошли наибольшее количество игр */
-            $playersWhoMostCompleted = $StatsService->playerWhoByStatus($boardGame->id, 'desc', $limit, PlayerGame::COMPLETED);
+            $playersWhoMostCompleted = $statsService->playerWhoByStatus($boardGameId, 'desc', $limit, PlayerGame::COMPLETED);
 
             /* Участники, кто чаще всего реролили */
-            $playersWhoMostRerolled = $StatsService->playerWhoByStatus($boardGame->id, 'desc', $limit, PlayerGame::REROLLED);
+            $playersWhoMostRerolled = $statsService->playerWhoByStatus($boardGameId, 'desc', $limit, PlayerGame::REROLLED);
 
             /* Активность */
             $activity = [];
 
-            $logs = BoardGameInventory::query()
-                ->where('board_game_id', $boardGame->id)
+            $logs = BoardGameLog::query()
+                ->where('board_game_id', $boardGameId)
                 ->get();
 
             $format = 'd.m.Y';
@@ -98,84 +98,82 @@ class StatsController extends Controller
                 }
             }
 
-//            ksort($activity);
-
             $returnData = [];
 
             if (isset($mostCompletedGames)) {
                 $returnData['mostCompletedGames'] = [
                     'name' => 'Пройденные наибольшее количество раз игры',
-                    'data' => PlayerGameResource::collection($mostCompletedGames)->resolve()
+                    'data' => PlayerGameStatsResource::collection($mostCompletedGames)->resolve()
                 ];
             }
 
             if (isset($mostRerolledGames)) {
                 $returnData['mostRerolledGames'] = [
                     'name' => 'Наиболее релолящиеся игры',
-                    'data' => PlayerGameResource::collection($mostRerolledGames)->resolve()
+                    'data' => PlayerGameStatsResource::collection($mostRerolledGames)->resolve()
                 ];
             }
 
             if (isset($shortestGames)) {
                 $returnData['shortestGames'] = [
                     'name' => 'Наиболее короткие игры',
-                    'data' => PlayerGameResource::collection($shortestGames)->resolve()
+                    'data' => PlayerGameStatsResource::collection($shortestGames)->resolve()
                 ];
             }
 
             if (isset($longestGames)) {
                 $returnData['longestGames'] = [
                     'name' => 'Наиболее длинные игры',
-                    'data' => PlayerGameResource::collection($longestGames)->resolve()
+                    'data' => PlayerGameStatsResource::collection($longestGames)->resolve()
                 ];
             }
 
             if (isset($mostUsedItem)) {
                 $returnData['mostUsedItem'] = [
                     'name' => 'Наиболее используемые предметы',
-                    'data' => ItemResource::collection($mostUsedItem)->resolve()
+                    'data' => ItemStatsResource::collection($mostUsedItem)->resolve()
                 ];
             }
 
             if (isset($playerMostUseBanana)) {
                 $returnData['maxBananaCount'] = [
                     'name' => 'По улицам пройдется и бананов обожрется...',
-                    'data' => BoardGamePlayerResource::collection($playerMostUseBanana)->resolve()
+                    'data' => BoardGamePlayerStatsResource::collection($playerMostUseBanana)->resolve()
                 ];
             }
 
             if (isset($playerMostUseBomb)) {
                 $returnData['kirovReporting'] = [
                     'name' => 'Киров репортинг, больше всего использованных бомб',
-                    'data' => BoardGamePlayerResource::collection($playerMostUseBomb)->resolve()
+                    'data' => BoardGamePlayerStatsResource::collection($playerMostUseBomb)->resolve()
                 ];
             }
 
             if (isset($playersWhoMostCompleted)) {
                 $returnData['playersWhoMostCompleted'] = [
                     'name' => 'Участники, прошли наибольшее количество игр',
-                    'data' => BoardGamePlayerResource::collection($playersWhoMostCompleted)->resolve()
+                    'data' => BoardGamePlayerStatsResource::collection($playersWhoMostCompleted)->resolve()
                 ];
             }
 
             if (isset($playersWhoMostRerolled)) {
                 $returnData['playersWhoMostRerolled'] = [
                     'name' => 'Участники, которые реролили игры наибольшее количество раз',
-                    'data' => BoardGamePlayerResource::collection($playersWhoMostRerolled)->resolve()
+                    'data' => BoardGamePlayerStatsResource::collection($playersWhoMostRerolled)->resolve()
                 ];
             }
 
             if (isset($mostCompletedPlayers)) {
                 $returnData['mostCompletedPlayers'] = [
                     'name' => 'Участники, чьи игры проходили чаще всего',
-                    'data' => BoardGamePlayerResource::collection($mostCompletedPlayers)->resolve()
+                    'data' => BoardGamePlayerStatsResource::collection($mostCompletedPlayers)->resolve()
                 ];
             }
 
             if (isset($mostRerolledPlayers)) {
                 $returnData['mostRerolledPlayers'] = [
                     'name' => 'Участники, чьи игры реролили чаще всего',
-                    'data' => BoardGamePlayerResource::collection($mostRerolledPlayers)->resolve()
+                    'data' => BoardGamePlayerStatsResource::collection($mostRerolledPlayers)->resolve()
                 ];
             }
 
