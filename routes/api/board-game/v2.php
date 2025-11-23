@@ -65,6 +65,7 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
     Route::prefix('player-game/')->controller(PlayerGameController::class)->name('player-game.')->group(function () {
         Route::get('get-player-list/{slug}', 'getPlayerList')->name('get-player-list');
+        Route::get('get-player-available-list/{slug}', 'getAvailablePlayerGameList')->name('get-player-available-list');
         Route::get('get-spend-time', 'getSpendTime')->name('get-spend-time');
         Route::post('roll/{slug}', 'roll')->name('roll');
         Route::post('add', 'add')->name('add');

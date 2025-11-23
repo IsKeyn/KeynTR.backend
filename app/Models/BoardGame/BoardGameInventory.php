@@ -17,7 +17,12 @@ class BoardGameInventory extends Model
         'board_game_id',
         'board_game_item_id',
         'has_used',
+        'use_result',
         'created_by',
+    ];
+
+    protected $casts = [
+        'use_result' => 'array'
     ];
 
     public function item(): BelongsTo

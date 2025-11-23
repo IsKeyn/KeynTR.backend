@@ -104,6 +104,7 @@ class ActionsService
                     $action,
                 );
                 break;
+
             case 'itemRoll':
                 $result = $this->actionsWithPlayerNumberField(
                     $data,
@@ -137,6 +138,13 @@ class ActionsService
                     $action,
                     'rerolled_own_game_count',
                     'количество своих рерольнутых игр'
+                );
+                break;
+
+            case 'selectGame':
+                $result = $this->actionsWithGame(
+                    $data,
+                    $action,
                 );
                 break;
         }
@@ -877,6 +885,54 @@ class ActionsService
                 $value = $this->getValueAndSetLog($action, $player, $columnName, $fieldHumanName);
                 $player->update([$columnName => $value]);
                 $this->notificationHandler($data, $player, $action);
+            }
+
+            return true;
+        }
+    }
+
+    private function actionsWithGame($data, $action)
+    {
+        $players = $this->target($data, $action);
+
+        if (isset($players['error'])) {
+            return $players['error'];
+        }
+
+        if (gettype($players) === 'array') {
+            foreach ($players as $player) {
+                if ($action->type === 'selectGame') {
+                    if ($data->additionalParams['selectedGame'] ?? null) {
+                        // Проверяем, что у игрока нет текущей игры
+                        $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
+                            ->where('user_id', $this->conditionData['user']->id)
+                            ->where('status', PlayerGame::CURRENT)->first();
+
+                        if ($currentUserCurrentGame) {
+                            return ErrorService::message('Вы не можете сейчас использовать этот предмет, так как у Вас есть текущая игра');
+                        }
+
+                        $newGameFields = [
+                            'user_id' => $player->user_id,
+                            'board_game_game_list_id' => $data->additionalParams['selectedGame'],
+                            'status' => PlayerGame::CURRENT,
+                            'board_game_id' => $this->conditionData['boardGame']->id,
+                            'type' => PlayerGame::TYPE_PURSE,
+                            'from_user_id' => $this->conditionData['user']->id,
+                            'created_by' => $this->conditionData['user']->id,
+                        ];
+
+                        if ($playerGame = PlayerGame::create($newGameFields)) {
+                            $this->notificationHandler($data, $player, $action);
+
+                            $logMessage = 'использовал предмет "' . $this->itemElement->item->name . '" и выбрал игру ' . $playerGame->game->game->name;
+
+                            return $logMessage;
+                        }
+                    } else {
+                     return ErrorService::message('Не выбрана игра');
+                    }
+                }
             }
 
             return true;

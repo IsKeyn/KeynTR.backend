@@ -234,8 +234,7 @@ class BoardGamePlayerController extends Controller
     public function getGames(
         $slug,
         $name,
-        BoardGame $BoardGame,
-        PlayerGame $PlayerGame
+        BoardGame $BoardGame
     )
     {
         $user = User::findByName($name)->first();

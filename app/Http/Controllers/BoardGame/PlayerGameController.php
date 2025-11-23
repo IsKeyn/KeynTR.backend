@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\GameListResource;
 use App\Http\Resources\BoardGame\PlayerInteractionResource;
+use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
@@ -14,6 +15,7 @@ use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
 use App\Models\BoardGame\Timer;
 use App\Models\GamingPlatform;
+use App\Models\User;
 use App\Services\BoardGame\ActionsService;
 use App\Services\BoardGame\BoardService;
 use App\Services\BoardGame\GameService;
@@ -689,5 +691,30 @@ class PlayerGameController extends Controller
 
             return TimerService::timeInGame($playerGame);
         }
+    }
+
+    public function getAvailablePlayerGameList($slug, Request $request)
+    {
+        if (!$slug) {
+            return ErrorService::message('Не получен slug');
+        }
+
+        if (!$request->name) {
+            return ErrorService::message('Не получено имя пользователя');
+        }
+
+        $boardGameId = BoardGame::findBySlug($slug)->value('id');
+
+        if (!$boardGameId) {
+            return ErrorService::message('Ивент не найден');
+        }
+
+        $user = User::findByName($request->name)->value('id');
+
+        if (!$user) {
+            return ErrorService::message('Пользователь не найден');
+        }
+
+        return PlayerGameService::getAvailablePlayerGameList($boardGameId, $user);
     }
 }

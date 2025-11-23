@@ -18,6 +18,7 @@ class PlayerGameStatsResource extends JsonResource
             'id' => $this->id,
             'game' => GameListStatsResource::make($this->game),
             'additional_data' => $this->additional_data,
+            'time' => $this->time,
         ];
     }
 }

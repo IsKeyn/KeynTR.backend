@@ -15,6 +15,7 @@ class UseItemService
     public $item = null;
     public $conditionData = [];
     public $actionService = null;
+    public $useResult = null;
 
     public function __construct($conditionData = null)
     {
@@ -83,6 +84,10 @@ class UseItemService
 
             $usedItemsFields = ['has_used' => true];
 
+            if ($this->useResult) {
+                $usedItemsFields['use_result'] = $this->useResult;
+            }
+
             if ($result && is_string($result)) {
                 $logMessage = $result;
             } else if (isset($data->additionalParams['logMessage'])) {
@@ -122,6 +127,7 @@ class UseItemService
                  */
 
                 $message = '';
+                $useResult = null;
                 $players = $this->actionService->target($data, $action);
 
                 if (gettype($players) === 'array') {
@@ -132,6 +138,12 @@ class UseItemService
 
                                 if (isset($arDamage[0]) && isset($arDamage[1])) {
                                     $damage = mt_rand($arDamage[0], $arDamage[1]);
+
+                                    $useResult = [
+                                        'type' => false,
+                                        'value' => $damage,
+                                    ];
+
                                     $currentPlayer = BoardGamePlayer::query()
                                         ->where('user_id', $user->id)
                                         ->where('board_game_id', $this->conditionData['boardGame']->id)
@@ -158,6 +170,11 @@ class UseItemService
                                 if (isset($arDamage[0]) && isset($arDamage[1])) {
                                     $damage = mt_rand($arDamage[0], $arDamage[1]);
 
+                                    $useResult = [
+                                        'type' => true,
+                                        'value' => $damage,
+                                    ];
+
                                     $logMessage = 'Отнял у игрока ' . ' ' . $player->user->name . ' ' . $damage . ' очков с помощью ' . $this->item->item->name . ' (' . $player->points;
 
                                     $playerFields = ['points' => $player->points - $damage];
@@ -173,6 +190,8 @@ class UseItemService
                                 return ErrorService::message('Не указан урон, который должен быть нанесен');
                             }
                         }
+
+                        $this->useResult = $useResult;
 
                         if ($logMessage) {
                             LogService::addLog(
@@ -208,6 +227,7 @@ class UseItemService
                  */
 
                 $message = '';
+                $useResult = null;
                 $players = $this->actionService->target($data, $action);
 
                 if (gettype($players) === 'array') {
@@ -226,6 +246,11 @@ class UseItemService
                                     $inventoryItem->update($playerFields);
 
                                     $message .= 'Попытался применить ' . $this->item->item->name . ' на игрока ' . $player->user->name . ', кража удалась, игрок украл ' . $inventoryItem->item->item->name;
+
+                                    $useResult = [
+                                        'type' => true,
+                                        'value' => $inventoryItem->item->item->name,
+                                    ];
                                 } else {
                                     if (isset($action->value[2])) {
                                         $currentPlayer = BoardGamePlayer::query()
@@ -241,6 +266,11 @@ class UseItemService
                                         $logMessage .= ' - ' . $currentPlayer->points . ')';
 
                                         $message .= 'Попытался применить ' . $this->item->item->name . ' на игрока ' . $player->user->name . ', однако кража не удалась и игрок заплатил штраф ' . $action->value[2] . ' очков';
+
+                                        $useResult = [
+                                            'type' => false,
+                                            'value' => $action->value[2],
+                                        ];
                                     } else {
                                         return ErrorService::message('Не указано количество очков за отнимаемых при провале кражи');
                                     }
@@ -256,6 +286,11 @@ class UseItemService
                                     $inventoryItem->update($playerFields);
 
                                     $message .= 'Попытался применить ' . $this->item->item->name . ' на игрока ' . $player->user->name . ', кража удалась, игрок украл ' . $inventoryItem->item->item->name;
+
+                                    $useResult = [
+                                        'type' => true,
+                                        'value' => $inventoryItem->item->item->name,
+                                    ];
                                 } else {
                                     if (isset($action->value[2])) {
                                         $currentPlayer = BoardGamePlayer::query()
@@ -271,11 +306,18 @@ class UseItemService
                                         $logMessage .= ' - ' . $currentPlayer->points . ')';
 
                                         $message .= 'Попытался применить ' . $this->item->item->name . ' на игрока ' . $player->user->name . ', однако кража не удалась и игрок заплатил штраф ' . $action->value[2] . ' очков';
+
+                                        $useResult = [
+                                            'type' => false,
+                                            'value' => $action->value[2],
+                                        ];
                                     } else {
                                         return ErrorService::message('Не указано количество очков за отнимаемых при провале кражи');
                                     }
                                 }
                             }
+
+                            $this->useResult = $useResult;
 
                             if ($logMessage) {
                                 LogService::addLog(
@@ -389,6 +431,8 @@ class UseItemService
                 }
                 break;
             case 'holy-grenade':
+                $useResult = null;
+
                 $players = $this->actionService->target($data, $action);
 
                 $currentPlayer = BoardGamePlayer::query()
@@ -408,10 +452,18 @@ class UseItemService
                             $values = explode('-', $action->value[0]);
                             $cellCountForPush = mt_rand($values[0], $values[1]);
                             $newPosition = $player->position + $cellCountForPush;
+                            $useResult = [
+                                'type' => 'forward',
+                                'value' => $newPosition,
+                            ];
                         } else if ($currentPlayer->position > $player->position) {
                             $values = explode('-', $action->value[1]);
                             $cellCountForPush = mt_rand($values[0], $values[1]);
                             $newPosition = $player->position - $cellCountForPush;
+                            $useResult = [
+                                'type' => 'back',
+                                'value' => $newPosition,
+                            ];
                         }
 
                         $newPosition = BoardService::checkPosition($newPosition, $this->conditionData['boardGame']);
@@ -419,6 +471,8 @@ class UseItemService
                         $defaultMessage = 'позицию игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->position . ' - ' . $newPosition . ')';
                         $logMessage = 'Изменил ' . $defaultMessage;
                         $message = 'Вы изменили ' . $defaultMessage;
+
+                        $this->useResult = $useResult;
 
                         if (isset($logMessage)) {
                             LogService::addLog(
