@@ -88,7 +88,7 @@ class UseItemService
                 $usedItemsFields['use_result'] = $this->useResult;
             }
 
-            if ($result && is_string($result)) {
+            if ($result && isset($result['logMessage']) && is_string($result['logMessage'])) {
                 $logMessage = $result;
             } else if (isset($data->additionalParams['logMessage'])) {
                 $logMessage = $data->additionalParams['logMessage'];
@@ -215,7 +215,7 @@ class UseItemService
                             $this->actionService->createNotification($player, $notificationMessage);
                         }
 
-                        return $message;
+                        return ['logMessage' => $message];
                     }
                 }
                 break;
@@ -341,7 +341,7 @@ class UseItemService
                                 $this->actionService->createNotification($player, $notificationMessage);
                             }
 
-                            return $message;
+                            return ['logMessage' => $message];
                         } else {
                             return ErrorService::message('Не примениму к этому игроку, у него нет предметов');
                         }
@@ -426,7 +426,7 @@ class UseItemService
                             }
                         }
 
-                        return $message;
+                        return ['logMessage' => $message];
                     }
                 }
                 break;
@@ -493,6 +493,50 @@ class UseItemService
 
                         return $message;
                     }
+                }
+                break;
+            case 'reversible-pistol':
+                $useResult = null;
+
+                $players = $this->actionService->target($data, $action);
+
+                foreach ($players as $player) {
+                    if (mt_rand(1, 100) <= $action->value[2] ?? 10) {
+                        $resultPoints = $player->points + $action->value[0];
+                        $defaultMessage = 'количество очков игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->points . ' - ' . $resultPoints . ')';
+                        $playerFields = ['points' => $resultPoints];
+                        $player->update($playerFields);
+                        $useResult = [
+                            'type' => 'addPoints',
+                            'value' => $action->value[0],
+                        ];
+                    } else {
+                        $resultPoints = $player->points - $action->value[0];
+                        $defaultMessage = 'количество очков игрока ' . $player->user->name . ' предметом ' . $this->item->item->name . ' (' . $player->points . ' - ' . $resultPoints . ')';
+                        $playerFields = ['points' => $resultPoints];
+                        $player->update($playerFields);
+                        $useResult = [
+                            'type' => 'removePoints',
+                            'value' => $action->value[1],
+                        ];
+                    }
+
+                    $logMessage = 'Изменил ' . $defaultMessage;
+                    $message = 'Вы изменили ' . $defaultMessage;
+
+                    $this->useResult = $useResult;
+
+                    if (isset($logMessage)) {
+                        LogService::addLog(
+                            $this->conditionData['user']->id,
+                            $this->conditionData['boardGame']->id,
+                            $logMessage
+                        );
+                    }
+
+                    $this->actionService->notificationHandler($data, $player, $action);
+
+                    return $message;
                 }
                 break;
         }

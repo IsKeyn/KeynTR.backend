@@ -142,6 +142,7 @@ class ActionsService
                 break;
 
             case 'selectGame':
+            case 'rerollGame':
                 $result = $this->actionsWithGame(
                     $data,
                     $action,
@@ -931,6 +932,28 @@ class ActionsService
                         }
                     } else {
                      return ErrorService::message('Не выбрана игра');
+                    }
+                } elseif ($action->type === 'rerollGame') {
+                    if ($data->additionalParams['selectedGame'] ?? null) {
+                        $newGameFields = [
+                            'user_id' => $player->user_id,
+                            'board_game_game_list_id' => $data->additionalParams['selectedGame'],
+                            'status' => PlayerGame::REROLLED,
+                            'board_game_id' => $this->conditionData['boardGame']->id,
+                            'type' => PlayerGame::TYPE_PURSE,
+                            'from_user_id' => $this->conditionData['user']->id,
+                            'created_by' => $this->conditionData['user']->id,
+                        ];
+
+                        if ($playerGame = PlayerGame::create($newGameFields)) {
+                            $this->notificationHandler($data, $player, $action);
+
+                            $logMessage = 'использовал предмет "' . $this->itemElement->item->name . '" и выбрал игру ' . $playerGame->game->game->name;
+
+                            return $logMessage;
+                        }
+                    } else {
+                        return ErrorService::message('Не выбрана игра');
                     }
                 }
             }
