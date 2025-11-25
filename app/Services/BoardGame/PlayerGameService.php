@@ -8,6 +8,7 @@ use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\PlayerGame;
+use App\Services\ErrorService;
 use Illuminate\Support\Facades\Auth;
 
 class PlayerGameService
@@ -16,6 +17,12 @@ class PlayerGameService
     {
         if ($user && $slug) {
             $boardGame = BoardGame::findBySlug($slug)->first();
+
+            $player = BoardGamePlayer::findByBoardGame($boardGame->id)->findByUserId($user->id)->first();
+
+            if ($player) {
+                return ErrorService::message('Данный пользователь уже участвует в ивенте');
+            }
 
             $itemRollCountSetting = $boardGame->settings->where('code', '=', 'item_roll_default_count')->first();
             $stepCountSetting = $boardGame->settings->where('code', '=', 'step_default_count')->first();

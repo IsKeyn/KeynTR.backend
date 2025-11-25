@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
+use App\Services\BoardGame\PlayerGameService;
 use App\Services\UserActionLogService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
@@ -70,6 +71,10 @@ class LoginController extends Controller
             ];
 
             UserActionLogService::set($request, $UserActionLogParams);
+
+            if ($request->registerOnEventBySlug) {
+                PlayerGameService::joinTheGame($user, $request->registerOnEventBySlug);
+            }
 
             return $this->sendLoginResponse($request);
         }

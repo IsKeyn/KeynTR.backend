@@ -141,4 +141,9 @@ class UserController extends Controller
             'qr_code' => $link->qr_code,
         ]);
     }
+
+    public function fullLogout(Request $request)
+    {
+
+    }
 }

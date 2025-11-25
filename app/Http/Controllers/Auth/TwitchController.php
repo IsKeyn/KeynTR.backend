@@ -106,14 +106,15 @@ class TwitchController extends Controller
             ];
 
             UserService::setAdditionalFields($user, $additionalFields);
-
-            if ($request->registerOnEventBySlug) {
-                PlayerGameService::joinTheGame($user, $request->registerOnEventBySlug);
-            }
         }
 
         if ($user->email_verified_at) {
             Auth::login($user);
+
+            if ($request->registerOnEventBySlug) {
+                PlayerGameService::joinTheGame($user, $request->registerOnEventBySlug);
+            }
+
             return Auth::user();
         } else {
             return ErrorService::message('Для авторизации этим пользователем, вы должны подтвердить свой email');

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BoardGame\ItemBindController;
 use App\Http\Controllers\Admin\BoardGame\ItemController;
 use App\Http\Controllers\Admin\BoardGame\BoardGameController;
+use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\User\MagicLinkController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminGameController;
@@ -69,5 +70,9 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
 
     Route::prefix('magical-link/')->controller(MagicLinkController::class)->name('magic-link.')->group(function() {
         Route::get('generate/{userId}', 'createLink')->name('generate');
+    });
+
+    Route::prefix('user/')->controller(UserController::class)->name('user.')->group(function() {
+        Route::get('full-logout/{userId}', 'fullLogout')->name('full-logout');
     });
 });
