@@ -145,7 +145,7 @@ class PlayerGameController extends Controller
             $timer = $conditionData['player']->where('board_game_id', $conditionData['boardGame']->board_game_id)->first();
             $status = TimerService::getTimerStatus($timer);
 
-            if ($status && $status['reached_the_limit'] ?? null) {
+            if ($status && ($status['reached_the_limit'] ?? null)) {
                 return ErrorService::message('Вы не можете это сделать, так как достигли лимита таймера');
             }
 
@@ -491,7 +491,7 @@ class PlayerGameController extends Controller
 
             $status = TimerService::getTimerStatus($timer);
 
-            if ($status['reached_the_limit']) {
+            if ($status && ($status['reached_the_limit'] ?? null)) {
                 return [
                     'status' => 'error',
                     'status_message' => 'Вы не можете крутить игру, так как исчерпали время таймера',

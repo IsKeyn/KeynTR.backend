@@ -53,7 +53,7 @@ class TimerService
             $status['limit'] = $timer->limit;
             $status['reached_the_limit'] = $status['limit'] && $status['time'] >= $status['limit'];
 
-            if ($status['active'] && $status['reached_the_limit']) {
+            if ($status['active'] && ($status['reached_the_limit'] ?? null)) {
                 $fields = [
                     'time_stop' => Carbon::now(),
                 ];
@@ -86,7 +86,7 @@ class TimerService
                 if ($timer->slug === 'main') {
                     $status = $this->getTimerStatus($timer);
 
-                    if ($status && $status['reached_the_limit'] ?? null) {
+                    if ($status && ($status['reached_the_limit'] ?? null)) {
                         return response()->json(['error' => 'Вы не можете запускать основной таймер, когда он достиг лимита'])->setStatusCode(Response::HTTP_OK);
                     }
                 }
