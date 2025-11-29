@@ -141,6 +141,14 @@ class PlayerGameController extends Controller
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
         } else {
+            // Проверяем статус таймера и если таймер истек, не выполнять действий с игрой
+            $timer = $conditionData['player']->where('board_game_id', $conditionData['boardGame']->board_game_id)->first();
+            $status = TimerService::getTimerStatus($timer);
+
+            if ($status && $status['reached_the_limit'] ?? null) {
+                return ErrorService::message('Вы не можете это сделать, так как достигли лимита таймера');
+            }
+
             $playerCurrentGame = $playerGame::where('board_game_id', $conditionData['boardGame']->id)
                 ->where('user_id', $conditionData['user']->id)
                 ->where('status', PlayerGame::CURRENT)->first();
@@ -164,7 +172,7 @@ class PlayerGameController extends Controller
 //
 //                    BoardGameInventory::create($fields);
 
-                        // Проверяем статус эффекты и при необходимости устанавливаем платформу фильтрации
+                        // Проверяем статус эффекты и при необходимости делем реролл без штрафов
                         $playerStatusEffects = PlayerStatusEffect::query()
                             ->findByUserId($conditionData['user']->id)
                             ->findByBoardGame($conditionData['boardGame']->id)

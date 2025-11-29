@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Game extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait;
 
     const SERIES_TYPE = 1;
 

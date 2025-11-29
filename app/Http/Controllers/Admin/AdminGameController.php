@@ -66,7 +66,7 @@ class AdminGameController extends Controller {
         return $request->validate([
             'name' => 'required|string',
             'slug' => Rule::unique('games', 'slug')->ignore($request->get('id')), // Может сломать store
-            'description' => 'sometimes|string',
+            'description' => 'sometimes|string|nullable',
             'active' => 'sometimes|boolean',
             'show_in_list' => 'sometimes|boolean',
             'title_image' => 'sometimes',

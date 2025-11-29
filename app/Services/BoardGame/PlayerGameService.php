@@ -143,7 +143,10 @@ class PlayerGameService
             ];
         }
 
-        $player = BoardGamePlayer::where('user_id', $user->id)->where('board_game_id', $boardGame->id)->first();
+        $player = BoardGamePlayer::where('user_id', $user->id)
+            ->where('board_game_id', $boardGame->id)
+            ->with('mainTimers')
+            ->first();
 
         if (!$player) {
             return [

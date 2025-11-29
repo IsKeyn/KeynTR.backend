@@ -149,6 +149,10 @@ class TimerController extends Controller
             if ($timer) {
                 $status = TimerService::getTimerStatus($timer);
 
+                if ($request->slug === 'main' && $status['reached_the_limit'] ?? null) {
+                    return response()->json(['error' => 'Вы не можете менять значения основного таймера, когда он достиг лимита'])->setStatusCode(Response::HTTP_OK);
+                }
+
                 if (isset($status['time'])) {
                     if ($status['time'] === $request->seconds) {
                         return true;

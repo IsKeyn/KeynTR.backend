@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BoardGame\ItemBindController;
 use App\Http\Controllers\Admin\BoardGame\ItemController;
 use App\Http\Controllers\Admin\BoardGame\BoardGameController;
+use App\Http\Controllers\Admin\Games\GamesApiController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\User\MagicLinkController;
 use Illuminate\Support\Facades\Route;
@@ -74,5 +75,12 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
 
     Route::prefix('user/')->controller(UserController::class)->name('user.')->group(function() {
         Route::get('full-logout/{userId}', 'fullLogout')->name('full-logout');
+    });
+
+    Route::prefix('api/')->name('api.')->group(function() {
+        Route::prefix('games/')->name('games.')->controller(GamesApiController::class)->group(function() {
+            Route::get('search', 'search')->name('search');
+            Route::post('add', 'add')->name('add');
+        });
     });
 });

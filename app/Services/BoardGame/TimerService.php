@@ -83,6 +83,14 @@ class TimerService
             if ($BoardGamePlayerTimer) {
                 return response()->json(['error' => 'Таймер уже запущен'])->setStatusCode(Response::HTTP_OK);
             } else {
+                if ($timer->slug === 'main') {
+                    $status = $this->getTimerStatus($timer);
+
+                    if ($status && $status['reached_the_limit'] ?? null) {
+                        return response()->json(['error' => 'Вы не можете запускать основной таймер, когда он достиг лимита'])->setStatusCode(Response::HTTP_OK);
+                    }
+                }
+
                 $fields = [
                     'timer_id' => $timer->id,
                     'time_start' => Carbon::now(),
