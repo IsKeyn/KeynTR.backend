@@ -99,7 +99,7 @@ class UseItemService
             LogService::addLog(
                 $this->conditionData['user']->id,
                 $this->conditionData['boardGame']->id,
-                $logMessage
+                is_string($logMessage) ? $logMessage : $logMessage['logMessage'] ?? null,
             );
 
             if ($usedInventoryItem->update($usedItemsFields)) {
