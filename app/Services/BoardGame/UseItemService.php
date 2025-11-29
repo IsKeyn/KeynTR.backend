@@ -232,12 +232,12 @@ class UseItemService
 
                 if (gettype($players) === 'array') {
                     foreach ($players as $player) {
-                        if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->count() > 0) {
+                        if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->count() > 0) {
                             $logMessage = null;
 
-                            if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->count() === 1) {
+                            if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->count() === 1) {
                                 if (mt_rand(1, 100) <= $action->value[1] ?? 50) {
-                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->first();
+                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->first();
 
                                     $playerFields = [
                                         'user_id' => $user->id,
@@ -277,7 +277,7 @@ class UseItemService
                                 }
                             } else {
                                 if (mt_rand(1, 100) <= $action->value[0] ?? 20) {
-                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->random();
+                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->random();
 
                                     $playerFields = [
                                         'user_id' => $user->id,
