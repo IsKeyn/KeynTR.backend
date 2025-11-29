@@ -276,7 +276,7 @@ class UseItemService
                                     }
                                 }
                             } else {
-                                if (mt_rand(1, 100) <= $action->value[0] ?? 20) {
+                                if (mt_rand(1, 100) > $action->value[0] ?? 20) {
                                     $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->random();
 
                                     $playerFields = [
