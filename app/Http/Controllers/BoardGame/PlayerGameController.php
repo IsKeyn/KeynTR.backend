@@ -606,7 +606,7 @@ class PlayerGameController extends Controller
         }
 
         // Рулетка рерольнутых игр
-        if ($conditionData['player']->rerolled_own_game_count >= 3) {
+        if ($conditionData['player']->rerolled_own_game_count >= 2) {
             $rerolledGames = PlayerGame::query()->findByBoardGame($conditionData['boardGame']->id)
                 ->where('status', PlayerGame::REROLLED)
                 ->select('board_game_game_list_id')->get()->unique('board_game_game_list_id');
