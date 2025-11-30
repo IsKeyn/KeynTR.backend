@@ -35,6 +35,7 @@ class BoardGameGameList extends Model
 
     protected $casts = [
         'active' => 'boolean',
+        'coop' => 'boolean',
     ];
 
     public function game(): BelongsTo

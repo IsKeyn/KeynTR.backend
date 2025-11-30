@@ -199,12 +199,19 @@ class TimerController extends Controller
                     if ($status['time'] < $request->seconds) {
                         $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
                             ->where('timer_id', $timer->id)
-                            ->where('time_start', '>', Carbon::now()->subSeconds($request->seconds))
+                            ->where('time_start', '>=', Carbon::now()->subSeconds($request->seconds))
                             ->get();
 
                         foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
                             $playerTimer->delete();
                         }
+
+                        $timer = Timer::query()
+                            ->where('user_id', $user->id)
+                            ->where('board_game_id', $boardGameId)
+                            ->where('slug', $request->slug ? $request->slug : 'main')
+                            ->where('active', true)
+                            ->orderBy('id', 'desc')->first();
 
                         $statusNew = TimerService::getTimerStatus($timer);
 

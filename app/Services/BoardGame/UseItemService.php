@@ -107,6 +107,10 @@ class UseItemService
                     return [
                         'message' => $result,
                     ];
+                } elseif ($result && isset($result['returnMessage']) && is_string($result['returnMessage'])) {
+                    return [
+                        'message' => $result['returnMessage'],
+                    ];
                 } else {
                     return true;
                 }
@@ -215,7 +219,9 @@ class UseItemService
                             $this->actionService->createNotification($player, $notificationMessage);
                         }
 
-                        return ['logMessage' => $message];
+                        return [
+                            'returnMessage' => $message,
+                        ];
                     }
                 }
                 break;
@@ -341,7 +347,9 @@ class UseItemService
                                 $this->actionService->createNotification($player, $notificationMessage);
                             }
 
-                            return ['logMessage' => $message];
+                            return [
+                                'returnMessage' => $message,
+                            ];
                         } else {
                             return ErrorService::message('Не примениму к этому игроку, у него нет предметов');
                         }
@@ -426,7 +434,10 @@ class UseItemService
                             }
                         }
 
-                        return ['logMessage' => $message];
+                        return [
+                            'logMessage' => $message,
+                            'returnMessage' => $message,
+                        ];
                     }
                 }
                 break;
@@ -491,7 +502,9 @@ class UseItemService
 
                         $this->actionService->notificationHandler($data, $player, $action);
 
-                        return $message;
+                        return [
+                            'returnMessage' => $message,
+                        ];
                     }
                 }
                 break;
@@ -536,7 +549,9 @@ class UseItemService
 
                     $this->actionService->notificationHandler($data, $player, $action);
 
-                    return $message;
+                    return [
+                        'returnMessage' => $message,
+                    ];
                 }
                 break;
         }
