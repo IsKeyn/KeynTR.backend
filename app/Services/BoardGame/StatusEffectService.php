@@ -47,47 +47,47 @@ class StatusEffectService
                             }
                         }
                     }
+
+                    if ($result['error'] ?? null) {
+                        return $result;
+                    }
+
+                    $usedSeFields = ['active' => false];
+
+                    if ($result && is_string($result)) {
+                        $logMessage = $result;
+                    } else if (isset($request->additionalParams['logMessage'])) {
+                        $logMessage = $request->additionalParams['logMessage'];
+                    } else {
+                        if ($request->type === 'accept') {
+                            $logMessage = 'принял действие статус эффекта ' . $usedStatusEffect->statusEffect->name;
+                        }
+
+                        if ($request->type === 'denied') {
+                            $logMessage = 'отказался от статус эффекта ' . $usedStatusEffect->statusEffect->name;
+                        }
+                    }
+
+                    LogService::addLog(
+                        $this->conditionData['user']->id,
+                        $this->conditionData['boardGame']->id,
+                        $logMessage
+                    );
+
+                    if ($usedStatusEffect->update($usedSeFields)) {
+                        if ($result && is_string($result)) {
+                            return [
+                                'message' => $result,
+                            ];
+                        } else {
+                            return true;
+                        }
+                    }
                 } else {
                     return $this->error('Статус эффект не наложен или он более не активен');
                 }
             } else {
                 return $this->error('Не получен ID статус эффекта игрока');
-            }
-
-            if ($result['error'] ?? null) {
-                return $result;
-            }
-
-            $usedSeFields = ['active' => false];
-
-            if ($result && is_string($result)) {
-                $logMessage = $result;
-            } else if (isset($request->additionalParams['logMessage'])) {
-                $logMessage = $request->additionalParams['logMessage'];
-            } else {
-                if ($request->type === 'accept') {
-                    $logMessage = 'принял действие статус эффекта ' . $usedStatusEffect->statusEffect->name;
-                }
-
-                if ($request->type === 'denied') {
-                    $logMessage = 'отказался от статус эффекта ' . $usedStatusEffect->statusEffect->name;
-                }
-            }
-
-            LogService::addLog(
-                $this->conditionData['user']->id,
-                $this->conditionData['boardGame']->id,
-                $logMessage
-            );
-
-            if ($usedStatusEffect->update($usedSeFields)) {
-                if ($result && is_string($result)) {
-                    return [
-                        'message' => $result,
-                    ];
-                } else {
-                    return true;
-                }
             }
         }
     }
