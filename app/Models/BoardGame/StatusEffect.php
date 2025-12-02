@@ -28,6 +28,7 @@ class StatusEffect extends Model
     const DICE_TYPE = 0;
     const POINTS_TYPE = 1;
     const GAME_LIST_TYPE = 2;
+    const OTHER = 10;
 
     const TYPES = [
         0 => [
