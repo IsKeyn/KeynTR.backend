@@ -104,7 +104,7 @@ class PlayerGameService
     public static function actionsWithGameInOtherEvents($gameListGameId, $boardGameId)
     {
         // Исключаем демо ивенты
-        $exceptionsIds = BoardGame::query()->whereIn('slug', ['demo'])->pluck('id')->toArray();
+        $exceptionsIds = BoardGame::query()->whereNotIn('slug', ['demo'])->pluck('id')->toArray();
 
         $playerGame = PlayerGame::query()
             ->where('board_game_game_list_id', $gameListGameId)

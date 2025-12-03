@@ -33,40 +33,53 @@ class TimerService
 
     public static function getTimerStatus($timer)
     {
+        if (!$timer) {
+            return [
+                'active' => false,
+                'time' => 0,
+            ];
+        }
+
+        $now = Carbon::now();
         $status = [
             'active' => false,
             'time' => 0,
+            'name' => $timer->name,
+            'limit' => $timer->limit,
+            'reached_the_limit' => false,
         ];
 
-        if ($timer) {
-            foreach ($timer->playerTimer as $key => $playerTimer) {
-                if ($playerTimer->time_stop === null) {
-                    $status['active'] = true;
-                    $status['time'] += Carbon::parse($playerTimer->time_start)->diffInSeconds(Carbon::now());
-                    break;
-                } else {
-                    $status['time'] += Carbon::parse($playerTimer->time_start)->diffInSeconds($playerTimer->time_stop);
-                }
+        foreach ($timer->playerTimer as $playerTimer) {
+            $start = Carbon::parse($playerTimer->time_start);
+
+            // Таймер активен
+            if ($playerTimer->time_stop === null) {
+                $status['active'] = true;
+                $status['time'] += $start->diffInSeconds($now);
+                break;
             }
 
-            $status['name'] = $timer->name;
-            $status['limit'] = $timer->limit;
-            $status['reached_the_limit'] = $status['limit'] && $status['time'] >= $status['limit'];
+            // Таймер завершён
+            $stop = Carbon::parse($playerTimer->time_stop);
+            $status['time'] += $start->diffInSeconds($stop);
+        }
 
-            if ($status['active'] && ($status['reached_the_limit'] ?? null)) {
-                $fields = [
-                    'time_stop' => Carbon::now(),
-                ];
+        // Проверка лимита
+        if ($status['limit']) {
+            $status['reached_the_limit'] = $status['time'] >= $status['limit'];
+        }
 
-                $BoardGamePlayerTimer = $timer->playerTimer->last();
+        // Автоостановка, если активен и достиг лимита
+        if ($status['active'] && $status['reached_the_limit']) {
+            $lastTimer = $timer->playerTimer->last();
 
-                if ($BoardGamePlayerTimer) {
-                    $BoardGamePlayerTimer->update($fields);
-                    LogService::addLog(1, $timer->board_game_id, 'таймер был остановлен, так как достиг лимита');
-                }
+            if ($lastTimer) {
+                $lastTimer->update(['time_stop' => $now]);
+                LogService::addLog(1, $timer->board_game_id, 'Таймер был остановлен, так как достиг лимита');
             }
-        } else {
-//                return response()->json(['error' => 'Таймер не найден'])->setStatusCode(Response::HTTP_OK);
+
+            // После остановки обновляем активность
+            $status['active'] = false;
         }
 
         return $status;

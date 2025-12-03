@@ -107,26 +107,36 @@ class TimerController extends Controller
 
     public function status(Request $request)
     {
-        if ($request->user_id) {
-            $user = User::query()->where('id', $request->user_id)->first();
-        } else {
-            $user = $request->user();
+        // Получаем пользователя максимально дешево
+        $user = $request->user_id
+            ? User::select('id')->find($request->user_id)
+            : $request->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Пользователь не найден'], Response::HTTP_OK);
         }
 
-        if ($user) {
-            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+        // Легковесное получение board_game_id
+        $boardGameId = BoardGame::where('slug', $request->boardGameSlug)
+            ->value('id');
 
-            $timer = Timer::query()
-                ->where('user_id', $user->id)
-                ->where('board_game_id', $boardGameId)
-                ->where('slug', $request->slug ? $request->slug : 'main')
-                ->where('active', true)
-                ->orderBy('id', 'desc')->first();
-
-            return TimerService::getTimerStatus($timer);
-        } else {
-            return response()->json(['error' => 'Пользователь не найден'])->setStatusCode(Response::HTTP_OK);
+        if (!$boardGameId) {
+            return response()->json(['error' => 'Ивент не найден'], Response::HTTP_OK);
         }
+
+        // Получаем только один нужный таймер + связанные таймеры игрока
+        $timer = Timer::with('playerTimer')
+            ->select(['id', 'name', 'limit', 'user_id', 'board_game_id', 'slug']) // только нужные поля
+            ->where([
+                ['user_id', '=', $user->id],
+                ['board_game_id', '=', $boardGameId],
+                ['active', '=', true],
+                ['slug', '=', $request->slug ?: 'main'],
+            ])
+            ->latest('id')
+            ->first();
+
+        return TimerService::getTimerStatus($timer);
     }
 
     public function edit(Request $request)

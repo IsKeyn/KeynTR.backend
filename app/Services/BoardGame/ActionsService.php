@@ -918,7 +918,6 @@ class ActionsService
                             'board_game_game_list_id' => $data->additionalParams['selectedGame'],
                             'status' => PlayerGame::CURRENT,
                             'board_game_id' => $this->conditionData['boardGame']->id,
-                            'type' => PlayerGame::TYPE_PURSE,
                             'from_user_id' => $this->conditionData['user']->id,
                             'created_by' => $this->conditionData['user']->id,
                         ];

@@ -123,7 +123,7 @@ class PlayerGameController extends Controller
 
                 if ($message) {
                     if ($request->comment) {
-                        $message .= ' и оставил мнение об игре ' . $request->comment;
+                        $message .= ' и оставил мнение об игре: "' . $request->comment . '"';
                     }
 
                     LogService::addLog($conditionData['user']->id, $conditionData['boardGame']->id, $message);
@@ -252,6 +252,7 @@ class PlayerGameController extends Controller
                                 );
                             }
                         }
+
                         /* Проверяем взаимодействия */
                         $interactionsService = new InteractionsService();
                         $interactionsService->checkInteractionAfterActionWithGame($request->type, $conditionData);
@@ -384,7 +385,7 @@ class PlayerGameController extends Controller
 
                     if ($message) {
                         if ($request->comment) {
-                            $message .= ' и оставил мнение об игре ' . $request->comment;
+                            $message .= ' и оставил мнение об игре: "' . $request->comment . '"';
                         }
 
                         LogService::addLog($conditionData['user']->id, $conditionData['boardGame']->id, $message);

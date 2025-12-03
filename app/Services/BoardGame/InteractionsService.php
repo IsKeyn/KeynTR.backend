@@ -256,13 +256,13 @@ class InteractionsService
         return $this->interaction->save();
     }
 
-    private function recall()
+    private function recall($forced = false)
     {
         if ($this->interaction->created_by !== $this->conditionData['user']->id) {
             return ErrorService::message('Вы не можете отозвать взаимодействие, которое создано не вами');
         }
 
-        if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE) {
+        if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE || $forced) {
             if ($this->interaction->with_player) {
                 $message = 'Отозвал предложение "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '" отправленное ' . $this->interaction->withPlayerData->name;
 
@@ -504,7 +504,7 @@ class InteractionsService
     {
         $this->conditionData = $conditionData;
 
-        if ($type === 1 || $type === 2) {
+        if ($type === PlayerGame::REROLLED || $type === PlayerGame::COMPLETED) {
             $playerInteractions = PlayerInteractions::where('board_game_id', $conditionData['boardGame']->id)
                 ->where(function($query) use ($conditionData) {
                     $query->where('created_by', '=', $conditionData['user']->id)->orWhere('with_player', '=', $conditionData['user']->id);
@@ -515,20 +515,20 @@ class InteractionsService
                 if ($interaction->type === 'switchGame') {
                     $this->interaction = $interaction;
 
-                    if ($interaction->with_player) {
+                    if ($interaction->with_player === $conditionData['user']->id) {
                         $this->systemRefuse();
                     }
 
-                    if ($interaction->created_by) {
-                        $this->recall();
+                    if ($interaction->created_by === $conditionData['user']->id) {
+                        $this->recall(true);
                     }
                 }
 
                 if ($interaction->type === 'inviteToCoop') {
-                    if ($interaction->created_by) {
+                    if ($interaction->created_by === $conditionData['user']->id) {
                         $this->interaction = $interaction;
 
-                        $this->recall();
+                        $this->recall(true);
                     }
                 }
             }
