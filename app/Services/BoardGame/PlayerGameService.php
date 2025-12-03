@@ -101,16 +101,26 @@ class PlayerGameService
         return $playerGame;
     }
 
-    public static function actionsWithGameInOtherEvents($gameListGameId, $boardGameId)
+    public static function actionsWithGameInOtherEvents($game, $boardGameId)
     {
-        // Исключаем демо ивенты
-        $exceptionsIds = BoardGame::query()->whereNotIn('slug', ['demo'])->pluck('id')->toArray();
+        $boardGames = BoardGame::query()
+            ->whereNotIn('slug', ['demo'])
+            ->where('id', '!=', $boardGameId)
+            ->get();
+
+        $gameListIds = [];
+
+        foreach ($boardGames as $boardGame) {
+            $gameListId = BoardGameGameList::query()->where('game_id', $game->id)->where('board_game_id', $boardGame->id)->value('id');
+
+            if ($gameListId) {
+                $gameListIds[] = $gameListId;
+            }
+        }
 
         $playerGame = PlayerGame::query()
-            ->where('board_game_game_list_id', $gameListGameId)
-            ->where('board_game_id', '!=', $boardGameId)
-            ->whereNotIn('id', $exceptionsIds)
-            ->where('status', '!=',PlayerGame::CURRENT)
+            ->whereIn('board_game_game_list_id', $gameListIds)
+            ->where('status', '!=', PlayerGame::CURRENT)
             ->get();
 
         return $playerGame;
