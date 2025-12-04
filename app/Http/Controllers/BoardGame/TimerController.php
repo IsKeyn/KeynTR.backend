@@ -13,6 +13,7 @@ use App\Services\BoardGame\TimerService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class TimerController extends Controller
@@ -75,6 +76,8 @@ class TimerController extends Controller
             ->orderBy('id', 'desc')->first();
 
         if ($action === 'start') {
+            Cache::forget('bg_game_timer_' . $user->id . '_' . $request->boardGameSlug . '_' . $request->slug);
+
             if ($BoardGamePlayerTimer) {
                 return response()->json(['error' => 'Таймер уже запущен'])->setStatusCode(Response::HTTP_OK);
             } else {
@@ -91,6 +94,8 @@ class TimerController extends Controller
         }
 
         if ($action === 'stop') {
+            Cache::forget('bg_game_timer_' . $user->id . '_' . $request->boardGameSlug . '_' . $request->slug);
+
             if ($BoardGamePlayerTimer) {
                 $fields = [
                     'time_stop' => Carbon::now(),
@@ -116,27 +121,32 @@ class TimerController extends Controller
             return response()->json(['error' => 'Пользователь не найден'], Response::HTTP_OK);
         }
 
-        // Легковесное получение board_game_id
-        $boardGameId = BoardGame::where('slug', $request->boardGameSlug)
-            ->value('id');
+        $cacheKey = 'bg_game_timer_' . $user->id . '_' . $request->boardGameSlug . '_' . $request->slug;
+        $minutes = 30; // 7 дней в минутах
 
-        if (!$boardGameId) {
-            return response()->json(['error' => 'Ивент не найден'], Response::HTTP_OK);
-        }
+        return Cache::remember($cacheKey, $minutes, function () use ($request, $user) {
+            // Легковесное получение board_game_id
+            $boardGameId = BoardGame::where('slug', $request->boardGameSlug)
+                ->value('id');
 
-        // Получаем только один нужный таймер + связанные таймеры игрока
-        $timer = Timer::with('playerTimer')
-            ->select(['id', 'name', 'limit', 'user_id', 'board_game_id', 'slug']) // только нужные поля
-            ->where([
-                ['user_id', '=', $user->id],
-                ['board_game_id', '=', $boardGameId],
-                ['active', '=', true],
-                ['slug', '=', $request->slug ?: 'main'],
-            ])
-            ->latest('id')
-            ->first();
+            if (!$boardGameId) {
+                return response()->json(['error' => 'Ивент не найден'], Response::HTTP_OK);
+            }
 
-        return TimerService::getTimerStatus($timer);
+            // Получаем только один нужный таймер + связанные таймеры игрока
+            $timer = Timer::with('playerTimer')
+                ->select(['id', 'name', 'limit', 'user_id', 'board_game_id', 'slug']) // только нужные поля
+                ->where([
+                    ['user_id', '=', $user->id],
+                    ['board_game_id', '=', $boardGameId],
+                    ['active', '=', true],
+                    ['slug', '=', $request->slug ?: 'main'],
+                ])
+                ->latest('id')
+                ->first();
+
+            return TimerService::getTimerStatus($timer);
+        });
     }
 
     public function edit(Request $request)
@@ -147,12 +157,16 @@ class TimerController extends Controller
         if ($user) {
             $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
 
+            $timerSlug = $request->slug ? $request->slug : 'main';
+
             $timer = Timer::query()
                 ->where('user_id', $user->id)
                 ->where('board_game_id', $boardGameId)
-                ->where('slug', $request->slug ? $request->slug : 'main')
+                ->where('slug', $timerSlug)
                 ->where('active', true)
                 ->orderBy('id', 'desc')->first();
+
+            Cache::forget('bg_game_timer_' . $user->id . '_' . $request->boardGameSlug . '_' . $timerSlug);
 
             $boardGame = BoardGame::query()->where('id', $boardGameId)->first();
 
