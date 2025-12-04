@@ -573,7 +573,7 @@ class PlayerGameController extends Controller
 
                     if ($playerGame::create($fields)) {
                         // Если игра была из списка рерольнутых, то сбрасывает счетчик собственных рерольнутых игр
-                        if ($gameListFiltered['listType'] === 'rerolled' && $conditionData['player']->rerolled_own_game_count >= 3) {
+                        if ($gameListFiltered['listType'] === 'rerolled' && $conditionData['player']->rerolled_own_game_count >= 2) {
                             $conditionData['player']->rerolled_own_game_count = 0;
                             $conditionData['player']->save();
                         }
