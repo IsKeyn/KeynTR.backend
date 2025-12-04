@@ -111,7 +111,7 @@ class PlayerGameService
         $gameListIds = [];
 
         foreach ($boardGames as $boardGame) {
-            $gameListId = BoardGameGameList::query()->where('game_id', $game->id)->where('board_game_id', $boardGame->id)->value('id');
+            $gameListId = BoardGameGameList::query()->where('game_id', $game->game_id)->where('board_game_id', $boardGame->id)->value('id');
 
             if ($gameListId) {
                 $gameListIds[] = $gameListId;
