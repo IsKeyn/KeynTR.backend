@@ -75,6 +75,8 @@ class GamesApiController extends Controller {
                     $platformData = $speedrunApiService->getPlatform($platform);
                     $platformId = GamingPlatform::where('name', $platformData['data']['name'])->value('id');
 
+                    dd($platformData);
+
                     if ($platformId) {
                         $platformData[] = $platformId;
                     } else {
@@ -89,6 +91,7 @@ class GamesApiController extends Controller {
                 }
 
                 // Добавляем Cover
+                /*
                 if ($result["data"]["assets"]["cover-large"]["uri"] ?? null) {
                     $response = Http::get($result["data"]["assets"]["cover-large"]["uri"]);
                     $imageContent = $response->body();
@@ -117,6 +120,7 @@ class GamesApiController extends Controller {
                         $gameFields['covers'][] = $cover;
                     }
                 }
+                */
 
 //                dd($platformData);
 
