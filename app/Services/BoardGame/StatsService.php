@@ -227,8 +227,6 @@ class StatsService
             }
         }
 
-        rsort($userRerollsRatio);
-
         $boardGamePlayers = BoardGamePlayer::whereIn('user_id', array_keys($userRerollsRatio))->findByBoardGame($boardGameId)->get();
 
         $result = collect([]);
@@ -266,8 +264,6 @@ class StatsService
                 $userRerollsRatio[$game->user_id]++;
             }
         }
-
-        rsort($userRerollsRatio);
 
         $boardGamePlayers = BoardGamePlayer::whereIn('user_id', array_keys($userRerollsRatio))->findByBoardGame($boardGameId)->get();
 
