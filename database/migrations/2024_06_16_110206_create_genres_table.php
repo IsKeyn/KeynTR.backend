@@ -18,6 +18,7 @@ class CreateGenresTable extends Migration
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
+            $table->string('spc_id')->nullable();
             $table->timestamps();
         });
     }

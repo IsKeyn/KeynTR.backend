@@ -71,4 +71,48 @@ class SpeedrunApiService
 
         return $data;
     }
+
+    public static function getGenres($id)
+    {
+        $url = self::API_URL . "genres/$id";
+
+        $options = [
+            'http' => [
+                'method' => 'GET',
+            ],
+            // TODO Отключаем ssl только для локальной разработки, вынестив в env
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+        $data = json_decode($response, true);
+
+        return $data;
+    }
+
+    public static function getData($id, $type)
+    {
+        $url = self::API_URL . "$type/$id";
+
+        $options = [
+            'http' => [
+                'method' => 'GET',
+            ],
+            // TODO Отключаем ssl только для локальной разработки, вынестив в env
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+        $data = json_decode($response, true);
+
+        return $data;
+    }
 }

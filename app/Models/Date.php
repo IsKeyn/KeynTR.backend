@@ -13,6 +13,7 @@ class Date extends Model
         'date',
     ];
 
+    // Связки для сущности game
     public function gamePlatform()
     {
         return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind')->withPivot('additional_info');
@@ -26,5 +27,11 @@ class Date extends Model
     public function gamesAnons()
     {
         return $this->morphedByMany(Game::class, 'date_bind')->wherePivot('type', '=', Game::DATE_ANONS_TYPE);
+    }
+
+    // Связки для сущности GamingPlatform
+    public function gamingPlatforms()
+    {
+        return $this->morphedByMany(GamingPlatform::class, 'date_bind');
     }
 }

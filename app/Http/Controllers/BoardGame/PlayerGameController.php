@@ -675,11 +675,13 @@ class PlayerGameController extends Controller
             $usedGames[] = $game->board_game_game_list_id;
         }
 
+        $gameList = $boardGameGameList->filter(function ($value) use ($usedGames) {
+            return !in_array($value->id, $usedGames);
+        });
+
         // TODO возможно стоит что-то придумать когда игр 0
         return [
-            'gameList' => $boardGameGameList->filter(function ($value) use ($usedGames) {
-                return !in_array($value->id, $usedGames);
-            }),
+            'gameList' => $gameList,
             'listType' => $listType,
         ];
     }

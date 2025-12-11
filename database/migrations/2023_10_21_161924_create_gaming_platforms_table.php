@@ -20,6 +20,7 @@ class CreateGamingPlatformsTable extends Migration
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
             $table->date('release_date')->nullable();
+            $table->string('spc_id')->nullable();
             $table->bigInteger('sort')->nullable();
             $table->timestamps();
 

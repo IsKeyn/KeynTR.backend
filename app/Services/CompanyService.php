@@ -7,6 +7,24 @@ use App\Models\Group;
 
 class CompanyService
 {
+    public function add($fields)
+    {
+        if (!$fields['slug']) {
+            return ErrorService::message('Slug не найден');
+        }
+
+        // Проверяем slug
+        $gameBySlug = Company::findBySlug($fields['slug'])->first();
+
+        if ($gameBySlug) {
+            return ErrorService::message('Компания с таким Slug уже существует');
+        }
+
+        if ($company = Company::create($fields)) {
+            return $company;
+        }
+    }
+
     public static function set($entity, $data)
     {
         $arItemsIds = [];

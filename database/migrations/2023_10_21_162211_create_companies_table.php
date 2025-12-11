@@ -19,6 +19,7 @@ class CreateCompaniesTable extends Migration
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
             $table->date('created_date')->nullable();
+            $table->string('spc_id')->nullable();
             $table->timestamps();
         });
     }
