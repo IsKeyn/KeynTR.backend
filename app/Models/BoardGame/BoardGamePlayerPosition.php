@@ -18,4 +18,8 @@ class BoardGamePlayerPosition extends Model
         'has_use_effect',
         'created_by',
     ];
+
+    protected $casts = [
+        'has_use_effect' => 'boolean',
+    ];
 }

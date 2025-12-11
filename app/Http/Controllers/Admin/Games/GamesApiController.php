@@ -41,6 +41,7 @@ class GamesApiController extends Controller {
                         $arForReturn['list'][] = [
                             'id' => $result["id"],
                             'name' => $result["names"]["international"],
+                            'date' => $result["release-date"],
                         ];
                     }
                 }
@@ -284,6 +285,14 @@ class GamesApiController extends Controller {
                 }
 
                 /*
+                $url = $result["data"]["assets"]["cover-large"]["uri"];
+
+                $cdn = trim(shell_exec('node resolveSpeedrunCdn.js "' . escapeshellarg($url) . '"'));
+
+                $imageContent = file_get_contents($cdn);
+
+                dd($imageContent);
+
                 // Добавляем Cover
                 if ($result["data"]["assets"]["cover-large"]["uri"] ?? null) {
                     $response = Http::get($result["data"]["assets"]["cover-large"]["uri"]);
@@ -317,25 +326,6 @@ class GamesApiController extends Controller {
 
 //            dd($gameFields);
                 return $gameService->addGame($gameFields);
-
-//                $arForReturn = [];
-//
-//                $results = $speedrunApiService->search($request->search, $request->offset);
-//
-//                if (isset($results['data']) && $results['data']) {
-//                    foreach ($results['data'] as $result) {
-//
-//                        $arForReturn['list'][] = [
-//                            'id' => $result["id"],
-//                            'name' => $result["names"]["international"],
-//                        ];
-//                    }
-//                }
-//
-//                $arForReturn['pagination'] = $results['pagination'];
-//
-//                return $arForReturn;
-//                    return $results;
         }
     }
 }

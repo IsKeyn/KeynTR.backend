@@ -237,15 +237,15 @@ class StatsService
                 $player->setAttribute('additional_data', $userRerollsRatio[$player->user_id]);
                 $result->push($player);
 
-                $i++;
-
-                if ($i === $limit) {
-                    break;
-                }
+//                $i++;
+//
+//                if ($i === $limit) {
+//                    break;
+//                }
             }
         }
 
-        return $sort === 'asc' ? $result->sortBy('additional_data') : $result->sortByDesc('additional_data');
+        return $sort === 'asc' ? $result->sortBy('additional_data')->take(10) : $result->sortByDesc('additional_data')->take(10);
     }
 
     public function playerWhoByStatus($boardGameId, $sort = 'asc', $limit = 5, $status)
@@ -275,14 +275,14 @@ class StatsService
                 $player->setAttribute('additional_data', $userRerollsRatio[$player->user_id]);
                 $result->push($player);
 
-                $i++;
-
-                if ($i === $limit) {
-                    break;
-                }
+//                $i++;
+//
+//                if ($i === $limit) {
+//                    break;
+//                }
             }
         }
 
-        return $sort === 'asc' ? $result->sortBy('additional_data') : $result->sortByDesc('additional_data');
+        return $sort === 'asc' ? $result->sortBy('additional_data')->take(10) : $result->sortByDesc('additional_data')->take(10);
     }
 }

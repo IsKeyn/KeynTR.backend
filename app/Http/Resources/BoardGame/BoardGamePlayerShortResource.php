@@ -53,6 +53,7 @@ class BoardGamePlayerShortResource extends JsonResource
             'seconds' => $status['time'],
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
+            'created_at' => $this->created_at,
         ];
     }
 }
