@@ -86,7 +86,7 @@ class BoardService
                         ->where('position', $position)->active()->get();
 
                     foreach ($boardPositionEffectBinds as $boardPositionEffectBind) {
-                        self::activateCellEffect($boardPositionEffectBind, $entry, $conditionData, null, true);
+                        self::activateCellEffect($boardPositionEffectBind, $entry, $conditionData, null, true, $params['player']->user_id);
                     }
 
                     $finalPosition = BoardGamePlayerPosition::query()
@@ -101,11 +101,13 @@ class BoardService
         }
     }
 
-    public static function activateCellEffect($boardPositionEffectBind, $position, $conditionData, $data = null, $onlyAutoUse = false)
+    public static function activateCellEffect($boardPositionEffectBind, $position, $conditionData, $data = null, $onlyAutoUse = false, $userId = null)
     {
+        $userId = $userId ? $userId : $conditionData['user']->id;
+
         $hasUsePosition = BoardGamePlayerPosition::query()
             ->findByBoardGame($conditionData['boardGame']->id)
-            ->findByUserId($conditionData['user']->id)
+            ->findByUserId($userId)
             ->where('position', $position->position)
             ->where('has_use_effect', true)
             ->exists();
@@ -135,7 +137,7 @@ class BoardService
                                 )
                             ) {
                                 BoardService::setUsePositionEffect(
-                                    $conditionData['user']->id,
+                                    $userId,
                                     $conditionData['boardGame']->id,
                                     $boardPositionEffectBind->position
                                 );
