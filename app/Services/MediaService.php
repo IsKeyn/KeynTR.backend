@@ -112,7 +112,7 @@ class MediaService
         return $entity->mediaGroup()->sync($arGalleryIds);
     }
 
-    public function getWebp(MediaResource $media)
+    public function getWebp($media)
     {
         if (!$this->isImageMedia($media)) {
             return false;
@@ -134,7 +134,7 @@ class MediaService
         return config('app.url') . "/storage/" . str_replace('\\', '/', $webpPath);
     }
 
-    public function getResizes(MediaResource $media)
+    public function getResizes($media)
     {
         if (!$this->isImageMedia($media)) {
             return false;
@@ -171,7 +171,7 @@ class MediaService
         return $returnData;
     }
 
-    private function isImageMedia(MediaResource $media): bool
+    private function isImageMedia($media): bool
     {
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
         return in_array(strtolower($media->mime_type), $imageExtensions);

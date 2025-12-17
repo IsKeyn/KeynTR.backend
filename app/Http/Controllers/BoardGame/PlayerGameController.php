@@ -5,6 +5,7 @@ namespace App\Http\Controllers\BoardGame;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\GameListResource;
+use App\Http\Resources\BoardGame\games\GameRouletteListResource;
 use App\Http\Resources\BoardGame\PlayerInteractionResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
@@ -17,7 +18,6 @@ use App\Models\BoardGame\Timer;
 use App\Models\GamingPlatform;
 use App\Models\User;
 use App\Services\BoardGame\ActionsService;
-use App\Services\BoardGame\BoardService;
 use App\Services\BoardGame\GameService;
 use App\Services\BoardGame\InteractionsService;
 use App\Services\BoardGame\LogService;
@@ -81,7 +81,7 @@ class PlayerGameController extends Controller
                 return [
                     'status' => 1,
                     'coopInteraction' => PlayerInteractionResource::collection($coopInteractions),
-                    'games' => isset($games['gameList']) ? GameListResource::collection($games['gameList']) : null,
+                    'games' => isset($games['gameList']) ? GameRouletteListResource::collection($games['gameList']) : null,
                     'listType' => isset($games['listType']) ? $games['listType'] : null,
                     'player' => BoardGamePlayerWithCurrentGameResource::make($conditionData['player']),
                 ];
@@ -655,7 +655,12 @@ class PlayerGameController extends Controller
             $boardGameGameQuery->where('list_type', null);
         }
 
-        $boardGameGameList = $boardGameGameQuery->active()->get();
+//        $boardGameGameList = $boardGameGameQuery->active()->get();
+
+        $boardGameGameList = $boardGameGameQuery->with([
+            'game',
+            'game.titleImage',
+        ])->active()->get();
 
         // Убираем из списка игры, выпадали игроку
         $playerGameListQuery = PlayerGame::query()
