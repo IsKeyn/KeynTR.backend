@@ -24,6 +24,7 @@ class ActionsService
     private $type = null;
     private $itemElement = null;
     private $statusEffectElement = null;
+    private $userId = null;
 
     private $BoardGamePlayer = BoardGamePlayer::class;
     private $BoardGamePlayerPosition = BoardGamePlayerPosition::class;
@@ -44,8 +45,14 @@ class ActionsService
         }
     }
 
-    public function activateAction($data, $action)
+    public function activateAction(
+        $data,
+        $action,
+        $userId = null // $userId передается для случаев, когда надо подменить текущего пользователя, например, когда перемещаешь игрока на ячейку игрового поля с эффектом
+    )
     {
+        $this->userId = $userId;
+
         switch ($action->type) {
             case 'removePoints':
             case 'addPoints':
@@ -1037,8 +1044,10 @@ class ActionsService
         /* Функция, которое определяет, на кого действует предмет */
         switch ($action->target) {
             case 'current':
+                $userId = $this->userId ? $this->userId : $this->conditionData['user']->id;
+
                 $players[] = $this->BoardGamePlayer::query()
-                    ->where('user_id', $this->conditionData['user']->id)
+                    ->where('user_id', $userId)
                     ->where('board_game_id', $this->conditionData['boardGame']->id)
                     ->first();
                 break;
