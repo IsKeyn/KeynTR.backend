@@ -45,6 +45,12 @@ class StatusEffectService
                                     }
                                 }
                             }
+
+                            if ($action->type === "onlyAccept") {
+                                foreach ($action->actions as $actionForActivate) {
+                                    $result = $actionService->activateAction($request, $actionForActivate);
+                                }
+                            }
                         }
                     }
 
