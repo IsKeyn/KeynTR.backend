@@ -143,7 +143,7 @@ class TimerService
             if ($timer) {
                 $playerTimes = BoardGamePlayerTimer::query()
                     ->where('timer_id', $timer->id)
-                    ->where('time_start', '>=', $playerGame->created_at)
+                    ->where('time_start', '>=', $playerGame->updated_at)
                     ->get();
 
                 $time = 0;
