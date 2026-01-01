@@ -141,6 +141,10 @@ class TimerService
                 ->first();
 
             if ($timer) {
+                /*
+                 * Используется именно updated_at так как например игра может быть передана мошной или обменена
+                 * и время должно считаться от момента, когда игра изменила пользователя
+                 */
                 $playerTimes = BoardGamePlayerTimer::query()
                     ->where('timer_id', $timer->id)
                     ->where('time_start', '>=', $playerGame->updated_at)
