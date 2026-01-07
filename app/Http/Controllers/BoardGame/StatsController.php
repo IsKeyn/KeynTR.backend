@@ -67,6 +67,9 @@ class StatsController extends Controller
                 $playerMostUseBomb = $statsService->getUserWhoMostUseItem($bomb->id, $boardGameId, $limit);
             }
 
+            /* Участники, чьи игры выпадали чаще всего */
+            $mostDroppedGamesPlayers = $statsService->playerWhoGamesMostByStatus($boardGameId, 'desc', $limit);
+
             /* Участники, чьи игры чаще всего проходили */
             $mostCompletedPlayers = $statsService->playerWhoGamesMostByStatus($boardGameId, 'desc', $limit, PlayerGame::COMPLETED);
 
@@ -160,6 +163,13 @@ class StatsController extends Controller
                 $returnData['playersWhoMostRerolled'] = [
                     'name' => 'Участники, которые реролили игры наибольшее количество раз',
                     'data' => BoardGamePlayerStatsResource::collection($playersWhoMostRerolled)->resolve()
+                ];
+            }
+
+            if (isset($mostDroppedGamesPlayers)) {
+                $returnData['mostDroppedGamesPlayers'] = [
+                    'name' => 'Участники, чьи игры выпадали чаще всего',
+                    'data' => BoardGamePlayerStatsResource::collection($mostDroppedGamesPlayers)->resolve()
                 ];
             }
 

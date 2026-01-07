@@ -207,15 +207,17 @@ class StatsService
         return $result;
     }
 
-    public function playerWhoGamesMostByStatus($boardGameId, $sort = 'asc', $limit = 5, $status)
+    public function playerWhoGamesMostByStatus($boardGameId, $sort = 'asc', $limit = 5, $status = null)
     {
         $userRerollsRatio = [];
 
-        $playerGames = PlayerGame::query()
-            ->findByBoardGame($boardGameId)
-            ->where('status', $status)
-            ->with('game')
-            ->get();
+        $playerGamesQuery = PlayerGame::query()->findByBoardGame($boardGameId);
+
+        if ($status) {
+            $playerGamesQuery->where('status', $status);
+        }
+
+        $playerGames = $playerGamesQuery->with('game')->get();
 
         foreach ($playerGames as $game) {
             if ($game->game->added_by) {
@@ -231,21 +233,14 @@ class StatsService
 
         $result = collect([]);
 
-        $i = 0;
         foreach ($boardGamePlayers as $player) {
             if (isset($userRerollsRatio[$player->user_id])) {
                 $player->setAttribute('additional_data', $userRerollsRatio[$player->user_id]);
                 $result->push($player);
-
-//                $i++;
-//
-//                if ($i === $limit) {
-//                    break;
-//                }
             }
         }
 
-        return $sort === 'asc' ? $result->sortBy('additional_data')->take(10) : $result->sortByDesc('additional_data')->take(10);
+        return $sort === 'asc' ? $result->sortBy('additional_data')->take($limit) : $result->sortByDesc('additional_data')->take($limit);
     }
 
     public function playerWhoByStatus($boardGameId, $sort = 'asc', $limit = 5, $status)
