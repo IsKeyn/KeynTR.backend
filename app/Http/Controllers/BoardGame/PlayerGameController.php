@@ -405,7 +405,6 @@ class PlayerGameController extends Controller
         $playerCurrentGameInQueue = PlayerGame::where('board_game_id', $conditionData['boardGame']->id)
             ->where('user_id', $conditionData['user']->id)
             ->where('status', PlayerGame::QUEUE)
-            ->orderBy('id', 'desc')
             ->first();
 
         if ($playerCurrentGameInQueue) {
