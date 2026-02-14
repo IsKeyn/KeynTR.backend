@@ -121,7 +121,7 @@ class MediaService
         $originalPath = "media/$media->id/$media->file_name";
         $webpPath = str_replace($media->mime_type, 'webp', $originalPath);
 
-        /* Проверяем, что файл, который мы собираемся обрабатывать существуе */
+        /* Проверяем, что файл, который мы собираемся обрабатывать существует */
         if (!Storage::disk('public')->exists($originalPath)) {
             return false;
         }

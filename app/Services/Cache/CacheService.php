@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Cache;
 
 use App\Jobs\BoardGame\BoardGameShortCacheClear;
 use App\Models\BoardGame\BoardGame;
@@ -10,6 +10,24 @@ use Illuminate\Support\Facades\Cache;
 
 class CacheService extends ServiceProvider
 {
+    public const CACHE_TYPE = [
+        [
+            'name' => 'Игры списоные',
+            'class' => 'Game',
+            'method' => 'clearGameListCache',
+        ],
+        [
+            'name' => 'Игры детальные',
+            'class' => 'Game',
+            'method' => 'clearAllDetailCache',
+        ],
+        [
+            'name' => 'Игры детальные',
+            'class' => 'Media',
+            'method' => 'clearAllDetailCache',
+        ],
+    ];
+
     public static function forgetEntityCache(
         $entityName,
         $entityFolder = null,

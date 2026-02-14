@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Media extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait;
 
     const TITLE_TYPE = 1;
     const COVER_TYPE = 2;
@@ -57,5 +59,10 @@ class Media extends Model
     public function groups()
     {
         return $this->morphedByMany(MediaGroup::class, 'media_bind')->withPivot(['type', 'sort']);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
