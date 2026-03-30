@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\Admin\LinkResource;
+use App\Http\Resources\Admin\AdminLinkResource;
 use App\Models\Game;
 use App\Models\Media;
 use App\Models\VotesLog;
@@ -27,7 +27,7 @@ class GameResource extends JsonResource
             'entity_type' => Game::class,
             'name' => $this->name,
             'slug' => $this->slug,
-            'platforms' => $this->platforms,
+            'platforms' => $this->gamePlatform,
             'description' => $this->description,
             'active' => $this->active,
             'show_in_list' => $this->show_in_list,
@@ -39,7 +39,7 @@ class GameResource extends JsonResource
             'groups' => GroupResource::collection($this->groups),
             'genres' => GenreResource::collection($this->genres),
             'companies' => CompanyResource::collection($this->company),
-            'links' => LinkResource::collection($this->link),
+            'links' => AdminLinkResource::collection($this->link),
             'additional_fields' => $this->additionalFields,
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
             'views' => $this->views ? $this->views->value : null,

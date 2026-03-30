@@ -4,7 +4,7 @@ namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AnonsDateResource extends JsonResource
+class AdminAnonsDateResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

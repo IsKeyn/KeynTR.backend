@@ -1,0 +1,73 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Seo;
+
+class RelatedDataService
+{
+    public function set($model, $validated)
+    {
+        if (isset($validated['title_image']) || isset($validated['covers'])) {
+            $mediaService = new MediaService();
+
+            if (isset($validated['title_image'])) {
+                $mediaService->setTitleImage($model, $validated['title_image']);
+            }
+
+            if (isset($validated['covers'])) {
+                $mediaService->setCovers($model, $validated['covers']);
+            }
+        }
+
+        if (isset($validated['additional_fields'])) {
+            $additionalFieldsService = new AdditionalFieldsService();
+            $additionalFieldsService->sync($model, $validated['additional_fields']);
+        }
+
+        if (isset($validated['series'])) {
+            SeriesService::set($model, $validated['series']);
+        }
+
+        if (isset($validated['groups'])) {
+            GroupService::set($model, $validated['groups']);
+        }
+
+        if (isset($validated['genres'])) {
+            GenreService::set($model, $validated['genres']);
+        }
+
+        if (isset($validated['companies'])) {
+            CompanyService::set($model, $validated['companies']);
+        }
+
+        if (isset($validated['tags'])) {
+            TagService::attacheTagsToEntity($model, $validated['tags']);
+        }
+
+        if (isset($validated['seo']) && $validated['seo']) {
+            if ($model->seo) {
+                $model->seo()->update($validated['seo']);
+            } else {
+                $meta = new Seo($validated['seo']);
+                $model->seo()->save($meta);
+            }
+        }
+
+        if (isset($validated['anons_dates'])) {
+            GameService::setAnonsDates($model, $validated['anons_dates']);
+        }
+
+        if (isset($validated['release_dates'])) {
+            GameService::setReleaseDates($model, $validated['release_dates']);
+        }
+
+        if (isset($validated['links'])) {
+            LinkService::set($model, $validated['links']);
+        }
+
+        if (isset($validated['blocks'])) {
+            BlockService::set($model, $validated['blocks']);
+        }
+    }
+}

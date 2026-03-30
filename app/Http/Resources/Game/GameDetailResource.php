@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Game;
 
-use App\Http\Resources\Admin\LinkResource;
+use App\Http\Resources\Admin\AdminLinkResource;
 use App\Http\Resources\BlockResource;
 use App\Http\Resources\Company\CompanyWithGroupResource;
 use App\Http\Resources\Date\DateShortResource;
@@ -35,7 +35,7 @@ class GameDetailResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
-            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->get())),
+            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->orderByPivot('sort')->get())),
             'platforms' => $this->whenLoaded('gamePlatform', $this->gamePlatform),
             'release_dates' => $this->whenLoaded('dates', DateWithPlatformResource::collection($this->dates)),
             'anons_dates' => $this->whenLoaded('anonsDates', DateShortResource::collection($this->anonsDates)),
@@ -43,7 +43,7 @@ class GameDetailResource extends JsonResource
             'groups' => $this->whenLoaded('groups', GroupResource::collection($this->groups)),
             'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
             'companies' => $this->whenLoaded('company', CompanyWithGroupResource::collection($this->company)),
-            'links' => $this->whenLoaded('link', LinkResource::collection($this->link)),
+            'links' => $this->whenLoaded('link', AdminLinkResource::collection($this->link)),
             'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
             'seo' => $this->whenLoaded('seo', function() {
                 return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;

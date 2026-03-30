@@ -4,7 +4,7 @@ namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GenreResource extends JsonResource
+class AdminSeriesResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,7 +15,7 @@ class GenreResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'genre' => $this->id,
+            'series' => $this->id,
         ];
     }
 }

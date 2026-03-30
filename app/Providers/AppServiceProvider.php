@@ -2,6 +2,18 @@
 
 namespace App\Providers;
 
+use App\Models\Company;
+use App\Models\Game;
+use App\Models\GamingPlatform;
+use App\Models\Genre;
+use App\Models\Group;
+use App\Models\Version;
+use App\Observers\CompanyObserver;
+use App\Observers\GameObserver;
+use App\Observers\GamingPlatformObserver;
+use App\Observers\GenreObserver;
+use App\Observers\GroupObserver;
+use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +39,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Game::observe(GameObserver::class);
+        Group::observe(GroupObserver::class);
+        GamingPlatform::observe(GamingPlatformObserver::class);
+        Genre::observe(GenreObserver::class);
+        Company::observe(CompanyObserver::class);
+        Version::observe(VersionObserver::class);
     }
 }

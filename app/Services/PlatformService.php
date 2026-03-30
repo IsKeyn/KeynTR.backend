@@ -9,7 +9,7 @@ class PlatformService extends ServiceProvider
 {
     public static function attachePlatformToEntity($entity, $gamePlatformName) {
         $platformEntity = self::findOrCreate($gamePlatformName);
-        $entity->platform()->sync($platformEntity->id);
+        $entity->GamingPlatform()->sync($platformEntity->id);
 
         return $platformEntity;
     }

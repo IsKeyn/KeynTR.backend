@@ -34,6 +34,7 @@ class Company extends Model
             ->withPivot(['first_b_id', 'first_b_type'])
             ->wherePivot('first_b_id', '=', $id)
             ->wherePivot('first_b_type', '=', $type)
+            ->wherePivot('group_bind_id', '=', $this->id)
             ->withTimestamps();
     }
 }

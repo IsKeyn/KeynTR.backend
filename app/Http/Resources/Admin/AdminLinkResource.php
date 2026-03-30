@@ -4,7 +4,7 @@ namespace App\Http\Resources\Admin;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ReleaseDateResource extends JsonResource
+class AdminLinkResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,12 +14,9 @@ class ReleaseDateResource extends JsonResource
      */
     public function toArray($request)
     {
-        $gamePlatform = $this->gamePlatform()->first();
-
         return [
-            'date' => $this->date,
-            'gaming_platform' => $gamePlatform ? $gamePlatform->id : null,
-            'addInfo' => $gamePlatform ? $gamePlatform->pivot->additional_info : null,
+            'name' => $this->name,
+            'url' => $this->url,
         ];
     }
 }

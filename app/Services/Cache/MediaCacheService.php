@@ -9,7 +9,7 @@ class MediaCacheService
 {
     public const LIST_PREFIX = 'media_list_cache';
     public const DETAIL_PREFIX = 'media_detail_cache';
-    public const TIME = 129600;
+    public const TIME = 6 * 30 * 24 * 60 * 60;
 
     public function clearAllCache()
     {

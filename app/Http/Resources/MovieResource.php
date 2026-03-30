@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\Admin\LinkResource;
+use App\Http\Resources\Admin\AdminLinkResource;
 use App\Models\Media;
 use App\Models\Movie;
 use App\Models\VotesLog;
@@ -34,7 +34,7 @@ class MovieResource extends JsonResource
             'tags' => TagResource::collection($this->tags),
             'genres' => GenreResource::collection($this->genres),
             'companies' => CompanyResource::collection($this->company),
-            'links' => LinkResource::collection($this->link),
+            'links' => AdminLinkResource::collection($this->link),
             'additional_fields' => $this->additionalFields,
             'seo' => $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null,
             'views' => $this->views ? $this->views->value : null,

@@ -18,6 +18,7 @@ class CreateGamesTable extends Migration
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
+            $table->integer('sort')->nullable();
             $table->boolean('active')->default(1);
             $table->boolean('show_in_list')->default(1);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

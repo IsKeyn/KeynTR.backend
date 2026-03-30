@@ -30,6 +30,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('board-game:stop-limited-timer')->everyFifteenMinutes(); // Остановка таймеров, достигших лимита
         // $schedule->command('log:set')->everyMinute();
         // $schedule->command('inspire')->hourly();
+        $schedule->command('version:clear-versions 365')->sundays()->at('23:59'); // Очистка записей версий, которые старше 1 года
     }
 
     /**

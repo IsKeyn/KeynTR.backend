@@ -23,7 +23,7 @@ class GameListResource extends JsonResource
             'game' => GameShortResource::make($this->game),
             'added_by_user' => UserPublicResource::make($this->addedBy),
             'gaming_platform_id' => $this->gaming_platform_id,
-            'platform' => $this->platform,
+            'platform' => $this->gamePlatform,
             'board_game_id' => $this->board_game_id,
             'description' => $this->description,
             'points' => $this->points,

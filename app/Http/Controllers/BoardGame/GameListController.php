@@ -28,7 +28,7 @@ class GameListController extends Controller
                         'game',
                         'platform',
                         'addedBy',
-                        'game.platforms',
+                        'game.gamePlatform',
                         'game.dates',
                         'game.anonsDates',
                         'game.tags',

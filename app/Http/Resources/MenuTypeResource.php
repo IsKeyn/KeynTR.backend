@@ -19,7 +19,7 @@ class MenuTypeResource extends JsonResource
             'name' => $this->name,
             'code' => $this->code,
             'group' => $this->group,
-            'elements' => MenuElementsResource::collection($this->elements),
+            'elements' => $this->whenLoaded('elements', MenuElementsResource::collection($this->elements)),
         ];
     }
 }

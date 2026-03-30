@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\BoardGame\PlayerGame;
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Comments extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait;
 
     protected $fillable = [
         'name',
@@ -39,5 +40,10 @@ class Comments extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function bgPlayerGame()
+    {
+        return $this->hasOne(PlayerGame::class, 'comment_id');
     }
 }

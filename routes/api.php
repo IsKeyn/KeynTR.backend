@@ -9,6 +9,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaGroupController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SlideController;
 use App\Http\Controllers\SocialController;
@@ -136,10 +137,15 @@ Route::name('api.')->group(function() {
 //        Route::get('{slide:slug}', 'getSlide')->name('get-slide');
     });
 
+    Route::prefix('recommendation/')->controller(RecommendationController::class)->name('.recommendation')->group(function() {
+        Route::get('get', 'get')->name('get');
+    });
+
     // Работа с сущностью game
     //    Route::resource('game', GameController::class);
     Route::prefix('game/')->controller(GameController::class)->name('.game')->group(function() {
         Route::get('list', 'getList')->name('game-list');
+        Route::get('filters', 'getListFilters')->name('game-list-filters');
         Route::get('{game:slug}', 'getGame')->name('get-game');
     });
 

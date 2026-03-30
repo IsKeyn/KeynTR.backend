@@ -78,18 +78,25 @@ class MediaService
 
     public function setCovers($entity, $coversArray)
     {
-        $arCoversIds = [];
+        $coversData = [];
 
         foreach ($coversArray as $cover) {
             if (isset($cover['id'])) {
-                $media = Media::query()->where('id', $cover['id'])->first();
+                $media = Media::query()->find($cover['id']);
 
+                if ($media) {
+                    $pivotValues = ['type' => Media::COVER_TYPE];
 
-                $arCoversIds[] = $media->id;
+                    if (isset($cover['sort'])) {
+                        $pivotValues['sort'] = $cover['sort'];
+                    }
+
+                    $coversData[$media->id] = $pivotValues;
+                }
             }
         }
 
-        return $entity->cover()->syncWithPivotValues($arCoversIds, ['type' => Media::COVER_TYPE]);
+        return $entity->cover()->sync($coversData);
     }
 
     public function setMediaGroup($entity, $galleryArray)

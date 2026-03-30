@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminRecommendationController;
+use App\Http\Controllers\Admin\AdminVersionController;
 use App\Http\Controllers\Admin\BoardGame\ItemBindController;
 use App\Http\Controllers\Admin\BoardGame\ItemController;
 use App\Http\Controllers\Admin\BoardGame\BoardGameController;
@@ -60,6 +62,11 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
     Route::resource('pages', AdminPageController::class);
     Route::resource('articles', AdminArticlePagesController::class);
     Route::resource('slides', AdminSlideController::class);
+    Route::resource('recommendation', AdminRecommendationController::class);
+    Route::prefix('version/')->controller(AdminVersionController::class)->name('version.')->group(function() {
+        Route::get('getByEntity', 'getByEntity')->name('get-by-entity');
+    });
+    Route::resource('version', AdminVersionController::class);
 
     Route::get('game/get-additional-data', [AdminGameController::class, 'getAdditionalData'])->name('game.get-additional-data');
     Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');

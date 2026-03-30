@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
+use App\Models\Traits\ExtendModelTrait;
+use App\Models\BoardGame\BoardGameGameList;
 
 /**
  * Class Game
@@ -27,6 +27,7 @@ class Game extends Model
         'description',
         'active',
         'show_in_list',
+        'sort',
         'created_by',
         'created_at',
     ];
@@ -36,44 +37,9 @@ class Game extends Model
         'show_in_list' => 'boolean',
     ];
 
-    public function scopeActive($query)
-    {
-        return $query->where('active', true);
-    }
-
-    public function getModelAttribute()
-    {
-        return get_class($this);
-    }
-
-    public function platforms() // TODO где используется? В основном на сайте gamePlatform
-    {
-        return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind');
-    }
-
-    public function additionalFields()
-    {
-        return $this->morphMany(AdditionalField::class, 'entity');
-    }
-
-    public function tags()
-    {
-        return $this->morphToMany(Tag::class, 'tag_binds');
-    }
-
-    public function media()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
-    }
-
-    public function titleImage()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type')->wherePivot('type', '=', Media::TITLE_TYPE);
-    }
-
     public function cover()
     {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type')->wherePivot('type', '=', Media::COVER_TYPE);
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::COVER_TYPE);
     }
 
     public function dates()
@@ -97,6 +63,11 @@ class Game extends Model
         return $this->morphToMany(GamingPlatform::class, 'gaming_platform_bind')->withPivot('additional_info');
     }
 
+    public function series()
+    {
+        return $this->morphToMany(Series::class, 'series_bind');
+    }
+
     public function groups()
     {
         return $this->morphToMany(Group::class, 'group_bind')->withPivot('type')->wherePivot('type', '=', Game::SERIES_TYPE);
@@ -117,33 +88,8 @@ class Game extends Model
         return $this->morphToMany(Link::class, 'link_bind');
     }
 
-    public function comments()
+    public function bgGamesList()
     {
-        return $this->morphMany(Comments::class, 'entity');
-    }
-
-    public function views()
-    {
-        return $this->morphOne(ViewsCount::class, 'entity');
-    }
-
-    public function likes()
-    {
-        return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
-    }
-
-    public function menu()
-    {
-        return $this->morphMany(MenuType::class, 'menu_type_bind');
-    }
-
-    public function seo()
-    {
-        return $this->morphOne(Seo::class, 'entity');
-    }
-
-    public function blocks()
-    {
-        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type')->orderBy('position', 'asc');
+        return $this->hasMany(BoardGameGameList::class, 'game_id')->where('active', true);
     }
 }
