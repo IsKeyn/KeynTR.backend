@@ -18,6 +18,7 @@ class CreateGamesTable extends Migration
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
+            $table->boolean('mod')->default(false);
             $table->integer('sort')->nullable();
             $table->boolean('active')->default(1);
             $table->boolean('show_in_list')->default(1);

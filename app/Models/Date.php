@@ -11,6 +11,13 @@ class Date extends Model
 
     protected $fillable = [
         'date',
+        'hide_day',
+        'hide_month',
+    ];
+
+    protected $casts = [
+        'hide_day' => 'boolean',
+        'hide_month' => 'boolean',
     ];
 
     // Связки для сущности game

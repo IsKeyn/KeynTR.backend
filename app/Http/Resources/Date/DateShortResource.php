@@ -17,6 +17,8 @@ class DateShortResource extends JsonResource
         return [
             'id' => $this->id,
             'date' => $this->date,
+            'hideDay' => $this->hide_day,
+            'hideMonth' => $this->hide_month,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

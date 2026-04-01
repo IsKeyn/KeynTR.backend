@@ -25,6 +25,7 @@ class Game extends Model
         'name',
         'slug',
         'description',
+        'mod',
         'active',
         'show_in_list',
         'sort',
@@ -35,6 +36,7 @@ class Game extends Model
     protected $casts = [
         'active' => 'boolean',
         'show_in_list' => 'boolean',
+        'mod' => 'boolean',
     ];
 
     public function cover()

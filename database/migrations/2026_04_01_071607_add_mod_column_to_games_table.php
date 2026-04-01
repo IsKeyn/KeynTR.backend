@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDatesTable extends Migration
+class AddModColumnToGamesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,8 @@ class CreateDatesTable extends Migration
      */
     public function up()
     {
-        Schema::create('dates', function (Blueprint $table) {
-            $table->id();
-            $table->date('date');
-            $table->boolean('hide_day')->default(false);
-            $table->boolean('hide_month')->default(false);
-            $table->timestamps();
+        Schema::table('games', function (Blueprint $table) {
+            $table->boolean('mod')->default(false)->after('description');
         });
     }
 
@@ -29,6 +25,8 @@ class CreateDatesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('dates');
+        Schema::table('games', function (Blueprint $table) {
+            $table->dropColumn('mod');
+        });
     }
 }

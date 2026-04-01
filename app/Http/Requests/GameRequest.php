@@ -27,6 +27,7 @@ class GameRequest extends FormRequest
                 Rule::unique('games', 'slug')->ignore($gameId),
             ],
             'description' => 'sometimes|string|nullable',
+            'mod' => 'sometimes|boolean',
             'sort' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean',
             'show_in_list' => 'sometimes|boolean',

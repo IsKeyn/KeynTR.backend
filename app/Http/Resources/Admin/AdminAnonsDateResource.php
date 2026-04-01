@@ -16,6 +16,8 @@ class AdminAnonsDateResource extends JsonResource
     {
         return [
             'date' => $this->date,
+            'hideDay' => $this->hide_day,
+            'hideMonth' => $this->hide_month,
         ];
     }
 }

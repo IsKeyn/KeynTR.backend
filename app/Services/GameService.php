@@ -96,7 +96,10 @@ class GameService
             foreach ($releaseDates as $item) {
                 if (isset($item['date']) && $item['date']) {
                     /* Ищем дату, которая равна переданой и привязана к текущеё сущности */
-                    $dateQuery = Date::where('date', $item['date']);
+                    $hideDay = isset($item['hideDay']) ? $item['hideDay'] : false;
+                    $hideMonth = isset($item['hideMonth']) ? $item['hideMonth'] : false;
+
+                    $dateQuery = Date::where('date', $item['date'])->where('hide_day', $hideDay)->where('hide_month', $hideMonth);
                     $dateQuery->whereHas('games', function ($q) use ($entity) {
                         $q->where('games.id', $entity->id);
                     });
@@ -114,7 +117,13 @@ class GameService
                     }
 
                     if (!$dateEntity) {
-                        $dateEntity = Date::create(['date' => $item['date']]);
+                        $dateEntity = Date::create(
+                            [
+                                'date' => $item['date'],
+                                'hide_day' => $hideDay,
+                                'hide_month' => $hideMonth,
+                            ]
+                        );
                     }
 
                     $arDatesIds[$dateEntity->id] = [];
@@ -142,7 +151,10 @@ class GameService
             foreach ($anonsDates as $item) {
                 if (isset($item['date']) && $item['date']) {
                     /* Ищем дату, которая равна переданой и привязана к текущеё сущности с типом DATE_ANONS_TYPE */
-                    $dateQuery = Date::where('date', $item['date']);
+                    $hideDay = isset($item['hideDay']) ? $item['hideDay'] : false;
+                    $hideMonth = isset($item['hideMonth']) ? $item['hideMonth'] : false;
+
+                    $dateQuery = Date::where('date', $item['date'])->where('hide_day', $hideDay)->where('hide_month', $hideMonth);
                     $dateQuery->whereHas(
                         'gamesAnons',
                         function ($q) use ($entity) {
@@ -153,7 +165,13 @@ class GameService
                     $dateEntity = $dateQuery->first();
 
                     if (!$dateEntity) {
-                        $dateEntity = Date::create(['date' => $item['date']]);
+                        $dateEntity = Date::create(
+                            [
+                                'date' => $item['date'],
+                                'hide_day' => $hideDay,
+                                'hide_month' => $hideMonth,
+                            ]
+                        );
                     }
 
                     $arDatesIds[] = $dateEntity->id;

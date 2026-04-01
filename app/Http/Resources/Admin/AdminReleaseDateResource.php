@@ -20,6 +20,8 @@ class AdminReleaseDateResource extends JsonResource
             'date' => $this->date,
             'gaming_platform' => $gamePlatform ? $gamePlatform->id : null,
             'addInfo' => $gamePlatform ? $gamePlatform->pivot->additional_info : null,
+            'hideDay' => $this->hide_day,
+            'hideMonth' => $this->hide_month,
         ];
     }
 }
