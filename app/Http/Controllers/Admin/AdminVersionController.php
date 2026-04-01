@@ -5,21 +5,41 @@ use App\Filters\VersionFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\AdminVersionResource;
 use App\Models\Version;
-use App\Services\Cache\GameCacheService;
 use App\Services\Cache\VersionCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class AdminVersionController extends Controller {
-//    public function index()
-//    {
-//        $cacheKey = RecommendationCacheService::ADMIN_LIST_PREFIX;
-//
-//        return Cache::remember($cacheKey, RecommendationCacheService::TIME, function () {
-//            return RecommendationResource::collection(Recommendation::with(['media'])->get());
-//        });
-//    }
+    public function index(Request $request)
+    {
+        $cacheKey = VersionCacheService::LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        $time = VersionCacheService::TIME;
+
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                "version_token",
+                fn() => Str::random(10)
+            );
+
+            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $time = VersionCacheService::FILTER_TIME;
+        }
+
+        return Cache::remember($cacheKey, $time, function () use ($request) {
+            $filter = new VersionFilter($request);
+
+            $versions = $filter->apply(Version::query())->orderBy('created_at', 'desc');
+
+            if (!isset($request->sort)) {
+                $versions->orderByRaw('sort IS NULL, sort ASC');
+            }
+
+            $result = $versions->paginate($request->perPage ? $request->perPage : 10);
+
+            return AdminVersionResource::collection($result);
+        });
+    }
 //
 //    public function edit($id)
 //    {

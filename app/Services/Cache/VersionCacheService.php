@@ -16,6 +16,29 @@ class VersionCacheService
 
     }
 
+    public function clearListCache($showMessage = false)
+    {
+        $perPageArray = [15, 30, 45];
+
+        foreach ($perPageArray as $perPage) {
+            $lastPage = Version::query()
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage)->lastPage();
+
+            for ($i = 1; $i <= $lastPage; $i++) {
+                $cacheKey = self::LIST_PREFIX . '_' . $i . '_' . $perPage;
+
+                Cache::forget($cacheKey);
+
+                if ($showMessage) {
+                    echo $cacheKey . ' очищен' . PHP_EOL;
+                }
+            }
+        }
+
+        Cache::forget("version_token");
+    }
+
     public function clearListCacheByEntity($type, $id, $showMessage = false)
     {
         $perPageArray = [5, 15, 30];

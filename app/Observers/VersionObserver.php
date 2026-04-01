@@ -16,7 +16,8 @@ class VersionObserver
     public function created(Version $version)
     {
         $versionCacheService = app(VersionCacheService::class);
-        $versionCacheService->clearListCacheByEntity($version->entity->model, $version->entity->id, true);
+        $versionCacheService->clearListCache();
+        $versionCacheService->clearListCacheByEntity($version->entity->model, $version->entity->id);
     }
 
     /**
@@ -27,7 +28,8 @@ class VersionObserver
      */
     public function updated(Version $version)
     {
-        //
+        $versionCacheService = app(VersionCacheService::class);
+        $versionCacheService->clearListCache();
     }
 
     /**
@@ -38,7 +40,8 @@ class VersionObserver
      */
     public function deleted(Version $version)
     {
-        //
+        $versionCacheService = app(VersionCacheService::class);
+        $versionCacheService->clearListCache();
     }
 
     /**
@@ -49,7 +52,8 @@ class VersionObserver
      */
     public function restored(Version $version)
     {
-        //
+        $versionCacheService = app(VersionCacheService::class);
+        $versionCacheService->clearListCache();
     }
 
     /**
@@ -60,6 +64,7 @@ class VersionObserver
      */
     public function forceDeleted(Version $version)
     {
-        //
+        $versionCacheService = app(VersionCacheService::class);
+        $versionCacheService->clearListCache();
     }
 }
