@@ -69,8 +69,11 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
     Route::resource('version', AdminVersionController::class);
 
     Route::get('game/get-additional-data', [AdminGameController::class, 'getAdditionalData'])->name('game.get-additional-data');
-    Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');
+    Route::post('game/{game}/force-delete', [AdminGameController::class, 'forceDelete'])->name('force-delete');
+    Route::post('game/{game}/recovery', [AdminGameController::class, 'recovery'])->name('recovery');
     Route::resource('game', AdminGameController::class);
+
+    Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');
     Route::resource('movie', AdminMovieController::class);
     Route::resource('media-group', AdminMediaGroupController::class);
 

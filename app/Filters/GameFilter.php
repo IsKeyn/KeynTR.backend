@@ -1,68 +1,17 @@
 <?php
+
 namespace App\Filters;
 
+use App\Filters\Concerns\HasFilters;
 use App\Models\Game;
 use App\Models\ViewsCount;
 use App\Models\VotesCount;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 class GameFilter
 {
-    protected $request;
-    protected $query;
+    use HasFilters;
 
-    public function __construct(Request $request)
-    {
-        $this->request = $request;
-    }
-
-    public function apply(Builder $query)
-    {
-        $this->query = $query;
-
-        foreach ($this->filters() as $filter => $value) {
-            if (method_exists($this, $filter)) {
-                $this->$filter($value);
-            }
-        }
-
-        return $this->query;
-    }
-
-    public function filters()
-    {
-        return (array) json_decode($this->request->filters);
-    }
-
-    protected function category($value)
-    {
-        $this->query->where('category_id', $value);
-    }
-
-    protected function price_min($value)
-    {
-        $this->query->where('price', '>=', $value);
-    }
-
-    protected function price_max($value)
-    {
-        $this->query->where('price', '<=', $value);
-    }
-
-    protected function tags($value)
-    {
-        if ($value && $tags = $value) {
-            $this->query
-                ->with('tags')
-                ->whereHas('tags', function($query) use ($tags) {
-                    $query->whereIn('tags.name', $tags);
-                });
-        }
-    }
-
-    protected function gamePlatforms($value)
+    protected function gamePlatforms($value): void
     {
         if ($value && $gamePlatformsIds = $value) {
             $this->query
@@ -73,7 +22,7 @@ class GameFilter
         }
     }
 
-    protected function genres($value)
+    protected function genres($value): void
     {
         if ($value && $genresIds = $value) {
             $this->query
@@ -84,7 +33,7 @@ class GameFilter
         }
     }
 
-    protected function companies($value)
+    protected function companies($value): void
     {
         if ($value && $companiesIds = $value) {
             $this->query
@@ -95,52 +44,7 @@ class GameFilter
         }
     }
 
-    protected function date_min($value)
-    {
-        if ($value) {
-            if (isset($this->filters()['by_first_date']) && filter_var($this->filters()['by_first_date'], FILTER_VALIDATE_BOOLEAN)) {
-                $this->query
-                    ->with('dates')
-                    ->withAggregate('dates', 'date', 'min')
-                    ->having('dates_min_date', '>=', Carbon::createFromDate($value)->startOfYear());
-            } else {
-                $this->query
-                    ->with('dates')
-                    ->whereHas('dates', function($query) use ($value) {
-                        $query->where('date', '>=', Carbon::createFromDate($value)->startOfYear());
-                    });
-            }
-        }
-    }
-
-    protected function date_max($value)
-    {
-        if ($value) {
-            if (!(isset($this->filters()['date_min']) && $this->filters()['date_min'])) {
-                $this->query->with('dates');
-            }
-
-            if (isset($this->filters()['by_first_date']) && filter_var($this->filters()['by_first_date'], FILTER_VALIDATE_BOOLEAN)) {
-                if (!(isset($this->filters()['date_min']) && $this->filters()['date_min'])) {
-                    $this->query->withAggregate('dates', 'date', 'min');
-                }
-                $this->query->having('dates_min_date', '<=', Carbon::createFromDate($value)->endOfYear());
-            } else {
-                $this->query->whereHas('dates', function($query) use ($value) {
-                    $query->where('date', '<=', Carbon::createFromDate($value)->endOfYear());
-                });
-            }
-        }
-    }
-
-    protected function search($value)
-    {
-        if ($value) {
-            $this->query->where('name', 'like', '%' . $value . '%');
-        }
-    }
-
-    protected function sort($value)
+    protected function sort($value): void
     {
         if ($value) {
             switch ($value->field) {

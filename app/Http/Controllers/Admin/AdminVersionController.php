@@ -18,7 +18,7 @@ class AdminVersionController extends Controller {
 
         if ($request->filters) {
             $cacheToken = Cache::rememberForever(
-                "version_token",
+                VersionCacheService::ADMIN_LIST_TOKEN,
                 fn() => Str::random(10)
             );
 
@@ -93,7 +93,7 @@ class AdminVersionController extends Controller {
 
         if ($request->filters) {
             $cacheToken = Cache::rememberForever(
-                "version_token:{$request->entity_type}:{$request->entity_id}",
+                VersionCacheService::ADMIN_ELEMENT_TOKEN . ":{$request->entity_type}:{$request->entity_id}",
                 fn() => Str::random(10)
             );
 

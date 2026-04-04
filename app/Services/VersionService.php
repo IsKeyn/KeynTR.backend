@@ -6,7 +6,7 @@ use App\Models\Version;
 
 class VersionService
 {
-    public static function set($versionData, $entityType, $entityId)
+    public static function set($versionData, $entityType, $entityId, $doType = null)
     {
         if (!$versionData) return false;
 
@@ -14,6 +14,7 @@ class VersionService
             'data' => $versionData,
             'entity_type' => $entityType,
             'entity_id' => $entityId,
+            'do_type' => $doType,
             'sort' => null,
             'active' => true,
             'created_by' => auth()->id(),

@@ -11,6 +11,12 @@ class VersionCacheService
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;
 
+    public const LIST_TOKEN = 'version_list_token';
+    public const LIST_FILTER_TOKEN = 'version_list_filter_token';
+
+    public const ADMIN_LIST_TOKEN = 'version_list_token';
+    public const ADMIN_ELEMENT_TOKEN = 'version_element_token';
+
     public function clearAllCache()
     {
 
@@ -36,7 +42,7 @@ class VersionCacheService
             }
         }
 
-        Cache::forget("version_token");
+        Cache::forget(self::ADMIN_LIST_TOKEN);
     }
 
     public function clearListCacheByEntity($type, $id, $showMessage = false)
@@ -61,6 +67,6 @@ class VersionCacheService
             }
         }
 
-        Cache::forget("version_token:{$type}:{$id}");
+        Cache::forget(self::ADMIN_ELEMENT_TOKEN . ":{$type}:{$id}");
     }
 }

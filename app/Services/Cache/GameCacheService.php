@@ -16,12 +16,18 @@ class GameCacheService
     public const FILTER_PREFIX = 'filter_detail_cache';
     public const DETAIL_PREFIX = 'game_detail_cache';
 
+    public const LIST_TOKEN = 'game_list_token';
+    public const LIST_FILTER_TOKEN = 'game_list_filter_token';
+
+    public const ADMIN_LIST_TOKEN = 'game_list_token';
+
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;
 
     public function clearAllGameCache()
     {
         self::clearGameListCache();
+        self::clearAllDetailCache();
     }
 
     public function clearGameListCache($showMessage = false)
@@ -44,6 +50,10 @@ class GameCacheService
                 }
             }
         }
+
+        Cache::forget(self::LIST_TOKEN);
+        Cache::forget(self::LIST_FILTER_TOKEN);
+        Cache::forget(self::ADMIN_LIST_TOKEN);
     }
 
     public function clearAllDetailCache()

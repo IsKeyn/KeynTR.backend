@@ -24,6 +24,7 @@ class CreateGamesTable extends Migration
             $table->boolean('show_in_list')->default(1);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

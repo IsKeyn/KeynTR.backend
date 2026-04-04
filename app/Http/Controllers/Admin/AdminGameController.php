@@ -1,8 +1,10 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
+use App\Filters\GameFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GameRequest;
+use App\Http\Resources\Admin\AdminGameListResource;
 use App\Http\Resources\Admin\AdminGameResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\GroupResource;
@@ -21,11 +23,36 @@ use App\Services\RelatedDataService;
 use App\Services\VersionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class AdminGameController extends Controller {
-    public function index(Game $game)
+    public function index(Request $request)
     {
-        return $game::all();
+        $cacheKey = GameCacheService::ADMIN_LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        $time = GameCacheService::TIME;
+
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                GameCacheService::ADMIN_LIST_TOKEN,
+                fn() => Str::random(10)
+            );
+
+            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $time = GameCacheService::FILTER_TIME;
+        }
+
+        return Cache::remember($cacheKey, $time, function () use ($request) {
+            $filter = new GameFilter($request);
+            $games = $filter->apply(Game::query())->with(['titleImage']);
+
+            if (!isset($request->sort)) {
+                $games->orderByRaw('sort IS NULL, sort ASC');
+            }
+
+            $result = $games->paginate($request->perPage ? $request->perPage : 10);
+
+            return AdminGameListResource::collection($result);
+        });
     }
 
     public function store(GameRequest $request)
@@ -44,7 +71,8 @@ class AdminGameController extends Controller {
             $relatedDataService = app(RelatedDataService::class);
             $relatedDataService->set($game, $validated);
 
-            $this->clearCache($game);
+            $version = $this->getGameById($game->id)->toArray(request());
+            VersionService::set($version, $game->model, $game->id, Version::TYPE_CREATE);
 
             return $game;
         }
@@ -57,21 +85,10 @@ class AdminGameController extends Controller {
         $relatedDataService = app(RelatedDataService::class);
         $relatedDataService->set($game, $validated);
 
-        $this->clearCache($game);
-
         $version = $this->getGameById($game->id)->toArray(request());
-
-        VersionService::set($version, $game->model, $game->id);
+        VersionService::set($version, $game->model, $game->id, Version::TYPE_UPDATE);
 
         return $game->update($validated);
-    }
-
-    public function clearCache($game)
-    {
-        $gameCacheService = app(GameCacheService::class);
-        $gameCacheService->clearGameListCache();
-        $gameCacheService->clearAdminDetailCacheById($game->id);
-        $gameCacheService->clearDetailCacheBySlug($game->slug);
     }
 
     public function edit(Request $request, $id)
@@ -81,6 +98,36 @@ class AdminGameController extends Controller {
         } else {
             return $this->getGameById($id);
         }
+    }
+
+    public function destroy(Request $request, Game $game)
+    {
+        $version = $this->getGameById($game->id)->toArray(request());
+        VersionService::set($version, $game->model, $game->id, Version::TYPE_SOFT_DELETE);
+
+        return $game->delete();
+    }
+
+    public function forceDelete(Request $request, $id)
+    {
+        $game = Game::findById($id)->withTrashed()->first();
+        if (!$game) return false;
+
+        $version = $this->getGameById($game->id)->toArray(request());
+        VersionService::set($version, $game->model, $game->id, Version::TYPE_DELETE);
+
+        return $game->forceDelete();
+    }
+
+    public function recovery(Request $request, $id)
+    {
+        $game = Game::findById($id)->withTrashed()->first();
+        if (!$game) return false;
+
+        $version = $this->getGameById($game->id)->toArray(request());
+        VersionService::set($version, $game->model, $game->id, Version::TYPE_RECOVERY);
+
+        return $game->restore();
     }
 
     private function getGameById($id)

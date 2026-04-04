@@ -1,0 +1,138 @@
+<?php
+
+namespace App\Filters\Concerns;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+
+trait HasFilters
+{
+    protected Request $request;
+    protected Builder $query;
+
+    protected string $searchColumn = 'name';
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
+
+    public function apply(Builder $query): Builder
+    {
+        $this->query = $query;
+
+        foreach ($this->filters() as $filter => $value) {
+            if (method_exists($this, $filter)) {
+                $this->$filter($value);
+            }
+        }
+
+        return $this->query;
+    }
+
+    public function filters(): array
+    {
+        return (array) json_decode($this->request->filters);
+    }
+
+    protected function category($value): void
+    {
+        $this->query->where('category_id', $value);
+    }
+
+    protected function price_min($value): void
+    {
+        $this->query->where('price', '>=', $value);
+    }
+
+    protected function price_max($value): void
+    {
+        $this->query->where('price', '<=', $value);
+    }
+
+    protected function tags($value): void
+    {
+        if ($value && $tags = $value) {
+            $this->query
+                ->with('tags')
+                ->whereHas('tags', function($query) use ($tags) {
+                    $query->whereIn('tags.name', $tags);
+                });
+        }
+    }
+
+    protected function withTrashed($value): void
+    {
+        if ($value) {
+            $this->query->withTrashed();
+        }
+    }
+
+    protected function onlyTrashed($value): void
+    {
+        if ($value) {
+            $this->query->onlyTrashed();
+        }
+    }
+
+    protected function search($value): void
+    {
+        if ($value) {
+            $this->query->where($this->searchColumn, 'like', '%' . $value . '%');
+        }
+    }
+
+    protected function date_min($value): void
+    {
+        if ($value) {
+            if (isset($this->filters()['by_first_date']) && filter_var($this->filters()['by_first_date'], FILTER_VALIDATE_BOOLEAN)) {
+                $this->query
+                    ->with('dates')
+                    ->withAggregate('dates', 'date', 'min')
+                    ->having('dates_min_date', '>=', Carbon::createFromDate($value)->startOfYear());
+            } else {
+                $this->query
+                    ->with('dates')
+                    ->whereHas('dates', function($query) use ($value) {
+                        $query->where('date', '>=', Carbon::createFromDate($value)->startOfYear());
+                    });
+            }
+        }
+    }
+
+    protected function date_max($value): void
+    {
+        if ($value) {
+            if (!(isset($this->filters()['date_min']) && $this->filters()['date_min'])) {
+                $this->query->with('dates');
+            }
+
+            if (isset($this->filters()['by_first_date']) && filter_var($this->filters()['by_first_date'], FILTER_VALIDATE_BOOLEAN)) {
+                if (!(isset($this->filters()['date_min']) && $this->filters()['date_min'])) {
+                    $this->query->withAggregate('dates', 'date', 'min');
+                }
+                $this->query->having('dates_min_date', '<=', Carbon::createFromDate($value)->endOfYear());
+            } else {
+                $this->query->whereHas('dates', function($query) use ($value) {
+                    $query->where('date', '<=', Carbon::createFromDate($value)->endOfYear());
+                });
+            }
+        }
+    }
+
+    protected function sort($value)
+    {
+        if ($value) {
+            switch ($value->field) {
+                case 'sort':
+                    $this->query->orderByRaw('sort IS NULL, sort ' . $value->sort);
+                    break;
+
+                default:
+                    $this->query->orderBy($value->field, $value->sort);
+                    break;
+            }
+        }
+    }
+}

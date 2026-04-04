@@ -18,6 +18,7 @@ class CreateVersionsTable extends Migration
             $table->json('data')->nullable();
             $table->string('entity_type');
             $table->integer('entity_id');
+            $table->integer('do_type')->nullable();
             $table->integer('sort')->nullable();
             $table->boolean('active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

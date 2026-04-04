@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\ExtendModelTrait;
 use App\Models\BoardGame\BoardGameGameList;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class Game
@@ -15,7 +16,7 @@ use App\Models\BoardGame\BoardGameGameList;
 
 class Game extends Model
 {
-    use HasFactory, ExtendModelTrait;
+    use HasFactory, ExtendModelTrait, SoftDeletes;
 
     const SERIES_TYPE = 1;
 

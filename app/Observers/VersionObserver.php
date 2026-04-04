@@ -17,7 +17,7 @@ class VersionObserver
     {
         $versionCacheService = app(VersionCacheService::class);
         $versionCacheService->clearListCache();
-        $versionCacheService->clearListCacheByEntity($version->entity->model, $version->entity->id);
+        $versionCacheService->clearListCacheByEntity($version->entity_type, $version->entity_id);
     }
 
     /**

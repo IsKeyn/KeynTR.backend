@@ -13,16 +13,26 @@ use App\Services\Game\FilterService;
 use App\Services\ViewsLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class GameController extends Controller
 {
     public function getList(Request $request) {
         $cacheKey = GameCacheService::LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        $time = GameCacheService::TIME;
 
-        if ($request->filters) $cacheKey .= '_' . $request->filters;
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                GameCacheService::LIST_TOKEN,
+                fn() => Str::random(10)
+            );
 
-        return Cache::remember($cacheKey, GameCacheService::TIME, function () use ($request) {
+            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $time = GameCacheService::FILTER_TIME;
+        }
+
+        return Cache::remember($cacheKey, $time, function () use ($request) {
             $filter = new GameFilter($request);
             $games = $filter->apply(Game::query())
                 ->with(['media', 'genres', 'dates'])
@@ -42,18 +52,33 @@ class GameController extends Controller
     public function getListFilters(Request $request, FilterService $filterService) {
         $cacheKey = GameCacheService::FILTER_PREFIX . '_' . $request->filterList;
 
-        if ($request->filters) $cacheKey .= '_' . $request->filters;
+        if ($request->active) {
+            $cacheKey .= '_active';
+        }
 
-        return Cache::remember($cacheKey, GameCacheService::TIME, function () use ($request, $filterService) {
+        $time = GameCacheService::TIME;
+
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                GameCacheService::LIST_FILTER_TOKEN,
+                fn() => Str::random(10)
+            );
+
+            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $time = GameCacheService::FILTER_TIME;
+        }
+
+        return Cache::remember($cacheKey, $time, function () use ($request, $filterService) {
             if ($request->filterList) {
                 $filterList = json_decode($request->filterList);
 
                 // Получаем список всех игр
                 $games = Game::query()
                     ->with(['genres', 'company', 'dates', 'tags', 'gamePlatform'])
-                    ->where('show_in_list', true)
-                    ->active()
-                    ->get();
+                    ->where('show_in_list', true);
+
+                if ($request->active) $games->active();
+                $games = $games->get();
 
                 $result = $filterService->get($games, $filterList);
 
@@ -67,9 +92,10 @@ class GameController extends Controller
                     $filter = new GameFilter($request);
                     $filteredGames = $filter->apply(Game::query())
                         ->with(['genres', 'company', 'dates', 'tags', 'gamePlatform'])
-                        ->where('show_in_list', true)
-                        ->active()
-                        ->get();
+                        ->where('show_in_list', true);
+
+                    if ($request->active) $filteredGames->active();
+                    $filteredGames = $filteredGames->get();
 
                     $availableFilters = $filterService->get($filteredGames, $filterList);
                     $result = $filterService->compareFilters($result, $availableFilters);

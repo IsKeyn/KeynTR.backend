@@ -17,6 +17,8 @@ class GameObserver
     {
         $gameCacheService = app(GameCacheService::class);
         $gameCacheService->clearGameListCache();
+        $gameCacheService->clearAdminDetailCacheById($game->id);
+        $gameCacheService->clearDetailCacheBySlug($game->slug);
     }
 
     /**
@@ -43,6 +45,8 @@ class GameObserver
     {
         $gameCacheService = app(GameCacheService::class);
         $gameCacheService->clearGameListCache();
+        $gameCacheService->clearAdminDetailCacheById($game->id);
+        $gameCacheService->clearDetailCacheBySlug($game->slug);
     }
 
     /**
