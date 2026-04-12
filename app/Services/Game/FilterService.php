@@ -10,6 +10,7 @@ class FilterService
         'gamePlatform' => 'gamePlatforms',
         'company' => 'companies',
         'dates' => 'minMaxData',
+        'bgGamesList' => 'events',
     ];
 
     public function get($data, $filterList = [])
@@ -36,6 +37,15 @@ class FilterService
                                 }
                             } else {
                                 $result[$filterKey]['max'] = $element->date;
+                            }
+                        } else if ($name === 'bgGamesList') {
+                            if ($element->relationLoaded('boardGame') && $element->boardGame && $element->boardGame->slug !== 'demo') {
+                                $result[$filterKey][$element->boardGame->id] = [
+                                    'id' => $element->boardGame->id,
+                                    'name' => $element->boardGame->name,
+                                    'sort' => isset($element->boardGame->sort) ? $element->boardGame->sort : null,
+                                    'active' => true,
+                                ];
                             }
                         } else {
                             if (!isset($result[$filterKey][$element->id])) {

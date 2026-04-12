@@ -18,7 +18,7 @@ class GamingPlatformService
         $gameBySlug = GamingPlatform::findBySlug($fields['slug'])->first();
 
         if ($gameBySlug) {
-            return ErrorService::message('Игровая платформа с таким Slug уже существует');
+            return ErrorService::message('Игровая платформа с Slug: ' . $fields['slug'] . ' уже существует');
         }
 
         if ($gamingPlatform = GamingPlatform::create($fields)) {

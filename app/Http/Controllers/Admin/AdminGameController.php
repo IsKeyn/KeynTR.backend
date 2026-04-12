@@ -5,7 +5,6 @@ use App\Filters\GameFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GameRequest;
 use App\Http\Resources\Admin\AdminGameListResource;
-use App\Http\Resources\Admin\AdminGameResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\GamingPlatformResource;
@@ -19,8 +18,8 @@ use App\Models\Genre;
 use App\Models\Group;
 use App\Models\Version;
 use App\Services\Cache\GameCacheService;
+use App\Services\GameService;
 use App\Services\RelatedDataService;
-use App\Services\VersionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -71,9 +70,6 @@ class AdminGameController extends Controller {
             $relatedDataService = app(RelatedDataService::class);
             $relatedDataService->set($game, $validated);
 
-            $version = $this->getGameById($game->id)->toArray(request());
-            VersionService::set($version, $game->model, $game->id, Version::TYPE_CREATE);
-
             return $game;
         }
     }
@@ -85,9 +81,6 @@ class AdminGameController extends Controller {
         $relatedDataService = app(RelatedDataService::class);
         $relatedDataService->set($game, $validated);
 
-        $version = $this->getGameById($game->id)->toArray(request());
-        VersionService::set($version, $game->model, $game->id, Version::TYPE_UPDATE);
-
         return $game->update($validated);
     }
 
@@ -96,75 +89,29 @@ class AdminGameController extends Controller {
         if ($request->version_id) {
             return Version::findById($request->version_id)->first();
         } else {
-            return $this->getGameById($id);
+            return GameService::getGameById($id);
         }
     }
 
-    public function destroy(Request $request, Game $game)
+    public function destroy(Game $game)
     {
-        $version = $this->getGameById($game->id)->toArray(request());
-        VersionService::set($version, $game->model, $game->id, Version::TYPE_SOFT_DELETE);
-
         return $game->delete();
     }
 
-    public function forceDelete(Request $request, $id)
+    public function forceDelete($id)
     {
         $game = Game::findById($id)->withTrashed()->first();
         if (!$game) return false;
-
-        $version = $this->getGameById($game->id)->toArray(request());
-        VersionService::set($version, $game->model, $game->id, Version::TYPE_DELETE);
 
         return $game->forceDelete();
     }
 
-    public function recovery(Request $request, $id)
+    public function recovery($id)
     {
         $game = Game::findById($id)->withTrashed()->first();
         if (!$game) return false;
 
-        $version = $this->getGameById($game->id)->toArray(request());
-        VersionService::set($version, $game->model, $game->id, Version::TYPE_RECOVERY);
-
         return $game->restore();
-    }
-
-    private function getGameById($id)
-    {
-        $cacheKey = GameCacheService::ADMIN_DETAIL_PREFIX . '_' . $id;
-
-        return Cache::remember($cacheKey, GameCacheService::TIME, function () use ($id) {
-            $game = Game::findById($id)
-                ->with([
-                    'titleImage',
-                    'cover',
-                    'gamePlatform',
-                    'dates',
-                    'dates.gamePlatform',
-                    'anonsDates',
-                    'tags',
-                    'series',
-                    'groups',
-                    'genres',
-                    'company',
-                    'company.group',
-                    'link',
-                    'additionalFields',
-                    'seo',
-                    'seo.entity',
-                    'seo.entity.tags',
-                    'menu',
-                    'menu.elements',
-                    'blocks',
-                    'bgGamesList',
-                    'bgGamesList.boardGame',
-                    'bgGamesList.boardGame.titleImage',
-                ])
-                ->first();
-
-            return AdminGameResource::make($game);
-        });
     }
 
     public function getAdditionalData()

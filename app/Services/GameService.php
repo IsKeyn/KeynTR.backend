@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Http\Resources\Admin\AdminGameResource;
 use App\Models\Date;
 use App\Models\Game;
 use App\Models\GamingPlatform;
 use App\Models\Seo;
+use App\Services\Cache\GameCacheService;
+use Illuminate\Support\Facades\Cache;
 use phpDocumentor\Reflection\Types\Boolean;
 
 class GameService
@@ -24,7 +27,9 @@ class GameService
         }
 
         if ($game = Game::create($fields)) {
-            $this->setAdditionalFields($game, $fields);
+            $relatedDataService = app(RelatedDataService::class);
+            $relatedDataService->set($game, $fields);
+
             return $game;
         }
     }
@@ -181,5 +186,55 @@ class GameService
             // TODO не работает выяснить причину
             $entity->anonsDates()->syncWithPivotValues($arDatesIds, ['type' => Game::DATE_ANONS_TYPE]);
         }
+    }
+
+    public static function getGameById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        $cacheKey = GameCacheService::ADMIN_DETAIL_PREFIX . '_' . $id;
+
+        // Выносим логику в замыкание, чтобы избежать дублирования
+        $fetchData = function () use ($id, $withTrashed) {
+            $game = Game::findById($id)
+                ->with([
+                    'titleImage',
+                    'cover',
+                    'gamePlatform',
+                    'dates',
+                    'dates.gamePlatform',
+                    'anonsDates',
+                    'tags',
+                    'series',
+                    'groups',
+                    'genres',
+                    'company',
+                    'company.group',
+                    'link',
+                    'additionalFields',
+                    'seo',
+                    'seo.entity',
+                    'seo.entity.tags',
+                    'menu',
+                    'menu.elements',
+                    'blocks',
+                    'bgGamesList',
+                    'bgGamesList.boardGame',
+                    'bgGamesList.boardGame.titleImage',
+                ]);
+
+            if ($withTrashed) {
+                $game->withTrashed();
+            }
+
+            $game = $game->first();
+
+            return AdminGameResource::make($game);
+        };
+
+        // Если передан флаг принудительного обновления, игнорируем кеш
+        if ($forceRefresh) {
+            return $fetchData();
+        }
+
+        return Cache::remember($cacheKey, GameCacheService::TIME, $fetchData);
     }
 }

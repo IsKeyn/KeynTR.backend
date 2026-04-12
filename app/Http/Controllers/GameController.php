@@ -72,9 +72,24 @@ class GameController extends Controller
             if ($request->filterList) {
                 $filterList = json_decode($request->filterList);
 
+                $withException = ['minMaxData', 'events', 'companies', 'gamePlatforms'];
+                $with = [
+                    'dates',
+                    'company',
+                    'gamePlatform',
+                    'bgGamesList',
+                    'bgGamesList.boardGame',
+                ];
+
+                foreach ($filterList as $filterName) {
+                    if (array_search($filterName, $withException) === false) {
+                        $with[] = $filterName;
+                    }
+                }
+
                 // Получаем список всех игр
                 $games = Game::query()
-                    ->with(['genres', 'company', 'dates', 'tags', 'gamePlatform'])
+                    ->with($with)
                     ->where('show_in_list', true);
 
                 if ($request->active) $games->active();
@@ -91,7 +106,7 @@ class GameController extends Controller
                     // Получаем отфильтрованный список игр
                     $filter = new GameFilter($request);
                     $filteredGames = $filter->apply(Game::query())
-                        ->with(['genres', 'company', 'dates', 'tags', 'gamePlatform'])
+                        ->with($with)
                         ->where('show_in_list', true);
 
                     if ($request->active) $filteredGames->active();

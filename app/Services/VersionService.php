@@ -6,7 +6,13 @@ use App\Models\Version;
 
 class VersionService
 {
-    public static function set($versionData, $entityType, $entityId, $doType = null)
+    public static function set(
+        $versionData,
+        $entityType,
+        $entityId,
+        $name = null,
+        $doType = null
+    )
     {
         if (!$versionData) return false;
 
@@ -19,6 +25,10 @@ class VersionService
             'active' => true,
             'created_by' => auth()->id(),
         ];
+
+        if ($name) {
+            $newVersionData['name'] = $name;
+        }
 
         return Version::create($newVersionData);
     }

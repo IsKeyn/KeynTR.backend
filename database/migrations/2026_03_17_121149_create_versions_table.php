@@ -15,6 +15,7 @@ class CreateVersionsTable extends Migration
     {
         Schema::create('versions', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->nullable();
             $table->json('data')->nullable();
             $table->string('entity_type');
             $table->integer('entity_id');

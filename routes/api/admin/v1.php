@@ -90,6 +90,7 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
     Route::prefix('api/')->name('api.')->group(function() {
         Route::prefix('games/')->name('games.')->controller(GamesApiController::class)->group(function() {
             Route::get('search', 'search')->name('search');
+            Route::post('check', 'check')->name('check');
             Route::post('add', 'add')->name('add');
         });
     });

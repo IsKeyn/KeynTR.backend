@@ -44,6 +44,30 @@ class GameFilter
         }
     }
 
+    protected function series($value): void
+    {
+        if ($value) {
+            $this->query
+                ->with('series')
+                ->whereHas('series', function($query) use ($value) {
+                    $query->whereIn('series.id', $value);
+                });
+        }
+    }
+
+    protected function events($value): void
+    {
+        if ($value) {
+            $this->query
+                ->with('bgGamesList', 'bgGamesList.boardGame')
+                ->whereHas('bgGamesList', function($query_0) use ($value) {
+                    $query_0->whereHas('boardGame', function($query_1) use ($value) {
+                        $query_1->whereIn('board_games.id', $value);
+                    });
+                });
+        }
+    }
+
     protected function sort($value): void
     {
         if ($value) {

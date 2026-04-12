@@ -16,7 +16,7 @@ class MediaService
         $fileData = [];
 
         if (isset($fileArray['name'])) $fileData['name'] = $fileArray['name'];
-        if (isset($fileArray['description'])) $fileData['name'] = $fileArray['description'];
+        if (isset($fileArray['description'])) $fileData['description'] = $fileArray['description'];
         if (isset($fileArray['type'])) $fileData['name'] = $fileArray['type'];
 
         $fileData['created_by'] = $user->id;
@@ -25,13 +25,27 @@ class MediaService
 
         if (isset($fileArray['tags'])) {
             foreach ($fileArray['tags'] as $tagName) {
-                $tag = $this->findOrCreateTag($tagName);
+                $tag = TagService::findOrCreateTag($tagName);
                 $media->tags()->save($tag);
             }
         }
 
+        $file = $fileArray['src'];
+
         if (!$name) {
             $name = $fileArray['src']->getClientOriginalName();
+        }
+
+        // Проверяем, есть ли уже расширение в имени
+        $ext = pathinfo($name, PATHINFO_EXTENSION);
+
+        if (empty($ext)) {
+            // Получаем расширение из MIME-типа (использует Symfony MIME Guesser)
+            $guessedExt = $file->guessExtension();
+
+            if ($guessedExt) {
+                $name .= '.' . strtolower($guessedExt);
+            }
         }
 
         $path = $fileArray['src']->storeAs(

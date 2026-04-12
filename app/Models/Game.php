@@ -29,6 +29,7 @@ class Game extends Model
         'mod',
         'active',
         'show_in_list',
+        'spc_id',
         'sort',
         'created_by',
         'created_at',

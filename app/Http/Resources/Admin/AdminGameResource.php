@@ -19,9 +19,11 @@ class AdminGameResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'mod' => $this->mod,
             'sort' => $this->sort,
             'active' => $this->active,
             'show_in_list' => $this->show_in_list,
+            'spc_id' => $this->spc_id,
 
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
 

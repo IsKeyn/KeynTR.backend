@@ -19,6 +19,7 @@ class Version extends Model
 
     protected $fillable = [
         'data',
+        'name',
         'entity_type',
         'entity_id',
         'do_type',

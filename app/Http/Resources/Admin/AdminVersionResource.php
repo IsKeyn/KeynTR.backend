@@ -10,6 +10,7 @@ class AdminVersionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'name' => $this->name,
             'data' => $this->data,
             'entity_type' => $this->entity_type,
             'entity_id' => $this->entity_id,
