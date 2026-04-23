@@ -9,6 +9,8 @@ class Movie extends Model
 {
     use HasFactory;
 
+    const SERIES_TYPE = 2;
+
     protected $fillable = [
         'name',
         'slug',

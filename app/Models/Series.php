@@ -5,15 +5,17 @@ namespace App\Models;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Series extends Model
 {
-    use HasFactory, ExtendModelTrait;
+    use HasFactory, ExtendModelTrait, SoftDeletes;
 
     protected $fillable = [
         'name',
         'slug',
         'description',
+        'type',
         'sort',
         'active',
         'spc_id',
@@ -26,6 +28,21 @@ class Series extends Model
 
     public function game()
     {
-        return $this->morphedByMany(Game::class, 'series_bind');
+        return $this->morphedByMany(Game::class, 'series_bind')->withTimestamps();
+    }
+
+    public function genres()
+    {
+        return $this->morphToMany(Genre::class, 'genre_bind')->withTimestamps();
+    }
+
+    public function company()
+    {
+        return $this->morphToMany(Company::class, 'company_bind')->withPivot('additional_info')->withTimestamps();
+    }
+
+    public function link()
+    {
+        return $this->morphToMany(Link::class, 'link_bind')->withTimestamps();
     }
 }

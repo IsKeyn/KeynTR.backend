@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Admin;
+namespace App\Http\Resources\Admin\ForExtension;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AdminAnonsDateResource extends JsonResource
+class AdminGroupResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,9 +15,7 @@ class AdminAnonsDateResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'date' => $this->date,
-            'hideDay' => $this->hide_day,
-            'hideMonth' => $this->hide_month,
+            'group' => $this->id,
         ];
     }
 }

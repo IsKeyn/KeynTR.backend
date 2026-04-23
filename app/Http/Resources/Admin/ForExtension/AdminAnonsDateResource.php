@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Admin;
+namespace App\Http\Resources\Admin\ForExtension;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AdminLinkResource extends JsonResource
+class AdminAnonsDateResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,8 +15,9 @@ class AdminLinkResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'name' => $this->name,
-            'url' => $this->url,
+            'date' => $this->date,
+            'hideDay' => $this->hide_day,
+            'hideMonth' => $this->hide_month,
         ];
     }
 }

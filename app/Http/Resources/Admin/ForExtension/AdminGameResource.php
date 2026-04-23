@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Admin;
+namespace App\Http\Resources\Admin\ForExtension;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AdminGenreResource extends JsonResource
+class AdminGameResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,7 +15,7 @@ class AdminGenreResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'genre' => $this->id,
+            'game' => $this->id,
         ];
     }
 }

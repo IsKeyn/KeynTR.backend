@@ -135,8 +135,12 @@ class GameService
 
                     if ($gamePlatformEntity) {
                         if ($dateEntity) {
-                            $dateEntity->gamePlatform()->syncWithPivotValues($gamePlatformEntity->id,
-                                ['additional_info' => $item['addInfo']]);
+                            $dateEntity
+                                ->gamePlatform()
+                                ->syncWithPivotValues(
+                                    $gamePlatformEntity->id,
+                                    ['additional_info' => $item['addInfo']]
+                                );
                             $arGamingPlatformsIds[$gamePlatformEntity->id] = [];
                         }
                     }
@@ -194,7 +198,7 @@ class GameService
 
         // Выносим логику в замыкание, чтобы избежать дублирования
         $fetchData = function () use ($id, $withTrashed) {
-            $game = Game::findById($id)
+            $item = Game::findById($id)
                 ->with([
                     'titleImage',
                     'cover',
@@ -204,6 +208,7 @@ class GameService
                     'anonsDates',
                     'tags',
                     'series',
+                    'people',
                     'groups',
                     'genres',
                     'company',
@@ -222,12 +227,12 @@ class GameService
                 ]);
 
             if ($withTrashed) {
-                $game->withTrashed();
+                $item->withTrashed();
             }
 
-            $game = $game->first();
+            $item = $item->first();
 
-            return AdminGameResource::make($game);
+            return AdminGameResource::make($item);
         };
 
         // Если передан флаг принудительного обновления, игнорируем кеш
@@ -236,5 +241,22 @@ class GameService
         }
 
         return Cache::remember($cacheKey, GameCacheService::TIME, $fetchData);
+    }
+
+    public static function set($entity, $items)
+    {
+        $arGameIds = [];
+
+        foreach ($items as $item) {
+            if (isset($item['game'])) {
+                $gameEntity = Game::query()->where('id', $item['game'])->first();
+
+                if ($gameEntity) {
+                    $arGameIds[] = $gameEntity->id;
+                }
+            }
+        }
+
+        return $entity->game()->sync($arGameIds);
     }
 }

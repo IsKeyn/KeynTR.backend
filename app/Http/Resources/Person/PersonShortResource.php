@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Game;
+namespace App\Http\Resources\Person;
 
-use App\Http\Resources\Media\ShortMediaResource;
-use App\Models\Game;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameShortestResource extends JsonResource
+class PersonShortResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -18,14 +16,11 @@ class GameShortestResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'entity_type' => Game::class,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'active' => $this->active,
-            'show_in_list' => $this->show_in_list,
-            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
-            'created_by' => $this->created_by,
+            'sort' => $this->sort,
+            'active' => $this->sort,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Group;
-use App\Services\Cache\GameCacheService;
+use App\Services\Cache\AdminCacheService;
 
 class GroupObserver
 {
@@ -15,7 +15,7 @@ class GroupObserver
      */
     public function created(Group $group)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -26,7 +26,7 @@ class GroupObserver
      */
     public function updated(Group $group)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -37,7 +37,7 @@ class GroupObserver
      */
     public function deleted(Group $group)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -48,7 +48,7 @@ class GroupObserver
      */
     public function restored(Group $group)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -59,12 +59,6 @@ class GroupObserver
      */
     public function forceDeleted(Group $group)
     {
-        $this->clearCaches();
-    }
-
-    private function clearCaches()
-    {
-        $gameCacheService = app(GameCacheService::class);
-        $gameCacheService->clearAdminAddDataCache();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 }

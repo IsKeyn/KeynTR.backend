@@ -24,6 +24,7 @@ class CreateSeriesTable extends Migration
             $table->string('spc_id')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

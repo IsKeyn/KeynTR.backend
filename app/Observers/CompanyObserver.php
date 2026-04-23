@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Company;
-use App\Services\Cache\GameCacheService;
+use App\Services\Cache\AdminCacheService;
 
 class CompanyObserver
 {
@@ -15,7 +15,7 @@ class CompanyObserver
      */
     public function created(Company $company)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -26,7 +26,7 @@ class CompanyObserver
      */
     public function updated(Company $company)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -37,7 +37,7 @@ class CompanyObserver
      */
     public function deleted(Company $company)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -48,7 +48,7 @@ class CompanyObserver
      */
     public function restored(Company $company)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -59,12 +59,6 @@ class CompanyObserver
      */
     public function forceDeleted(Company $company)
     {
-        $this->clearCaches();
-    }
-
-    private function clearCaches()
-    {
-        $gameCacheService = app(GameCacheService::class);
-        $gameCacheService->clearAdminAddDataCache();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 }

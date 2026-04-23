@@ -421,6 +421,7 @@ class GamesApiController extends Controller {
                                         'name' => $seriesData['data']['names']['international'],
                                         'slug' => $slug,
                                         'spc_id' => $seriesData['data']['id'],
+                                        'type' => Game::SERIES_TYPE,
                                     ];
 
                                     $seriesService = new SeriesService();

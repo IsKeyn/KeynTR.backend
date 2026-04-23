@@ -27,14 +27,4 @@ class Company extends Model
     {
         return $this->morphedByMany(Movie::class, 'company_bind');
     }
-
-    public function group($id = null, $type = null)
-    {
-        return $this->morphToMany(Group::class, 'group_bind')
-            ->withPivot(['first_b_id', 'first_b_type'])
-            ->wherePivot('first_b_id', '=', $id)
-            ->wherePivot('first_b_type', '=', $type)
-            ->wherePivot('group_bind_id', '=', $this->id)
-            ->withTimestamps();
-    }
 }

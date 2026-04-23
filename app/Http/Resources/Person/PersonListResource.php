@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Http\Resources\Game;
+namespace App\Http\Resources\Person;
 
-use App\Http\Resources\Media\ShortMediaResource;
 use App\Models\Game;
+use App\Models\Media;
+use App\Http\Resources\GenreResource;
+use App\Http\Resources\Date\DateShortResource;
+use App\Http\Resources\Media\ShortMediaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameShortestResource extends JsonResource
+class PersonListResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -22,10 +25,9 @@ class GameShortestResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'active' => $this->active,
-            'show_in_list' => $this->show_in_list,
-            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
-            'created_by' => $this->created_by,
+//            'covers' => $this->whenLoaded('media', ShortMediaResource::collection($this->media()->wherePivot('type', '=', Media::COVER_TYPE)->get())),
+//            'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
+//            'release_dates' => $this->whenLoaded('dates', DateShortResource::collection($this->dates)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

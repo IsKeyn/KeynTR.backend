@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Http\Resources\Admin;
+namespace App\Http\Resources\Person;
 
-use App\Http\Resources\Admin\ForExtension\AdminCompanyResource;
-use App\Http\Resources\Admin\ForExtension\AdminGameResource;
-use App\Http\Resources\Admin\ForExtension\AdminGenreResource;
-use App\Http\Resources\Admin\ForExtension\AdminLinkResource;
+use App\Http\Resources\BlockResource;
+use App\Http\Resources\Menu\MenuTypeResource;
+use App\Http\Resources\SeoResource;
 use App\Http\Resources\TagResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AdminSeriesResource extends JsonResource
+class PersonDetailResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -21,30 +20,21 @@ class AdminSeriesResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'model' => $this->model,
+            'entity_type' => $this->model,
+            'active' => $this->active,
+            'show_in_list' => $this->show_in_list,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'sort' => $this->sort,
-            'active' => $this->active,
-            'spc_id' => $this->spc_id,
-
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
-
-            'game' => $this->whenLoaded('game', AdminGameResource::collection($this->game)),
-            'genres' => $this->whenLoaded('genres', AdminGenreResource::collection($this->genres)),
-
-            'companies' => $this->whenLoaded('company', AdminCompanyResource::collection($this->company)),
-            'links' => $this->whenLoaded('link', AdminLinkResource::collection($this->link)),
-
             'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
-
             'seo' => $this->whenLoaded('seo', function() {
                 return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;
             }),
-
+            'menu' => $this->whenLoaded('menu', MenuTypeResource::collection($this->menu)),
+            'blocks' => $this->whenLoaded('blocks', BlockResource::collection($this->blocks)),
             'created_by' => $this->created_by,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
     }

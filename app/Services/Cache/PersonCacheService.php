@@ -2,41 +2,40 @@
 
 namespace App\Services\Cache;
 
+use App\Models\Person\Person;
 use Illuminate\Support\Facades\Cache;
-use App\Models\Game;
 
-class GameCacheService
+class PersonCacheService
 {
-    public const ADMIN_LIST_PREFIX = 'admin_game_list_cache';
-    public const ADMIN_FILTER_PREFIX = 'admin_game_filter_detail_cache';
-    public const ADMIN_DETAIL_PREFIX = 'admin_game_detail_cache';
-    public const ADMIN_ADDDATA_PREFIX = 'admin_game_adddata_cache';
+    public const ADMIN_LIST_PREFIX = 'admin_person_list_cache';
+    public const ADMIN_FILTER_PREFIX = 'admin_person_filter_detail_cache';
+    public const ADMIN_DETAIL_PREFIX = 'admin_person_detail_cache';
+    public const ADMIN_ADDDATA_PREFIX = 'admin_person_adddata_cache';
 
-    public const LIST_PREFIX = 'game_list_cache';
+    public const LIST_PREFIX = 'person_list_cache';
     public const FILTER_PREFIX = 'filter_detail_cache';
-    public const DETAIL_PREFIX = 'game_detail_cache';
+    public const DETAIL_PREFIX = 'person_detail_cache';
 
-    public const LIST_TOKEN = 'game_list_token';
-    public const LIST_FILTER_TOKEN = 'game_list_filter_token';
+    public const LIST_TOKEN = 'person_list_token';
+    public const LIST_FILTER_TOKEN = 'person_list_filter_token';
 
-    public const ADMIN_LIST_TOKEN = 'game_list_token';
+    public const ADMIN_LIST_TOKEN = 'person_list_token';
 
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;
 
     public function clearAllGameCache()
     {
-        self::clearGameListCache();
+        self::clearListCache();
         self::clearAllDetailCache();
     }
 
-    public function clearGameListCache($showMessage = false)
+    public function clearListCache($showMessage = false)
     {
         $perPageArray = [24, 28, 96];
 
         foreach ($perPageArray as $perPage) {
-            $lastPage = Game::query()
-                ->where('show_in_list', true)
+            $lastPage = Person::query()
                 ->active()
                 ->paginate($perPage)->lastPage();
 
@@ -58,7 +57,7 @@ class GameCacheService
 
     public function clearAllDetailCache()
     {
-        $data = Game::query()->get();
+        $data = Person::query()->get();
 
         foreach ($data as $element) {
             self::clearDetailCacheBySlug($element->slug);
@@ -90,6 +89,6 @@ class GameCacheService
 
     public function clearAdminAddDataCache()
     {
-        Cache::forget(GameCacheService::ADMIN_ADDDATA_PREFIX);
+        Cache::forget(PersonCacheService::ADMIN_ADDDATA_PREFIX);
     }
 }

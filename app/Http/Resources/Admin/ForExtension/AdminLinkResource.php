@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Admin;
+namespace App\Http\Resources\Admin\ForExtension;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AdminGroupResource extends JsonResource
+class AdminLinkResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,7 +15,8 @@ class AdminGroupResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'group' => $this->id,
+            'name' => $this->name,
+            'url' => $this->url,
         ];
     }
 }

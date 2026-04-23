@@ -1,15 +1,13 @@
 <?php
 
-namespace App\Http\Resources\Admin;
+namespace App\Http\Resources\Admin\Person;
 
-use App\Http\Resources\Admin\ForExtension\AdminCompanyResource;
 use App\Http\Resources\Admin\ForExtension\AdminGameResource;
-use App\Http\Resources\Admin\ForExtension\AdminGenreResource;
-use App\Http\Resources\Admin\ForExtension\AdminLinkResource;
+use App\Http\Resources\Admin\SeoResource;
 use App\Http\Resources\TagResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class AdminSeriesResource extends JsonResource
+class AdminPersonResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -27,15 +25,10 @@ class AdminSeriesResource extends JsonResource
             'description' => $this->description,
             'sort' => $this->sort,
             'active' => $this->active,
-            'spc_id' => $this->spc_id,
 
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
 
             'game' => $this->whenLoaded('game', AdminGameResource::collection($this->game)),
-            'genres' => $this->whenLoaded('genres', AdminGenreResource::collection($this->genres)),
-
-            'companies' => $this->whenLoaded('company', AdminCompanyResource::collection($this->company)),
-            'links' => $this->whenLoaded('link', AdminLinkResource::collection($this->link)),
 
             'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
 

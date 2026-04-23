@@ -9,9 +9,11 @@ use App\Http\Resources\CompanyResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\GamingPlatformResource;
 use App\Http\Resources\GenreResource;
+use App\Http\Resources\Person\PersonShortResource;
 use App\Http\Resources\Series\SeriesResource;
 use App\Models\Company;
 use App\Models\Game;
+use App\Models\Person\Person;
 use App\Models\Series;
 use App\Models\GamingPlatform;
 use App\Models\Genre;
@@ -78,10 +80,26 @@ class AdminGameController extends Controller {
     {
         $validated = $request->validated();
 
+        $game->fill($validated);
+
+        /*
+         * Код отвечает за то, чтобы Observer updated сработал только 1 раз, не зависимо от того, было обновления
+         * основной таблицы или же обновились связи
+         */
+        $attributesChanged = $game->isDirty();
+
+        if ($attributesChanged) {
+            $game->save();
+        }
+
         $relatedDataService = app(RelatedDataService::class);
         $relatedDataService->set($game, $validated);
 
-        return $game->update($validated);
+        if (!$attributesChanged) {
+            $game->touch();
+        }
+
+        return true;
     }
 
     public function edit(Request $request, $id)
@@ -125,7 +143,9 @@ class AdminGameController extends Controller {
                 'genre' => GenreResource::collection(Genre::all()),
                 'company' => CompanyResource::collection(Company::all()),
                 'company_role' => GroupResource::collection(Group::where('entity_type', 'App\Models\Company')->get()),
+                'person_role' => GroupResource::collection(Group::where('entity_type', 'App\Models\Person\Person')->get()),
                 'series' => SeriesResource::collection(Series::all()),
+                'people' => PersonShortResource::collection(Person::all()),
             ];
         });
     }

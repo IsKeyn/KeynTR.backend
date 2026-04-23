@@ -29,6 +29,10 @@ class RelatedDataService
             SeriesService::set($model, $validated['series']);
         }
 
+        if (isset($validated['people'])) {
+            PersonService::set($model, $validated['people']);
+        }
+
         if (isset($validated['groups'])) {
             GroupService::set($model, $validated['groups']);
         }
@@ -47,6 +51,9 @@ class RelatedDataService
 
         if (isset($validated['seo']) && $validated['seo']) {
             if ($model->seo) {
+                if (isset($validated['seo']['updated_at'])) unset($validated['seo']['updated_at']);
+                if (isset($validated['seo']['created_at'])) unset($validated['seo']['created_at']);
+
                 $model->seo()->update($validated['seo']);
             } else {
                 $meta = new Seo($validated['seo']);
@@ -68,6 +75,10 @@ class RelatedDataService
 
         if (isset($validated['blocks'])) {
             BlockService::set($model, $validated['blocks']);
+        }
+
+        if (isset($validated['game'])) {
+            GameService::set($model, $validated['game']);
         }
     }
 }

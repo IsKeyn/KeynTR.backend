@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Genre;
-use App\Services\Cache\GameCacheService;
+use App\Services\Cache\AdminCacheService;
 
 class GenreObserver
 {
@@ -15,7 +15,7 @@ class GenreObserver
      */
     public function created(Genre $genre)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -26,7 +26,7 @@ class GenreObserver
      */
     public function updated(Genre $genre)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -37,7 +37,7 @@ class GenreObserver
      */
     public function deleted(Genre $genre)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -48,7 +48,7 @@ class GenreObserver
      */
     public function restored(Genre $genre)
     {
-        $this->clearCaches();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -59,12 +59,6 @@ class GenreObserver
      */
     public function forceDeleted(Genre $genre)
     {
-        $this->clearCaches();
-    }
-
-    private function clearCaches()
-    {
-        $gameCacheService = app(GameCacheService::class);
-        $gameCacheService->clearAdminAddDataCache();
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 }

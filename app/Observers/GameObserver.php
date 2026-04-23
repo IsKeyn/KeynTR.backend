@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\Game;
 use App\Models\Version;
+use App\Services\Cache\AdminCacheService;
 use App\Services\Cache\GameCacheService;
 use App\Services\GameService;
 use App\Services\VersionService;
@@ -24,6 +25,8 @@ class GameObserver
         $gameCacheService->clearAdminDetailCacheById($game->id);
         $gameCacheService->clearDetailCacheBySlug($game->slug);
 
+        AdminCacheService::clearAdminAdditionalDataCache();
+
         $version = GameService::getGameById($game->id, true)->toArray(request());
         VersionService::set($version, $game->model, $game->id, $game->name, Version::TYPE_CREATE);
     }
@@ -41,6 +44,8 @@ class GameObserver
         $gameCacheService->clearAdminDetailCacheById($game->id);
         $gameCacheService->clearDetailCacheBySlug($game->slug);
 
+        AdminCacheService::clearAdminAdditionalDataCache();
+
         $version = GameService::getGameById($game->id, true, true)->toArray(request());
         VersionService::set($version, $game->model, $game->id, $game->name, Version::TYPE_UPDATE);
     }
@@ -53,6 +58,8 @@ class GameObserver
      */
     public function deleted(Game $game)
     {
+        AdminCacheService::clearAdminAdditionalDataCache();
+
         if (!$game->isForceDeleting()) {
             $version = GameService::getGameById($game->id, true, true)->toArray(request());
             VersionService::set($version, $game->model, $game->id, $game->name, Version::TYPE_SOFT_DELETE);
@@ -83,6 +90,8 @@ class GameObserver
      */
     public function restored(Game $game)
     {
+        AdminCacheService::clearAdminAdditionalDataCache();
+
         $gameCacheService = app(GameCacheService::class);
         $gameCacheService->clearGameListCache();
         $gameCacheService->clearAdminDetailCacheById($game->id);
@@ -100,6 +109,8 @@ class GameObserver
      */
     public function forceDeleted(Game $game)
     {
+        AdminCacheService::clearAdminAdditionalDataCache();
+
         $gameCacheService = app(GameCacheService::class);
         $gameCacheService->clearGameListCache();
 

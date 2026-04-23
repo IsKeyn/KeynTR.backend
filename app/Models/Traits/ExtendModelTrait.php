@@ -5,6 +5,7 @@ namespace App\Models\Traits;
 use App\Models\AdditionalField;
 use App\Models\Block;
 use App\Models\Comments;
+use App\Models\Group;
 use App\Models\Media;
 use App\Models\MenuType;
 use App\Models\Seo;
@@ -38,17 +39,17 @@ trait ExtendModelTrait
 
     public function media()
     {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort');
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->withTimestamps();
     }
 
     public function titleImage()
     {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::TITLE_TYPE);
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::TITLE_TYPE)->withTimestamps();
     }
 
     public function tags()
     {
-        return $this->morphToMany(Tag::class, 'tag_binds');
+        return $this->morphToMany(Tag::class, 'tag_binds')->withTimestamps();
     }
 
     public function additionalFields()
@@ -95,6 +96,16 @@ trait ExtendModelTrait
 
     public function blocks()
     {
-        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type')->orderBy('position', 'asc');
+        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type')->orderBy('position', 'asc')->withTimestamps();
+    }
+
+    public function group($id = null, $type = null)
+    {
+        return $this->morphToMany(Group::class, 'group_bind')
+            ->withPivot(['first_b_id', 'first_b_type'])
+            ->wherePivot('first_b_id', '=', $id)
+            ->wherePivot('first_b_type', '=', $type)
+            ->wherePivot('group_bind_id', '=', $this->id)
+            ->withTimestamps();
     }
 }

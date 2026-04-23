@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminPersonController;
 use App\Http\Controllers\Admin\AdminRecommendationController;
+use App\Http\Controllers\Admin\AdminSeriesController;
 use App\Http\Controllers\Admin\AdminVersionController;
 use App\Http\Controllers\Admin\BoardGame\ItemBindController;
 use App\Http\Controllers\Admin\BoardGame\ItemController;
@@ -68,10 +70,28 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
     });
     Route::resource('version', AdminVersionController::class);
 
-    Route::get('game/get-additional-data', [AdminGameController::class, 'getAdditionalData'])->name('game.get-additional-data');
-    Route::post('game/{game}/force-delete', [AdminGameController::class, 'forceDelete'])->name('force-delete');
-    Route::post('game/{game}/recovery', [AdminGameController::class, 'recovery'])->name('recovery');
+    Route::prefix('game/')->controller(AdminGameController::class)->name('game.')->group(function() {
+        Route::post('multi-store', 'multiStore')->name('multi-store');
+
+        Route::get('get-additional-data', 'getAdditionalData')->name('get-additional-data');
+        Route::post('{game}/force-delete', 'forceDelete')->name('force-delete');
+        Route::post('{game}/recovery', 'recovery')->name('recovery');
+    });
     Route::resource('game', AdminGameController::class);
+
+    Route::prefix('series/')->controller(AdminSeriesController::class)->name('series.')->group(function() {
+        Route::get('get-additional-data', 'getAdditionalData')->name('get-additional-data');
+        Route::post('{series}/force-delete', 'forceDelete')->name('force-delete');
+        Route::post('{series}/recovery', 'recovery')->name('recovery');
+    });
+    Route::resource('series', AdminSeriesController::class);
+
+    Route::prefix('person/')->controller(AdminPersonController::class)->name('person.')->group(function() {
+        Route::get('get-additional-data', 'getAdditionalData')->name('get-additional-data');
+        Route::post('{person}/force-delete', 'forceDelete')->name('force-delete');
+        Route::post('{person}/recovery', 'recovery')->name('recovery');
+    });
+    Route::resource('person', AdminPersonController::class);
 
     Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');
     Route::resource('movie', AdminMovieController::class);

@@ -7,12 +7,16 @@ use App\Models\Game;
 use App\Models\GamingPlatform;
 use App\Models\Genre;
 use App\Models\Group;
+use App\Models\Person\Person;
+use App\Models\Series;
 use App\Models\Version;
 use App\Observers\CompanyObserver;
 use App\Observers\GameObserver;
 use App\Observers\GamingPlatformObserver;
 use App\Observers\GenreObserver;
 use App\Observers\GroupObserver;
+use App\Observers\PersonObserver;
+use App\Observers\SeriesObserver;
 use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Game::observe(GameObserver::class);
+        Series::observe(SeriesObserver::class);
+        Person::observe(PersonObserver::class);
         Group::observe(GroupObserver::class);
         GamingPlatform::observe(GamingPlatformObserver::class);
         Genre::observe(GenreObserver::class);

@@ -9,7 +9,9 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaGroupController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PersonController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SlideController;
 use App\Http\Controllers\SocialController;
@@ -142,11 +144,10 @@ Route::name('api.')->group(function() {
     });
 
     // Работа с сущностью game
-    //    Route::resource('game', GameController::class);
     Route::prefix('game/')->controller(GameController::class)->name('.game')->group(function() {
-        Route::get('list', 'getList')->name('game-list');
-        Route::get('filters', 'getListFilters')->name('game-list-filters');
-        Route::get('{game:slug}', 'getGame')->name('get-game');
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('list-filters');
+        Route::get('{game:slug}', 'getGame')->name('get');
     });
 
     // Работа с сущностью movie
@@ -155,6 +156,19 @@ Route::name('api.')->group(function() {
         Route::get('{movie:slug}', 'getMovie')->name('get-movie');
     });
 
+    // Работа с сущностью series
+    Route::prefix('series/')->controller(SeriesController::class)->name('.series')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{series:slug}', 'get')->name('get');
+    });
+
+    // Работа с сущностью person
+    Route::prefix('person/')->controller(PersonController::class)->name('.person')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{person:slug}', 'get')->name('get');
+    });
 
     // Работа с сущностью youtube
     Route::prefix('youtube/')->controller(YouTubeController::class)->name('.youtube')->group(function() {

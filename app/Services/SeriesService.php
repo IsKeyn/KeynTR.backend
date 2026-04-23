@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Http\Resources\Admin\AdminSeriesResource;
 use App\Models\Series;
+use App\Services\Cache\SeriesCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class SeriesService
 {
@@ -13,9 +16,9 @@ class SeriesService
         }
 
         // Проверяем slug
-        $gameBySlug = Series::findBySlug($fields['slug'])->first();
+        $itemBySlug = Series::findBySlug($fields['slug'])->first();
 
-        if ($gameBySlug) {
+        if ($itemBySlug) {
             return ErrorService::message('Серия с таким Slug уже существует');
         }
 
@@ -30,14 +33,51 @@ class SeriesService
 
         foreach ($data as $element) {
             if (isset($element[$key])) {
-                $seriesEntity = Series::query()->where('id', $element[$key])->first();
+                $elementEntity = Series::query()->where('id', $element[$key])->first();
 
-                if ($seriesEntity) {
-                    $arIds[] = $seriesEntity->id;
+                if ($elementEntity) {
+                    $arIds[] = $elementEntity->id;
                 }
             }
         }
 
         return $entity->series()->syncWithPivotValues($arIds, []);
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        $cacheKey = SeriesCacheService::ADMIN_DETAIL_PREFIX . '_' . $id;
+
+        // Выносим логику в замыкание, чтобы избежать дублирования
+        $fetchData = function () use ($id, $withTrashed) {
+            $item = Series::findById($id)
+                ->with([
+                    'tags',
+                    'game',
+                    'genres',
+                    'company',
+                    'company.group',
+                    'link',
+                    'additionalFields',
+                    'seo',
+                    'seo.entity',
+                    'seo.entity.tags',
+                ]);
+
+            if ($withTrashed) {
+                $item->withTrashed();
+            }
+
+            $item = $item->first();
+
+            return AdminSeriesResource::make($item);
+        };
+
+        // Если передан флаг принудительного обновления, игнорируем кеш
+        if ($forceRefresh) {
+            return $fetchData();
+        }
+
+        return Cache::remember($cacheKey, SeriesCacheService::TIME, $fetchData);
     }
 }

@@ -2,12 +2,21 @@
 
 namespace App\Http\Resources\Admin;
 
+use App\Http\Resources\Admin\ForExtension\AdminPeopleResource;
 use App\Http\Resources\Media\ShortMediaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\TagResource;
 use App\Http\Resources\SeoResource;
 use App\Http\Resources\MenuTypeResource;
 use App\Http\Resources\BlockResource;
+
+use App\Http\Resources\Admin\ForExtension\AdminSeriesResource;
+use App\Http\Resources\Admin\ForExtension\AdminGroupResource;
+use App\Http\Resources\Admin\ForExtension\AdminAnonsDateResource;
+use App\Http\Resources\Admin\ForExtension\AdminCompanyResource;
+use App\Http\Resources\Admin\ForExtension\AdminGenreResource;
+use App\Http\Resources\Admin\ForExtension\AdminLinkResource;
+use App\Http\Resources\Admin\ForExtension\AdminReleaseDateResource;
 
 class AdminGameResource extends JsonResource
 {
@@ -28,6 +37,7 @@ class AdminGameResource extends JsonResource
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
 
             'series' => $this->whenLoaded('series', AdminSeriesResource::collection($this->series)),
+            'people' => $this->whenLoaded('people', AdminPeopleResource::collection($this->people)),
             'groups' =>  $this->whenLoaded('groups', AdminGroupResource::collection($this->groups)),
             'genres' => $this->whenLoaded('genres', AdminGenreResource::collection($this->genres)),
             'anons_dates' => $this->whenLoaded('anonsDates', AdminAnonsDateResource::collection($this->anonsDates)),
