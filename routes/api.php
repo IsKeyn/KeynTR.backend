@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentsController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaGroupController;
 use App\Http\Controllers\MovieController;
@@ -23,7 +25,6 @@ use App\Http\Controllers\YouTubeController;
 use App\Services\SearchService;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\Route;
-use App\Http\Resources\UserResource;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
@@ -165,6 +166,20 @@ Route::name('api.')->group(function() {
 
     // Работа с сущностью person
     Route::prefix('person/')->controller(PersonController::class)->name('.person')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{person:slug}', 'get')->name('get');
+    });
+
+    // Работа с сущностью company
+    Route::prefix('company/')->controller(CompanyController::class)->name('.company')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{person:slug}', 'get')->name('get');
+    });
+
+    // Работа с сущностью genre
+    Route::prefix('genre/')->controller(GenreController::class)->name('.genre')->group(function() {
         Route::get('list', 'getList')->name('list');
         Route::get('filters', 'getListFilters')->name('filters');
         Route::get('{person:slug}', 'get')->name('get');

@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Http\Resources\Genre\ListResource;
 use App\Models\Genre;
+use App\Services\Cache\GenreCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class GenreService
 {
@@ -39,5 +42,39 @@ class GenreService
         }
 
         return $entity->genres()->sync($arGenresIds);
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        $cacheKey = GenreCacheService::ADMIN_DETAIL_PREFIX . '_' . $id;
+
+        // Выносим логику в замыкание, чтобы избежать дублирования
+        $fetchData = function () use ($id, $withTrashed) {
+            $item = Genre::findById($id)
+                ->with([
+                    'titleImage',
+                    'cover',
+                    'tags',
+                    'additionalFields',
+                    'seo',
+                    'seo.entity',
+                    'seo.entity.tags',
+                ]);
+
+            if ($withTrashed) {
+                $item->withTrashed();
+            }
+
+            $item = $item->first();
+
+            return ListResource::make($item);
+        };
+
+        // Если передан флаг принудительного обновления, игнорируем кеш
+        if ($forceRefresh) {
+            return $fetchData();
+        }
+
+        return Cache::remember($cacheKey, GenreCacheService::TIME, $fetchData);
     }
 }

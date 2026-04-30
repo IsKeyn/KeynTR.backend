@@ -42,11 +42,6 @@ class Game extends Model
         'mod' => 'boolean',
     ];
 
-    public function cover()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::COVER_TYPE)->withTimestamps();
-    }
-
     public function dates()
     {
         return $this->morphToMany(Date::class, 'date_bind')

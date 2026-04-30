@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Genre;
 
+use App\Http\Resources\Media\ShortMediaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CompanyResource extends JsonResource
+class ListResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,25 +15,15 @@ class CompanyResource extends JsonResource
      */
     public function toArray($request)
     {
-        $group = $this->resolveCompanyGroup();
-
         return [
             'id' => $this->id,
+            'entity_type' => $this->model,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'company_role' => $group ? GroupResource::make($group) : null,
+            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->orderByPivot('sort')->get())),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-    }
-
-    private function resolveCompanyGroup()
-    {
-        if (!$this->pivot || !$this->pivot->company_bind_type || !$this->pivot->company_bind_id) {
-            return null;
-        }
-
-        return $this->group($this->pivot->company_bind_id, $this->pivot->company_bind_type)->first();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Resources\Admin\Person;
 
 use App\Http\Resources\Admin\ForExtension\AdminGameResource;
 use App\Http\Resources\Admin\SeoResource;
+use App\Http\Resources\Media\ShortMediaResource;
 use App\Http\Resources\TagResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -25,13 +26,11 @@ class AdminPersonResource extends JsonResource
             'description' => $this->description,
             'sort' => $this->sort,
             'active' => $this->active,
-
+            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
+            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->orderByPivot('sort')->get())),
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
-
             'game' => $this->whenLoaded('game', AdminGameResource::collection($this->game)),
-
             'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
-
             'seo' => $this->whenLoaded('seo', function() {
                 return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;
             }),

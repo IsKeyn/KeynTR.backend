@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminCompanyController;
+use App\Http\Controllers\Admin\AdminGenreController;
 use App\Http\Controllers\Admin\AdminPersonController;
 use App\Http\Controllers\Admin\AdminRecommendationController;
 use App\Http\Controllers\Admin\AdminSeriesController;
@@ -92,6 +94,18 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
         Route::post('{person}/recovery', 'recovery')->name('recovery');
     });
     Route::resource('person', AdminPersonController::class);
+
+    Route::prefix('company/')->controller(AdminCompanyController::class)->name('company.')->group(function() {
+        Route::post('{company}/force-delete', 'forceDelete')->name('force-delete');
+        Route::post('{company}/recovery', 'recovery')->name('recovery');
+    });
+    Route::resource('company', AdminCompanyController::class);
+
+    Route::prefix('genre/')->controller(AdminGenreController::class)->name('genre.')->group(function() {
+        Route::post('{genre}/force-delete', 'forceDelete')->name('force-delete');
+        Route::post('{genre}/recovery', 'recovery')->name('recovery');
+    });
+    Route::resource('genre', AdminGenreController::class);
 
     Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');
     Route::resource('movie', AdminMovieController::class);

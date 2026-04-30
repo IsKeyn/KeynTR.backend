@@ -7,6 +7,7 @@ use App\Models\Game;
 use App\Models\Version;
 use App\Services\Cache\AdminCacheService;
 use App\Services\Cache\GameCacheService;
+use App\Services\Cache\SeriesCacheService;
 use App\Services\GameService;
 use App\Services\VersionService;
 
@@ -48,6 +49,16 @@ class GameObserver
 
         $version = GameService::getGameById($game->id, true, true)->toArray(request());
         VersionService::set($version, $game->model, $game->id, $game->name, Version::TYPE_UPDATE);
+
+        /* Удаляем кеш связанных сущностей */
+        if ($game->series) {
+            $seriesCacheService = app(SeriesCacheService::class);
+
+            foreach ($game->series as $series) {
+                $seriesCacheService->clearDetailCacheBySlug($series->slug);
+                $seriesCacheService->clearAdminDetailCacheById($series->id);
+            }
+        }
     }
 
     /**

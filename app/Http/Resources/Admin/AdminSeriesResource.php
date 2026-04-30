@@ -6,6 +6,7 @@ use App\Http\Resources\Admin\ForExtension\AdminCompanyResource;
 use App\Http\Resources\Admin\ForExtension\AdminGameResource;
 use App\Http\Resources\Admin\ForExtension\AdminGenreResource;
 use App\Http\Resources\Admin\ForExtension\AdminLinkResource;
+use App\Http\Resources\Media\ShortMediaResource;
 use App\Http\Resources\TagResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -27,11 +28,13 @@ class AdminSeriesResource extends JsonResource
             'description' => $this->description,
             'sort' => $this->sort,
             'active' => $this->active,
+            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
+            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->orderByPivot('sort')->get())),
             'spc_id' => $this->spc_id,
 
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
 
-            'game' => $this->whenLoaded('game', AdminGameResource::collection($this->game)),
+            'game' => $this->whenLoaded('games', AdminGameResource::collection($this->games)),
             'genres' => $this->whenLoaded('genres', AdminGenreResource::collection($this->genres)),
 
             'companies' => $this->whenLoaded('company', AdminCompanyResource::collection($this->company)),

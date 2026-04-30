@@ -70,6 +70,8 @@ class PersonService
         $fetchData = function () use ($id, $withTrashed) {
             $item = Person::findById($id)
                 ->with([
+                    'titleImage',
+                    'cover',
                     'tags',
                     'game',
                     'additionalFields',

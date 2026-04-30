@@ -18,9 +18,13 @@ class CreateCompaniesTable extends Migration
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
+            $table->integer('sort')->nullable();
+            $table->boolean('active')->default(true);
             $table->date('created_date')->nullable();
             $table->string('spc_id')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

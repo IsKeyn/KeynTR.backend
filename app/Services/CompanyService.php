@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Http\Resources\Admin\Company\ListResource;
 use App\Models\Company;
 use App\Models\Group;
+use App\Services\Cache\CompanyCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class CompanyService
 {
@@ -63,5 +66,39 @@ class CompanyService
         }
 
         return $entity->company()->sync($arItemsIds);
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        $cacheKey = CompanyCacheService::ADMIN_DETAIL_PREFIX . '_' . $id;
+
+        // Выносим логику в замыкание, чтобы избежать дублирования
+        $fetchData = function () use ($id, $withTrashed) {
+            $item = Company::findById($id)
+                ->with([
+                    'titleImage',
+                    'cover',
+                    'tags',
+                    'additionalFields',
+                    'seo',
+                    'seo.entity',
+                    'seo.entity.tags',
+                ]);
+
+            if ($withTrashed) {
+                $item->withTrashed();
+            }
+
+            $item = $item->first();
+
+            return ListResource::make($item);
+        };
+
+        // Если передан флаг принудительного обновления, игнорируем кеш
+        if ($forceRefresh) {
+            return $fetchData();
+        }
+
+        return Cache::remember($cacheKey, CompanyCacheService::TIME, $fetchData);
     }
 }

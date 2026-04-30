@@ -37,6 +37,11 @@ trait ExtendModelTrait
         return $query->where('active', true);
     }
 
+    public function cover()
+    {
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::COVER_TYPE)->withTimestamps();
+    }
+
     public function media()
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->withTimestamps();

@@ -25,7 +25,7 @@ class Person extends Model
         'active' => 'boolean',
     ];
 
-    public function game()
+    public function games()
     {
         return $this->morphedByMany(Game::class, 'person_bind')->withTimestamps();
     }

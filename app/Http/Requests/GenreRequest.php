@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class SeriesRequest extends FormRequest
+class GenreRequest extends FormRequest
 {
     public function authorize()
     {
@@ -16,7 +16,7 @@ class SeriesRequest extends FormRequest
     public function rules()
     {
         // Получаем ID из роута (при обновлении) или из запроса
-        $id = $this->route('series')?->id ?? $this->route('id') ?? $this->get('id');
+        $id = $this->route('genre')?->id ?? $this->route('id') ?? $this->get('id');
 
         return [
             'name' => 'required|string',
@@ -24,7 +24,7 @@ class SeriesRequest extends FormRequest
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('series', 'slug')->ignore($id),
+                Rule::unique('genres', 'slug')->ignore($id),
             ],
             'description' => 'sometimes|string|nullable',
             'type' => 'sometimes|integer|nullable',
@@ -36,8 +36,6 @@ class SeriesRequest extends FormRequest
             'additional_fields' => 'sometimes|nullable',
             'groups' => 'sometimes|nullable',
             'game' => 'sometimes|nullable',
-            'genres' => 'sometimes|nullable',
-            'companies' => 'sometimes|nullable',
             'tags' => 'sometimes|nullable',
             'seo' => 'sometimes|nullable',
             'blocks' => 'sometimes|nullable',

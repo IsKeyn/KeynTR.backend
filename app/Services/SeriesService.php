@@ -52,8 +52,10 @@ class SeriesService
         $fetchData = function () use ($id, $withTrashed) {
             $item = Series::findById($id)
                 ->with([
+                    'titleImage',
+                    'cover',
                     'tags',
-                    'game',
+                    'games',
                     'genres',
                     'company',
                     'company.group',

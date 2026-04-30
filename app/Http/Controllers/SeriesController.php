@@ -22,7 +22,7 @@ class SeriesController extends Controller
             'App\Filters\SeriesFilter',
             'App\Services\Cache\SeriesCacheService',
             'App\Http\Resources\Series\SeriesListResource',
-            []
+            ['cover', 'games', 'games.cover']
         );
     }
 
@@ -51,6 +51,10 @@ class SeriesController extends Controller
                 'comments',
             ],
             [
+                'games',
+                'games.media',
+                'titleImage',
+                'cover',
                 'tags',
                 'link',
                 'additionalFields',

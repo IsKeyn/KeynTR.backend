@@ -3,6 +3,8 @@
 namespace App\Http\Resources\Series;
 
 use App\Http\Resources\BlockResource;
+use App\Http\Resources\Game\GameListResource;
+use App\Http\Resources\Media\ShortMediaResource;
 use App\Http\Resources\Menu\MenuTypeResource;
 use App\Http\Resources\SeoResource;
 use App\Http\Resources\TagResource;
@@ -26,11 +28,14 @@ class SeriesDetailResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
+            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->orderByPivot('sort')->get())),
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
             'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
             'seo' => $this->whenLoaded('seo', function() {
                 return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;
             }),
+            'games' => $this->whenLoaded('games', GameListResource::collection($this->games)),
             'menu' => $this->whenLoaded('menu', MenuTypeResource::collection($this->menu)),
             'blocks' => $this->whenLoaded('blocks', BlockResource::collection($this->blocks)),
             'created_by' => $this->created_by,

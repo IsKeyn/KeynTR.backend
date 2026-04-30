@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Series;
 
+use App\Http\Resources\Game\GameListResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CompanyResource extends JsonResource
+class SeriesWithGamesResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,25 +15,17 @@ class CompanyResource extends JsonResource
      */
     public function toArray($request)
     {
-        $group = $this->resolveCompanyGroup();
-
         return [
             'id' => $this->id,
+            'entity_type' => $this->model,
+            'active' => $this->active,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'company_role' => $group ? GroupResource::make($group) : null,
+            'games' => $this->whenLoaded('games', GameListResource::collection($this->games)),
+            'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-    }
-
-    private function resolveCompanyGroup()
-    {
-        if (!$this->pivot || !$this->pivot->company_bind_type || !$this->pivot->company_bind_id) {
-            return null;
-        }
-
-        return $this->group($this->pivot->company_bind_id, $this->pivot->company_bind_type)->first();
     }
 }

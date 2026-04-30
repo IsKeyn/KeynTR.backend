@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\Entity\DefaultEntityService;
 use Illuminate\Http\Request;
 
-class PersonController extends Controller
+class CompanyController extends Controller
 {
     protected DefaultEntityService $defaultEntityService;
 
@@ -18,11 +18,11 @@ class PersonController extends Controller
     {
         return $this->defaultEntityService->getList(
             $request,
-            'App\Models\Person\Person',
-            'App\Filters\PersonFilter',
-            'App\Services\Cache\PersonCacheService',
-            'App\Http\Resources\Person\PersonListResource',
-            ['titleImage', 'cover']
+            'App\Models\Company',
+            'App\Filters\CompanyFilter',
+            'App\Services\Cache\CompanyCacheService',
+            'App\Http\Resources\Company\ListResource',
+            ['cover']
         );
     }
 
@@ -30,9 +30,9 @@ class PersonController extends Controller
     {
         return $this->defaultEntityService->getListFilters(
             $request,
-            'App\Models\Person\Person',
-            'App\Filters\PersonFilter',
-            'App\Services\Cache\PersonCacheService',
+            'App\Models\Company',
+            'App\Filters\CompanyFilter',
+            'App\Services\Cache\CompanyCacheService',
             'App\Services\Game\FilterService'
         );
     }
@@ -42,17 +42,17 @@ class PersonController extends Controller
         return $this->defaultEntityService->get(
             $request,
             $slug,
-            'App\Models\Person\Person',
-            'App\Services\Cache\PersonCacheService',
-            'App\Http\Resources\Person\PersonDetailResource',
+            'App\Models\Company',
+            'App\Services\Cache\CompanyCacheService',
+            'App\Http\Resources\Company\DetailResource',
             [
                 'views',
                 'likes',
                 'comments',
             ],
             [
-                'games',
-                'games.media',
+                'game',
+                'game.media',
                 'titleImage',
                 'cover',
                 'tags',

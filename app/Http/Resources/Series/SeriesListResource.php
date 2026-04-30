@@ -2,10 +2,6 @@
 
 namespace App\Http\Resources\Series;
 
-use App\Models\Game;
-use App\Models\Media;
-use App\Http\Resources\GenreResource;
-use App\Http\Resources\Date\DateShortResource;
 use App\Http\Resources\Media\ShortMediaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,15 +17,32 @@ class SeriesListResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'entity_type' => Game::class,
+            'entity_type' => $this->model,
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-//            'covers' => $this->whenLoaded('media', ShortMediaResource::collection($this->media()->wherePivot('type', '=', Media::COVER_TYPE)->get())),
-//            'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
-//            'release_dates' => $this->whenLoaded('dates', DateShortResource::collection($this->dates)),
+            'covers' => $this->getCovers(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    private function getCovers()
+    {
+        if ($this->relationLoaded('cover')) {
+            $covers = $this->cover()->orderByPivot('sort')->get();
+
+            if ($covers->isNotEmpty()) {
+                return ShortMediaResource::collection($covers);
+            }
+        }
+
+        if ($this->relationLoaded('games') && $this->games->isNotEmpty()) {
+            foreach ($this->games as $game) {
+                if ($game->relationLoaded('cover') && $game->cover->isNotEmpty()) {
+                    return ShortMediaResource::collection($game->cover);
+                }
+            }
+        }
     }
 }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\Entity\DefaultEntityService;
 use Illuminate\Http\Request;
 
-class PersonController extends Controller
+class GenreController extends Controller
 {
     protected DefaultEntityService $defaultEntityService;
 
@@ -18,11 +18,11 @@ class PersonController extends Controller
     {
         return $this->defaultEntityService->getList(
             $request,
-            'App\Models\Person\Person',
-            'App\Filters\PersonFilter',
-            'App\Services\Cache\PersonCacheService',
-            'App\Http\Resources\Person\PersonListResource',
-            ['titleImage', 'cover']
+            'App\Models\Genre',
+            'App\Filters\GenreFilter',
+            'App\Services\Cache\GenreCacheService',
+            'App\Http\Resources\Genre\ListResource',
+            ['cover']
         );
     }
 
@@ -30,9 +30,9 @@ class PersonController extends Controller
     {
         return $this->defaultEntityService->getListFilters(
             $request,
-            'App\Models\Person\Person',
-            'App\Filters\PersonFilter',
-            'App\Services\Cache\PersonCacheService',
+            'App\Models\Genre',
+            'App\Filters\GenreFilter',
+            'App\Services\Cache\GenreCacheService',
             'App\Services\Game\FilterService'
         );
     }
@@ -42,9 +42,9 @@ class PersonController extends Controller
         return $this->defaultEntityService->get(
             $request,
             $slug,
-            'App\Models\Person\Person',
-            'App\Services\Cache\PersonCacheService',
-            'App\Http\Resources\Person\PersonDetailResource',
+            'App\Models\Genre',
+            'App\Services\Cache\GenreCacheService',
+            'App\Http\Resources\Genre\DetailResource',
             [
                 'views',
                 'likes',

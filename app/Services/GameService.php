@@ -257,6 +257,6 @@ class GameService
             }
         }
 
-        return $entity->game()->sync($arGameIds);
+        return $entity->games()->sync($arGameIds);
     }
 }

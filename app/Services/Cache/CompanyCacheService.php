@@ -2,27 +2,28 @@
 
 namespace App\Services\Cache;
 
-use App\Models\Person\Person;
 use Illuminate\Support\Facades\Cache;
 
-class PersonCacheService
+class CompanyCacheService
 {
-    public const ADMIN_LIST_PREFIX = 'admin_person_list_cache';
-    public const ADMIN_FILTER_PREFIX = 'admin_person_filter_detail_cache';
-    public const ADMIN_DETAIL_PREFIX = 'admin_person_detail_cache';
-    public const ADMIN_ADDDATA_PREFIX = 'admin_person_adddata_cache';
+    public const ADMIN_LIST_PREFIX = 'admin_company_list_cache';
+    public const ADMIN_FILTER_PREFIX = 'admin_company_filter_detail_cache';
+    public const ADMIN_DETAIL_PREFIX = 'admin_company_detail_cache';
+    public const ADMIN_ADDDATA_PREFIX = 'admin_company_adddata_cache';
 
-    public const LIST_PREFIX = 'person_list_cache';
+    public const LIST_PREFIX = 'company_list_cache';
     public const FILTER_PREFIX = 'filter_detail_cache';
-    public const DETAIL_PREFIX = 'person_detail_cache';
+    public const DETAIL_PREFIX = 'company_detail_cache';
 
-    public const LIST_TOKEN = 'person_list_token';
-    public const LIST_FILTER_TOKEN = 'person_list_filter_token';
+    public const LIST_TOKEN = 'company_list_token';
+    public const LIST_FILTER_TOKEN = 'company_list_filter_token';
 
-    public const ADMIN_LIST_TOKEN = 'person_list_token';
+    public const ADMIN_LIST_TOKEN = 'company_list_token';
 
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;
+
+    private const MODEL = 'App\Models\Company';
 
     public function clearAllCache()
     {
@@ -35,7 +36,7 @@ class PersonCacheService
         $perPageArray = [24, 28, 96];
 
         foreach ($perPageArray as $perPage) {
-            $lastPage = Person::query()
+            $lastPage = self::MODEL::query()
                 ->active()
                 ->paginate($perPage)->lastPage();
 
@@ -57,7 +58,7 @@ class PersonCacheService
 
     public function clearAllDetailCache()
     {
-        $data = Person::query()->get();
+        $data = self::MODEL::query()->get();
 
         foreach ($data as $element) {
             self::clearDetailCacheBySlug($element->slug);
@@ -89,6 +90,6 @@ class PersonCacheService
 
     public function clearAdminAddDataCache()
     {
-        Cache::forget(PersonCacheService::ADMIN_ADDDATA_PREFIX);
+        Cache::forget(SeriesCacheService::ADMIN_ADDDATA_PREFIX);
     }
 }

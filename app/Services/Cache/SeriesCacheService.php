@@ -24,7 +24,7 @@ class SeriesCacheService
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;
 
-    public function clearAllGameCache()
+    public function clearAllCache()
     {
         self::clearListCache();
         self::clearAllDetailCache();
