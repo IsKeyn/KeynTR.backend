@@ -33,7 +33,6 @@ class GenreController extends Controller
             'App\Models\Genre',
             'App\Filters\GenreFilter',
             'App\Services\Cache\GenreCacheService',
-            'App\Services\Game\FilterService'
         );
     }
 

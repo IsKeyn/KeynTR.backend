@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Http\Resources\Admin\Company\ListResource;
+use App\Http\Resources\Admin\Company\DetailResource;
 use App\Models\Company;
 use App\Models\Group;
 use App\Services\Cache\CompanyCacheService;
@@ -91,7 +91,7 @@ class CompanyService
 
             $item = $item->first();
 
-            return ListResource::make($item);
+            return DetailResource::make($item);
         };
 
         // Если передан флаг принудительного обновления, игнорируем кеш

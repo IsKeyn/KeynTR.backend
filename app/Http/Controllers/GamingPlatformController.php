@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\Entity\DefaultEntityService;
 use Illuminate\Http\Request;
 
-class CompanyController extends Controller
+class GamingPlatformController extends Controller
 {
     protected DefaultEntityService $defaultEntityService;
 
@@ -18,10 +18,10 @@ class CompanyController extends Controller
     {
         return $this->defaultEntityService->getList(
             $request,
-            'App\Models\Company',
-            'App\Filters\CompanyFilter',
-            'App\Services\Cache\CompanyCacheService',
-            'App\Http\Resources\Company\ListResource',
+            'App\Models\GamingPlatform',
+            'App\Filters\GamingPlatformFilter',
+            'App\Services\Cache\GamingPlatformCacheService',
+            'App\Http\Resources\GamingPlatform\ListResource',
             ['cover']
         );
     }
@@ -30,9 +30,9 @@ class CompanyController extends Controller
     {
         return $this->defaultEntityService->getListFilters(
             $request,
-            'App\Models\Company',
-            'App\Filters\CompanyFilter',
-            'App\Services\Cache\CompanyCacheService',
+            'App\Models\GamingPlatform',
+            'App\Filters\GamingPlatformFilter',
+            'App\Services\Cache\GamingPlatformCacheService',
         );
     }
 
@@ -41,17 +41,17 @@ class CompanyController extends Controller
         return $this->defaultEntityService->get(
             $request,
             $slug,
-            'App\Models\Company',
-            'App\Services\Cache\CompanyCacheService',
-            'App\Http\Resources\Company\DetailResource',
+            'App\Models\GamingPlatform',
+            'App\Services\Cache\GamingPlatformCacheService',
+            'App\Http\Resources\GamingPlatform\DetailResource',
             [
                 'views',
                 'likes',
                 'comments',
             ],
             [
-                'game',
-                'game.media',
+                'games',
+                'games.media',
                 'titleImage',
                 'cover',
                 'tags',

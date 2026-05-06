@@ -30,7 +30,7 @@ class PersonDetailResource extends JsonResource
             'description' => $this->description,
             'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
             'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->orderByPivot('sort')->get())),
-            'games' => $this->whenLoaded('games', GameListResource::collection($this->games)),
+            'games' => $this->whenLoaded('games', GameListResource::collection($this->games->where('active', true))),
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
             'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
             'seo' => $this->whenLoaded('seo', function() {

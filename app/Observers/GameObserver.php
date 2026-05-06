@@ -6,7 +6,9 @@ use App\Models\BoardGame\BoardGameGameList;
 use App\Models\Game;
 use App\Models\Version;
 use App\Services\Cache\AdminCacheService;
+use App\Services\Cache\CompanyCacheService;
 use App\Services\Cache\GameCacheService;
+use App\Services\Cache\GenreCacheService;
 use App\Services\Cache\SeriesCacheService;
 use App\Services\GameService;
 use App\Services\VersionService;
@@ -57,6 +59,24 @@ class GameObserver
             foreach ($game->series as $series) {
                 $seriesCacheService->clearDetailCacheBySlug($series->slug);
                 $seriesCacheService->clearAdminDetailCacheById($series->id);
+            }
+        }
+
+        if ($game->company) {
+            $entityCacheService = app(CompanyCacheService::class);
+
+            foreach ($game->company as $item) {
+                $entityCacheService->clearDetailCacheBySlug($item->slug);
+                $entityCacheService->clearAdminDetailCacheById($item->id);
+            }
+        }
+
+        if ($game->genres) {
+            $entityCacheService = app(GenreCacheService::class);
+
+            foreach ($game->genres as $item) {
+                $entityCacheService->clearDetailCacheBySlug($item->slug);
+                $entityCacheService->clearAdminDetailCacheById($item->id);
             }
         }
     }

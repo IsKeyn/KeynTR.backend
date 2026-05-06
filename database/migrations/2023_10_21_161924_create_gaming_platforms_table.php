@@ -22,9 +22,9 @@ class CreateGamingPlatformsTable extends Migration
             $table->date('release_date')->nullable();
             $table->string('spc_id')->nullable();
             $table->bigInteger('sort')->nullable();
+            $table->boolean('active')->default(true)->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
-
-            // Компания полиморфное отношение
         });
     }
 

@@ -4,9 +4,17 @@ namespace App\Observers;
 
 use App\Models\GamingPlatform;
 use App\Services\Cache\AdminCacheService;
+use App\Services\Observer\DefaultObserverService;
 
 class GamingPlatformObserver
 {
+    protected DefaultObserverService $defaultObserverService;
+
+    public function __construct(DefaultObserverService $defaultObserverService)
+    {
+        $this->defaultObserverService = $defaultObserverService;
+    }
+
     /**
      * Handle the GamingPlatform "created" event.
      *
@@ -15,6 +23,12 @@ class GamingPlatformObserver
      */
     public function created(GamingPlatform $gamingPlatform)
     {
+        $this->defaultObserverService->created(
+            $gamingPlatform,
+            'App\Services\Cache\GamingPlatformCacheService',
+            'App\Services\GamingPlatformService'
+        );
+
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
@@ -26,6 +40,12 @@ class GamingPlatformObserver
      */
     public function updated(GamingPlatform $gamingPlatform)
     {
+        $this->defaultObserverService->updated(
+            $gamingPlatform,
+            'App\Services\Cache\GamingPlatformCacheService',
+            'App\Services\GamingPlatformService'
+        );
+
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
@@ -37,6 +57,12 @@ class GamingPlatformObserver
      */
     public function deleted(GamingPlatform $gamingPlatform)
     {
+        $this->defaultObserverService->deleted(
+            $gamingPlatform,
+            'App\Services\Cache\GamingPlatformCacheService',
+            'App\Services\GamingPlatformService'
+        );
+
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
@@ -48,6 +74,12 @@ class GamingPlatformObserver
      */
     public function restored(GamingPlatform $gamingPlatform)
     {
+        $this->defaultObserverService->restored(
+            $gamingPlatform,
+            'App\Services\Cache\GamingPlatformCacheService',
+            'App\Services\GamingPlatformService'
+        );
+
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
@@ -59,6 +91,11 @@ class GamingPlatformObserver
      */
     public function forceDeleted(GamingPlatform $gamingPlatform)
     {
+        $this->defaultObserverService->forceDeleted(
+            $gamingPlatform,
+            'App\Services\Cache\GamingPlatformCacheService'
+        );
+
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 }

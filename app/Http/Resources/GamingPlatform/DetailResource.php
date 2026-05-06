@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Company;
+namespace App\Http\Resources\GamingPlatform;
 
 use App\Http\Resources\BlockResource;
 use App\Http\Resources\Game\GameListResource;
@@ -35,7 +35,7 @@ class DetailResource extends JsonResource
             'seo' => $this->whenLoaded('seo', function() {
                 return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;
             }),
-            'games' => $this->whenLoaded('game', GameListResource::collection($this->game->where('active', true))),
+            'games' => $this->whenLoaded('games', GameListResource::collection($this->games->where('active', true))),
             'menu' => $this->whenLoaded('menu', MenuTypeResource::collection($this->menu)),
             'blocks' => $this->whenLoaded('blocks', BlockResource::collection($this->blocks)),
             'created_by' => $this->created_by,

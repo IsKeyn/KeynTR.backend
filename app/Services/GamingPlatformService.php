@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Http\Resources\GamingPlatform\DetailResource;
 use App\Models\Date;
 use App\Models\GamingPlatform;
+use App\Services\Cache\GamingPlatformCacheService;
+use Illuminate\Support\Facades\Cache;
 use phpDocumentor\Reflection\Types\Boolean;
 
 class GamingPlatformService
@@ -62,5 +65,39 @@ class GamingPlatformService
             // TODO не работает выяснить причину
             $entity->realiseDates()->syncWithPivotValues($arDatesIds, ['type' => GamingPlatform::REALISE_TYPE]);
         }
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        $cacheKey = GamingPlatformCacheService::ADMIN_DETAIL_PREFIX . '_' . $id;
+
+        // Выносим логику в замыкание, чтобы избежать дублирования
+        $fetchData = function () use ($id, $withTrashed) {
+            $item = GamingPlatform::findById($id)
+                ->with([
+                    'titleImage',
+                    'cover',
+                    'tags',
+                    'additionalFields',
+                    'seo',
+                    'seo.entity',
+                    'seo.entity.tags',
+                ]);
+
+            if ($withTrashed) {
+                $item->withTrashed();
+            }
+
+            $item = $item->first();
+
+            return DetailResource::make($item);
+        };
+
+        // Если передан флаг принудительного обновления, игнорируем кеш
+        if ($forceRefresh) {
+            return $fetchData();
+        }
+
+        return Cache::remember($cacheKey, GamingPlatformCacheService::TIME, $fetchData);
     }
 }

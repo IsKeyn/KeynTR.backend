@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminCompanyController;
+use App\Http\Controllers\Admin\AdminGamingPlatformController;
 use App\Http\Controllers\Admin\AdminGenreController;
 use App\Http\Controllers\Admin\AdminPersonController;
 use App\Http\Controllers\Admin\AdminRecommendationController;
@@ -106,6 +107,12 @@ Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->
         Route::post('{genre}/recovery', 'recovery')->name('recovery');
     });
     Route::resource('genre', AdminGenreController::class);
+
+    Route::prefix('gaming-platform/')->controller(AdminGamingPlatformController::class)->name('gaming-platform.')->group(function() {
+        Route::post('{gamingPlatform}/force-delete', 'forceDelete')->name('force-delete');
+        Route::post('{gamingPlatform}/recovery', 'recovery')->name('recovery');
+    });
+    Route::resource('gaming-platform', AdminGamingPlatformController::class);
 
     Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');
     Route::resource('movie', AdminMovieController::class);

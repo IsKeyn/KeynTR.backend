@@ -33,7 +33,6 @@ class PersonController extends Controller
             'App\Models\Person\Person',
             'App\Filters\PersonFilter',
             'App\Services\Cache\PersonCacheService',
-            'App\Services\Game\FilterService'
         );
     }
 

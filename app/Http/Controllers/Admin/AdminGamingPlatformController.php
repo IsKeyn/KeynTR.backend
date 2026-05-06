@@ -2,12 +2,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\GenreRequest;
-use App\Models\Genre;
 use App\Services\Entity\DefaultAdminEntityService;
 use Illuminate\Http\Request;
+use App\Http\Requests\GamingPlatformRequest;
+use App\Models\GamingPlatform;
 
-class AdminGenreController extends Controller {
+class AdminGamingPlatformController extends Controller {
     protected DefaultAdminEntityService $defaultAdminEntityService;
 
     public function __construct(DefaultAdminEntityService $defaultAdminEntityService)
@@ -19,26 +19,26 @@ class AdminGenreController extends Controller {
     {
         return $this->defaultAdminEntityService->index(
             $request,
-            'App\Models\Genre',
-            'App\Services\Cache\GenreCacheService',
-            'App\Filters\GenreFilter',
-            'App\Http\Resources\Admin\Genre\ListResource',
+            'App\Models\GamingPlatform',
+            'App\Services\Cache\GamingPlatformCacheService',
+            'App\Filters\GamingPlatformFilter',
+            'App\Http\Resources\Admin\GamingPlatform\ListResource',
         );
     }
 
-    public function store(GenreRequest $request)
+    public function store(GamingPlatformRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,
-            'App\Models\Genre'
+            'App\Models\GamingPlatform'
         );
     }
 
-    public function update(GenreRequest $request, Genre $genre)
+    public function update(GamingPlatformRequest $request, GamingPlatform $gamingPlatform)
     {
         return $this->defaultAdminEntityService->update(
             $request,
-            $genre
+            $gamingPlatform
         );
     }
 
@@ -47,19 +47,19 @@ class AdminGenreController extends Controller {
         return $this->defaultAdminEntityService->edit(
             $request,
             $id,
-            'App\Services\GenreService'
+            'App\Services\GamingPlatformService'
         );
     }
 
-    public function destroy(Genre $genre)
+    public function destroy(GamingPlatform $gamingPlatform)
     {
-        return $this->defaultAdminEntityService->destroy($genre);
+        return $this->defaultAdminEntityService->destroy($gamingPlatform);
     }
 
     public function forceDelete($id)
     {
         return $this->defaultAdminEntityService->forceDelete(
-            'App\Models\Genre',
+            'App\Models\GamingPlatform',
             $id
         );
     }
@@ -67,7 +67,7 @@ class AdminGenreController extends Controller {
     public function recovery($id)
     {
         return $this->defaultAdminEntityService->recovery(
-            'App\Models\Genre',
+            'App\Models\GamingPlatform',
             $id
         );
     }

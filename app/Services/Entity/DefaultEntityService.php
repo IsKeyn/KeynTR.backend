@@ -67,7 +67,6 @@ class DefaultEntityService
         $entity,
         $filterClass,
         $cacheService,
-        $filterService,
         $with = [],
         $useShowInList = false
     ) {
@@ -95,7 +94,7 @@ class DefaultEntityService
         return Cache::remember(
             $cacheKey,
             $time,
-            function () use ($request, $entity, $with, $filterClass, $filterService, $useShowInList
+            function () use ($request, $entity, $with, $filterClass, $useShowInList
         ) {
             if ($request->filterList) {
                 $filterList = json_decode($request->filterList);
@@ -118,7 +117,8 @@ class DefaultEntityService
                 if ($request->active) $items->active();
                 $items = $items->get();
 
-                $result = $filterService->get($items, $filterList);
+                $filterServiceObj = app('App\Services\Filter\FilterService');
+                $result = $filterServiceObj->get($items, $filterList);
 
                 if (
                     $request->filters
@@ -137,8 +137,8 @@ class DefaultEntityService
                     if ($request->active) $filteredItems->active();
                     $filteredItems = $filteredItems->get();
 
-                    $availableFilters = $filterService->get($filteredItems, $filterList);
-                    $result = $filterService->compareFilters($result, $availableFilters);
+                    $availableFilters = $filterServiceObj->get($filteredItems, $filterList);
+                    $result = $filterServiceObj->compareFilters($result, $availableFilters);
                 }
 
                 return $result;

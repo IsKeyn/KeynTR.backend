@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddSoftDeleteToCompaniesTable extends Migration
+class AddSoftDeleteToGamingPlatformsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,9 @@ class AddSoftDeleteToCompaniesTable extends Migration
      */
     public function up()
     {
-        Schema::table('companies', function (Blueprint $table) {
-            $table->foreignId('created_by')->after('spc_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->boolean('active')->default(true)->after('description');
-            $table->integer('sort')->nullable()->after('description');
+        Schema::table('gaming_platforms', function (Blueprint $table) {
+            $table->foreignId('created_by')->after('sort')->nullable()->constrained('users')->nullOnDelete();
+            $table->boolean('active')->default(true)->after('sort');
             $table->softDeletes();
         });
     }
@@ -28,10 +27,9 @@ class AddSoftDeleteToCompaniesTable extends Migration
      */
     public function down()
     {
-        Schema::table('companies', function (Blueprint $table) {
+        Schema::table('gaming_platforms', function (Blueprint $table) {
             $table->dropColumn('created_by');
             $table->dropColumn('active');
-            $table->dropColumn('sort');
             $table->dropSoftDeletes();
         });
     }

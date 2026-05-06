@@ -2,6 +2,8 @@
 
 namespace App\Filters\Concerns;
 
+use App\Models\ViewsCount;
+use App\Models\VotesCount;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -121,10 +123,39 @@ trait HasFilters
         }
     }
 
-    protected function sort($value)
+    protected function sort($value): void
     {
         if ($value) {
             switch ($value->field) {
+                case 'likes':
+                    $this->query
+                        ->with('likes')
+                        ->orderBy(
+                            VotesCount::select('value')
+                                ->whereColumn('entity_id', self::TABLE_NAME . '.id')
+                                ->where('entity_type', self::MODEL)
+                                ->limit(1),
+                            $value->sort
+                        );
+                    break;
+                case 'views':
+                    $this->query
+                        ->with('views')
+                        ->orderBy(
+                            ViewsCount::select('value')
+                                ->whereColumn('entity_id', self::TABLE_NAME . '.id')
+                                ->where('entity_type', self::MODEL)
+                                ->limit(1),
+                            $value->sort
+                        );
+                    break;
+                case 'date':
+                    $this->query
+                        ->with('dates')
+                        ->withAggregate('dates', 'date')
+                        ->orderBy('dates_date', $value->sort);
+                    break;
+
                 case 'sort':
                     $this->query->orderByRaw('sort IS NULL, sort ' . $value->sort);
                     break;

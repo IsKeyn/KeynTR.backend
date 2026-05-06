@@ -6,10 +6,11 @@ use App\Filters\GameFilter;
 use App\Http\Resources\BoardGame\BoardGameShortestWithImageResource;
 use App\Http\Resources\Game\GameDetailResource;
 use App\Http\Resources\Game\GameListResource;
+use App\Http\Resources\Game\GameRollListResource;
 use App\Http\Resources\UserActions\UserActionsResource;
 use App\Models\Game;
 use App\Services\Cache\GameCacheService;
-use App\Services\Game\FilterService;
+use App\Services\Filter\FilterService;
 use App\Services\ViewsLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -46,6 +47,37 @@ class GameController extends Controller
             $result = $games->paginate($request->perPage ? $request->perPage : 10);
 
             return GameListResource::collection($result);
+        });
+    }
+
+    public function getRollList(Request $request) {
+        $cacheKey = GameCacheService::ROLL_LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        $time = GameCacheService::TIME;
+
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                GameCacheService::ROLL_LIST_TOKEN,
+                fn() => Str::random(10)
+            );
+
+            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $time = GameCacheService::FILTER_TIME;
+        }
+
+        return Cache::remember($cacheKey, $time, function () use ($request) {
+            $filter = new GameFilter($request);
+            $games = $filter->apply(Game::query())
+                ->with(['titleImage', 'genres', 'dates'])
+                ->where('show_in_list', true)
+                ->active();
+
+            if (!isset($request->sort)) {
+                $games->orderByRaw('sort IS NULL, sort ASC');
+            }
+
+            $result = $games->get();
+
+            return GameRollListResource::collection($result);
         });
     }
 

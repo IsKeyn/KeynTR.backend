@@ -35,7 +35,7 @@ class SeriesDetailResource extends JsonResource
             'seo' => $this->whenLoaded('seo', function() {
                 return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;
             }),
-            'games' => $this->whenLoaded('games', GameListResource::collection($this->games)),
+            'games' => $this->whenLoaded('games', GameListResource::collection($this->games->where('active', true))),
             'menu' => $this->whenLoaded('menu', MenuTypeResource::collection($this->menu)),
             'blocks' => $this->whenLoaded('blocks', BlockResource::collection($this->blocks)),
             'created_by' => $this->created_by,

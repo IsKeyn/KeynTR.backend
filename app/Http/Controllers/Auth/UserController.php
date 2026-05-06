@@ -83,6 +83,7 @@ class UserController extends Controller
         $validated = $request->validate([
             'theme' => 'sometimes',
             'soundVolume' => 'sometimes|numeric',
+            'rouletteSetting' => 'sometimes',
         ]);
 
         $user = Auth::user();

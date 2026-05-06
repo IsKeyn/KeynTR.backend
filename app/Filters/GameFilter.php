@@ -11,6 +11,9 @@ class GameFilter
 {
     use HasFilters;
 
+    private const MODEL = 'App\Models\Game';
+    private const TABLE_NAME = 'games';
+
     protected function gamePlatforms($value): void
     {
         if ($value && $gamePlatformsIds = $value) {

@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class GamingPlatform extends Model
 {
-    use HasFactory, ExtendModelTrait;
+    use HasFactory, ExtendModelTrait, SoftDeletes;
 
     const REALISE_TYPE = 1;
 
@@ -20,6 +21,8 @@ class GamingPlatform extends Model
         'release_date',
         'spc_id',
         'sort',
+        'active',
+        'created_by',
     ];
 
     public function realiseDates()
@@ -28,5 +31,10 @@ class GamingPlatform extends Model
             ->withPivot('type')
             ->wherePivot('type', '=', GamingPlatform::REALISE_TYPE)
             ->withTimestamps();
+    }
+
+    public function games()
+    {
+        return $this->morphedByMany(Game::class, 'gaming_platform_bind');
     }
 }

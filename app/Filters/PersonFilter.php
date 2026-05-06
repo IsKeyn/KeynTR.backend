@@ -11,6 +11,9 @@ class PersonFilter
 {
     use HasFilters;
 
+    private const MODEL = 'App\Models\Person';
+    private const TABLE_NAME = 'people';
+
     protected function sort($value): void
     {
         if ($value) {

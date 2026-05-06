@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Http\Resources\Genre\ListResource;
+use App\Http\Resources\Admin\Genre\DetailResource;
 use App\Models\Genre;
 use App\Services\Cache\GenreCacheService;
 use Illuminate\Support\Facades\Cache;
@@ -67,7 +67,7 @@ class GenreService
 
             $item = $item->first();
 
-            return ListResource::make($item);
+            return DetailResource::make($item);
         };
 
         // Если передан флаг принудительного обновления, игнорируем кеш

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Game;
+namespace App\Services\Filter;
 
 use Illuminate\Support\Carbon;
 
@@ -21,6 +21,7 @@ class FilterService
             foreach ($data as $game) {
                 foreach ($filterList as $filterKey) {
                     $name = $this->getNameByKey($filterKey);
+
                     foreach ($game->{$name} as $element) {
                         if ($name === 'dates') {
                             if (isset($result[$filterKey]['min'])) {

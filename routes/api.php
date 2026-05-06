@@ -6,6 +6,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\GamingPlatformController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaGroupController;
@@ -149,6 +150,11 @@ Route::name('api.')->group(function() {
         Route::get('list', 'getList')->name('list');
         Route::get('filters', 'getListFilters')->name('list-filters');
         Route::get('{game:slug}', 'getGame')->name('get');
+
+        Route::prefix('roll/')->name('.roll')->group(function() {
+            Route::get('list', 'getRollList')->name('list');
+            Route::get('{game:slug}', 'getGame')->name('get');
+        });
     });
 
     // Работа с сущностью movie
@@ -183,6 +189,13 @@ Route::name('api.')->group(function() {
         Route::get('list', 'getList')->name('list');
         Route::get('filters', 'getListFilters')->name('filters');
         Route::get('{person:slug}', 'get')->name('get');
+    });
+
+    // Работа с сущностью gaming_platforms
+    Route::prefix('gaming-platform/')->controller(GamingPlatformController::class)->name('.gaming-platform')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{gamingPlatform:slug}', 'get')->name('get');
     });
 
     // Работа с сущностью youtube

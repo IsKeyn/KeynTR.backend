@@ -33,7 +33,6 @@ class SeriesController extends Controller
             'App\Models\Series',
             'App\Filters\SeriesFilter',
             'App\Services\Cache\SeriesCacheService',
-            'App\Services\Game\FilterService'
         );
     }
 

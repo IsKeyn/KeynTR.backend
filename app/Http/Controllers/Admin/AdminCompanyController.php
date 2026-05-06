@@ -36,7 +36,7 @@ class AdminCompanyController extends Controller {
 
     public function update(CompanyRequest $request, Company $company)
     {
-        return $this->defaultAdminEntityService->store(
+        return $this->defaultAdminEntityService->update(
             $request,
             $company
         );
