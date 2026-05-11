@@ -90,6 +90,15 @@ class MediaService
         }
     }
 
+    public function setAvatar($entity, $mediaId)
+    {
+        $media = Media::query()->where('id', $mediaId)->first();
+
+        if ($media) {
+            return $entity->avatar()->syncWithPivotValues($media->id, ['type' => Media::TITLE_TYPE]);
+        }
+    }
+
     public function setCovers($entity, $coversArray)
     {
         $coversData = [];

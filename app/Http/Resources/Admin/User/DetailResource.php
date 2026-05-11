@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Admin\User;
 
 use App\Http\Resources\Admin\ForExtension\AdminRoleResource;
+use App\Http\Resources\Media\ShortMediaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\TagResource;
 
@@ -17,6 +18,7 @@ class DetailResource extends JsonResource
             'public_name' => $this->public_name,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at?->format('Y-m-d H:i:s'),
+            'avatar' => $this->whenLoaded('avatar', ShortMediaResource::make($this->avatar()->first())),
             'settings' => $this->settings,
             'sort' => $this->sort,
             'is_admin' => $this->is_admin,

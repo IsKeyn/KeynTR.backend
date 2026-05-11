@@ -85,7 +85,7 @@ class UserService
             'App\Services\Cache\UserCacheService',
             'App\Http\Resources\Admin\User\DetailResource',
             $id,
-            ['tags', 'additionalFields', 'roles'],
+            ['tags', 'additionalFields', 'roles', 'avatar'],
             $forceRefresh,
             $withTrashed,
         );

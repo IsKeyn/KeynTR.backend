@@ -8,7 +8,7 @@ class RelatedDataService
 {
     public function set($model, $validated)
     {
-        if (isset($validated['title_image']) || isset($validated['covers'])) {
+        if (isset($validated['title_image']) || isset($validated['covers'])  || isset($validated['avatar'])) {
             $mediaService = new MediaService();
 
             if (isset($validated['title_image'])) {
@@ -17,6 +17,10 @@ class RelatedDataService
 
             if (isset($validated['covers'])) {
                 $mediaService->setCovers($model, $validated['covers']);
+            }
+
+            if (isset($validated['avatar'])) {
+                $mediaService->setAvatar($model, $validated['avatar']);
             }
         }
 

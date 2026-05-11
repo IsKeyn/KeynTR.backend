@@ -20,10 +20,10 @@ class MenuResource extends JsonResource
             'code' => $this->code,
             'group' => $this->group,
             'group_icon' => $this->group_icon,
-            'menu_type_bind_id' => $this->group_icon,
-            'menu_type_bind_type' => $this->group_icon,
-            'sort' => $this->group_icon,
-            'active' => $this->group_icon,
+            'menu_type_bind_id' => $this->menu_type_bind_id,
+            'menu_type_bind_type' => $this->menu_type_bind_type,
+            'sort' => $this->sort,
+            'active' => $this->active,
             'elements' => $this->whenLoaded('elements', MenuElementsResource::collection($this->elements->sortBy('sort'))),
         ];
     }

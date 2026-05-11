@@ -103,7 +103,7 @@ class CreateAdminMenu extends Command
                 'name' => 'Главная',
                 'url' => '/admin/',
                 'target' => null,
-                'menu_type_id' => null,
+                'menu_type_id' => 5,
                 'link_type' => 'route',
                 'icon' => 'fa-user',
                 'sort' => 10,
