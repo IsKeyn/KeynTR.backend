@@ -46,7 +46,7 @@ class GameRequest extends FormRequest
             'anons_dates' => 'sometimes|nullable',
             'release_dates' => 'sometimes|nullable',
             'blocks' => 'sometimes|nullable',
-            'created_at' => 'nullable|date',
+            'created_at' => 'sometimes|nullable|date',
         ];
     }
 

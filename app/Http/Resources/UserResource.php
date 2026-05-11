@@ -16,17 +16,15 @@ class UserResource extends JsonResource
 
     public function toArray($request)
     {
-        $image = $this->avatar()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
-
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'avatar' => $image ? MediaResource::make($image) : null,
+            'avatar' => $this->whenLoaded('avatar', MediaResource::make($this->avatar()->wherePivot('type', '=', Media::TITLE_TYPE)->first())),
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at,
             'settings' => $this->settings,
-            'roles' => RoleResource::collection($this->roles),
-            'additional_fields' => $this->additionalFields,
+            'roles' => $this->whenLoaded('roles', RoleResource::collection($this->roles)),
+            'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

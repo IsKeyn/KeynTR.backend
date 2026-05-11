@@ -22,6 +22,10 @@ class Company extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function game()
     {
         return $this->morphedByMany(Game::class, 'company_bind');

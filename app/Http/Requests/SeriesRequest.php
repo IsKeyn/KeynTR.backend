@@ -41,7 +41,7 @@ class SeriesRequest extends FormRequest
             'tags' => 'sometimes|nullable',
             'seo' => 'sometimes|nullable',
             'blocks' => 'sometimes|nullable',
-            'created_at' => 'nullable|date',
+            'created_at' => 'sometimes|nullable|date',
         ];
     }
 

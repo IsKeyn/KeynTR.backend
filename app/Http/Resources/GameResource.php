@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\Admin\AdminLinkResource;
+use App\Http\Resources\Admin\ForExtension\AdminLinkResource;;
 use App\Models\Game;
 use App\Models\Media;
 use App\Models\VotesLog;

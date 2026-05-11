@@ -22,6 +22,10 @@ class Timer extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function playerTimer()
     {
         return $this->hasMany(BoardGamePlayerTimer::class);

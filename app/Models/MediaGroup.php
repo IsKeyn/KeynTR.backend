@@ -23,6 +23,10 @@ class MediaGroup extends Model
         'active'
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function mediaGroup()
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot(['type', 'sort'])->wherePivot('type', '=', Media::MEDIA_GROUP);

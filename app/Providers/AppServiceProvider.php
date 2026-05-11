@@ -7,16 +7,24 @@ use App\Models\Game;
 use App\Models\GamingPlatform;
 use App\Models\Genre;
 use App\Models\Group;
+use App\Models\Menu;
+use App\Models\Permission;
 use App\Models\Person\Person;
+use App\Models\Role;
 use App\Models\Series;
+use App\Models\User;
 use App\Models\Version;
 use App\Observers\CompanyObserver;
 use App\Observers\GameObserver;
 use App\Observers\GamingPlatformObserver;
 use App\Observers\GenreObserver;
 use App\Observers\GroupObserver;
+use App\Observers\MenuObserver;
+use App\Observers\PermissionObserver;
 use App\Observers\PersonObserver;
+use App\Observers\RoleObserver;
 use App\Observers\SeriesObserver;
+use App\Observers\UserObserver;
 use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
 
@@ -51,5 +59,9 @@ class AppServiceProvider extends ServiceProvider
         Genre::observe(GenreObserver::class);
         Company::observe(CompanyObserver::class);
         Version::observe(VersionObserver::class);
+        User::observe(UserObserver::class);
+        Role::observe(RoleObserver::class);
+        Permission::observe(PermissionObserver::class);
+        Menu::observe(MenuObserver::class);
     }
 }

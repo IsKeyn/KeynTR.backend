@@ -23,7 +23,10 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->json('settings')->nullable();
             $table->tinyInteger('is_admin')->default(0);
+            $table->integer('sort')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -21,6 +21,10 @@ class Genre extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function games()
     {
         return $this->morphedByMany(Game::class, 'genre_bind');

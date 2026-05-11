@@ -6,19 +6,39 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Media;
 use App\Models\User;
+use App\Services\Cache\UserCacheService;
 use App\Services\MediaService;
 use App\Services\User\MagicLinkService;
 use App\Services\User\UserPasswordService;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class UserController extends Controller
 {
     public function authUser(Request $request) {
-        $user = $request->user();
+        if (!$request->user()) {
+            return null;
+        }
 
-        return UserResource::make($user);
+        $id = $request->user()->id;
+
+        $cacheKey = UserCacheService::DETAIL_PREFIX . '_' . $id;
+
+        return Cache::remember($cacheKey, UserCacheService::TIME, function () use ($id) {
+            $user = User::findById($id)
+                ->active()
+                ->with(
+                    'avatar',
+                    'roles',
+                    'roles.permissions',
+                    'additionalFields'
+                )
+                ->first();
+
+            return UserResource::make($user);
+        });
     }
 
     public function sendVerificationNotification(Request $request) {

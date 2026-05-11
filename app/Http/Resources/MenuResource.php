@@ -24,7 +24,7 @@ class MenuResource extends JsonResource
             'menu_type_bind_type' => $this->group_icon,
             'sort' => $this->group_icon,
             'active' => $this->group_icon,
-            'elements' => MenuElementsResource::collection($this->elements->sortBy('sort')),
+            'elements' => $this->whenLoaded('elements', MenuElementsResource::collection($this->elements->sortBy('sort'))),
         ];
     }
 }

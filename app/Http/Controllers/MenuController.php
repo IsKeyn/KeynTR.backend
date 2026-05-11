@@ -8,8 +8,10 @@ use App\Models\Game;
 use App\Models\MenuType;
 use App\Models\Movie;
 use App\Models\Page;
+use App\Services\Cache\MenuCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 
 class MenuController extends Controller
 {
@@ -155,9 +157,21 @@ class MenuController extends Controller
     public function getByCode(Request $request)
     {
         if ($request->code) {
-            $menuTypes = MenuType::findByCode($request->code)->active()->get()->sortBy('sort');
+            $cacheKey = MenuCacheService::ADMIN_LIST_PREFIX . '_' . $request->code;
+            $time = MenuCacheService::TIME;
 
-            return MenuResource::collection($menuTypes);
+            return Cache::remember($cacheKey, $time, function () use ($request) {
+                $menuTypes = MenuType::findByCode($request->code)
+                    ->active()
+                    ->with([
+                        'elements',
+                        'elements.permissions'
+                    ])
+                    ->get()
+                    ->sortBy('sort');
+
+                return MenuResource::collection($menuTypes);
+            });
         }
     }
 }

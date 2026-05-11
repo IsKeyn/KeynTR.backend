@@ -27,6 +27,10 @@ class Comments extends Model
         'active',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function entity()
     {
         return $this->morphTo();

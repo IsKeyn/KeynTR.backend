@@ -11,5 +11,7 @@ class AdminCacheService extends ServiceProvider
     {
         Cache::forget(SeriesCacheService::ADMIN_ADDDATA_PREFIX);
         Cache::forget(GameCacheService::ADMIN_ADDDATA_PREFIX);
+        Cache::forget(UserCacheService::ADMIN_ADDDATA_PREFIX);
+        Cache::forget(RoleCacheService::ADMIN_ADDDATA_PREFIX);
     }
 }

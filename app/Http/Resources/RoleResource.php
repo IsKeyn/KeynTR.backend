@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Permission\ShortResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class RoleResource extends JsonResource
@@ -18,6 +19,7 @@ class RoleResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'system_name' => $this->system_name,
+            'permissions' => $this->whenLoaded('permissions', ShortResource::collection($this->permissions)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

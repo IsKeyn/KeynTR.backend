@@ -17,4 +17,8 @@ class Social extends Model
         'active',
         'created_by',
     ];
+
+    protected $casts = [
+        'active' => 'boolean',
+    ];
 }

@@ -55,7 +55,7 @@ class DefaultAdminEntityService
             $validated['created_by'] = $request->user()->id;
         }
 
-        if (!$validated['created_at']) {
+        if (!isset($validated['created_at'])) {
             unset($validated['created_at']);
         }
 
@@ -136,5 +136,23 @@ class DefaultAdminEntityService
         if (!$element) return false;
 
         return $element->restore();
+    }
+
+    public function getListFilters(
+        $request,
+        $entity,
+        $filterClass,
+        $cacheService,
+        $with = [],
+        $useShowInList = false
+    ) {
+        return EntityService::getListFilters(
+            $request,
+            $entity,
+            $filterClass,
+            $cacheService,
+            $with ,
+            $useShowInList
+        );
     }
 }

@@ -25,6 +25,10 @@ class GamingPlatform extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function realiseDates()
     {
         return $this->morphToMany(Date::class, 'date_bind')

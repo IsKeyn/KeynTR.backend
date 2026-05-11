@@ -5,6 +5,7 @@ namespace App\Services\User;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AdditionalFieldsService;
+use App\Services\Entity\EntityService;
 use App\Services\TwitchService;
 
 class UserService
@@ -75,5 +76,18 @@ class UserService
         } else {
             return $login;
         }
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            'App\Models\User',
+            'App\Services\Cache\UserCacheService',
+            'App\Http\Resources\Admin\User\DetailResource',
+            $id,
+            ['tags', 'additionalFields', 'roles'],
+            $forceRefresh,
+            $withTrashed,
+        );
     }
 }

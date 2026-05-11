@@ -80,5 +80,13 @@ class RelatedDataService
         if (isset($validated['game'])) {
             GameService::set($model, $validated['game']);
         }
+
+        if (isset($validated['roles'])) {
+            RoleService::set($model, $validated['roles']);
+        }
+
+        if (isset($validated['permissions'])) {
+            PermissionService::set($model, $validated['permissions']);
+        }
     }
 }

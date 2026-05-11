@@ -23,7 +23,7 @@ class CheckIsAdmin
 
         if ($user) {
             foreach ($user->roles as $role) {
-                if ($role->system_name === 'admin') {
+                if ($role->system_name === 'super_admin') {
                     $testPassed = true;
                 }
             }

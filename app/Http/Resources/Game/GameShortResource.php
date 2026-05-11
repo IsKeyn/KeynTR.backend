@@ -5,7 +5,7 @@ namespace App\Http\Resources\Game;
 use App\Http\Resources\AnonsDateResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\GenreResource;
-use App\Http\Resources\Admin\AdminLinkResource;
+use App\Http\Resources\Admin\ForExtension\AdminLinkResource;;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\MediaResource;
 use App\Http\Resources\ReleaseDateResource;
