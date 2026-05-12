@@ -179,6 +179,8 @@ return [
 
 //        Laravel\Socialite\SocialiteServiceProvider::class,
         \SocialiteProviders\Manager\ServiceProvider::class,
+
+        Laravel\Telescope\TelescopeServiceProvider::class,
     ],
 
     /*
