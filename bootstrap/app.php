@@ -1,55 +1,100 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Create The Application
-|--------------------------------------------------------------------------
-|
-| The first thing we will do is create a new Laravel application instance
-| which serves as the "glue" for all the components of Laravel, and is
-| the IoC container for the system binding all of the various parts.
-|
-*/
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Console\Scheduling\Schedule;
+use App\Http\Middleware\TrustProxies;
+use App\Http\Middleware\PreventRequestsDuringMaintenance;
+use App\Http\Middleware\TrimStrings;
+use App\Http\Middleware\VerifyCsrfToken;
+use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\CheckIsAdmin;
+use App\Http\Middleware\RedirectIfAuthenticated;
+use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
-$app = new Illuminate\Foundation\Application(
-    $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
-);
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+    // ─────────────────────────────────────────
+    // Глобальные мидлвары (было в $middleware)
+    // ─────────────────────────────────────────
+    $middleware->append([
+        \Illuminate\Http\Middleware\HandleCors::class,
+        TrustProxies::class,
+        PreventRequestsDuringMaintenance::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+    ]);
 
-/*
-|--------------------------------------------------------------------------
-| Bind Important Interfaces
-|--------------------------------------------------------------------------
-|
-| Next, we need to bind some important interfaces into the container so
-| we will be able to resolve them when needed. The kernels serve the
-| incoming requests to this application from both the web and CLI.
-|
-*/
+    // ─────────────────────────────────────────
+    // Группа 'web'
+    // ─────────────────────────────────────────
+    $middleware->group('web', [
+        EncryptCookies::class,
+        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        VerifyCsrfToken::class,
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+    ]);
 
-$app->singleton(
-    Illuminate\Contracts\Http\Kernel::class,
-    App\Http\Kernel::class
-);
+    // ─────────────────────────────────────────
+    // Группа 'api'
+    // ─────────────────────────────────────────
+    $middleware->group('api', [
+        EnsureFrontendRequestsAreStateful::class,
+        'throttle:api',
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+    ]);
 
-$app->singleton(
-    Illuminate\Contracts\Console\Kernel::class,
-    App\Console\Kernel::class
-);
+    // ─────────────────────────────────────────
+    // Алиасы мидлваров (было в $routeMiddleware)
+    // ─────────────────────────────────────────
+    $middleware->alias([
+        'auth' => Authenticate::class,
+        'is_admin' => CheckIsAdmin::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+    ]);
+})
+    ->withSchedule(function (Schedule $schedule) {
+        // ─────────────────────────────────────────
+        // Расписание задач (было в App\Console\Kernel)
+        // ─────────────────────────────────────────
+        $schedule->command('YouTube:FetchLastVideos')->daily();
+        $schedule->command('auth:clear-resets')->everyFifteenMinutes();
+        $schedule->command('views:count')->everyFifteenMinutes();
+        $schedule->command('user:clear-magic-links')->daily();
+        $schedule->command('board-game:unset-players-streak')->sundays()->at('23:59');
+        $schedule->command('board-game:stop-limited-timer')->everyFifteenMinutes();
+        $schedule->command('version:clear-versions 365')->sundays()->at('23:59');
 
-$app->singleton(
-    Illuminate\Contracts\Debug\ExceptionHandler::class,
-    App\Exceptions\Handler::class
-);
-
-/*
-|--------------------------------------------------------------------------
-| Return The Application
-|--------------------------------------------------------------------------
-|
-| This script returns the application instance. The instance is given to
-| the calling script so we can separate the building of the instances
-| from the actual running of the application and sending responses.
-|
-*/
-
-return $app;
+        // Закомментированные задачи при необходимости:
+        // $schedule->command('log:set')->everyMinute();
+        // $schedule->command('inspire')->hourly();
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        // ─────────────────────────────────────────
+        // Обработка исключений
+        // ─────────────────────────────────────────
+        // Пример кастомной обработки:
+        // $exceptions->render(function (Throwable $e, Illuminate\Http\Request $request) {
+        //     if ($e instanceof \App\Exceptions\CustomException) {
+        //         return response()->json(['error' => $e->getMessage()], 500);
+        //     }
+        // });
+    })->create();
