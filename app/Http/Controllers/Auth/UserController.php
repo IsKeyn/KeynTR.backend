@@ -18,27 +18,7 @@ use Illuminate\Support\Facades\Cache;
 class UserController extends Controller
 {
     public function authUser(Request $request) {
-        if (!$request->user()) {
-            return null;
-        }
-
-        $id = $request->user()->id;
-
-        $cacheKey = UserCacheService::DETAIL_PREFIX . '_' . $id;
-
-        return Cache::remember($cacheKey, UserCacheService::TIME, function () use ($id) {
-            $user = User::findById($id)
-                ->active()
-                ->with(
-                    'avatar',
-                    'roles',
-                    'roles.permissions',
-                    'additionalFields'
-                )
-                ->first();
-
-            return UserResource::make($user);
-        });
+        return UserService::getAuthUser($request);
     }
 
     public function sendVerificationNotification(Request $request) {
@@ -165,6 +145,33 @@ class UserController extends Controller
 
     public function fullLogout(Request $request)
     {
+        $user = $request->user();
 
+        // Удалить текущий токен (обычно используется при logout)
+        $user->currentAccessToken()->delete();
+
+        // Удалить все токены пользователя
+        $user->tokens()->delete();
+    }
+
+    public function getSanctumToken(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user) {
+            $tokenName = $request->name ? $request->name : config('app.name') . '_token';
+            $token = $user->createToken($tokenName);
+            $plainToken = $token->plainTextToken;
+
+            return response()->json([
+                'user'  => $user,
+                'token' => $plainToken,
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'status_message' => 'Пользователь не найден',
+            ]);
+        }
     }
 }
