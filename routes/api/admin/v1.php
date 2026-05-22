@@ -20,10 +20,12 @@ Route::prefix('admin/')->name('v1.')->group(function() {
     Route::name('recommendation.')->middleware(['auth:sanctum', 'can:recommend.edit'])->group(base_path('routes/api/admin/fragments/Recommendation.php'));
 
     Route::name('media.')->middleware(['auth:sanctum', 'can:media.edit'])->group(base_path('routes/api/admin/fragments/Media.php'));
+    Route::name('tag.')->middleware(['auth:sanctum', 'can:tags.edit'])->group(base_path('routes/api/admin/fragments/Tag.php'));
     Route::name('media-group.')->middleware(['auth:sanctum', 'can:media-group.edit'])->group(base_path('routes/api/admin/fragments/MediaGroup.php'));
     Route::name('series.')->middleware(['auth:sanctum', 'can:series.edit'])->group(base_path('routes/api/admin/fragments/Series.php'));
     Route::name('person.')->middleware(['auth:sanctum', 'can:person.edit'])->group(base_path('routes/api/admin/fragments/Person.php'));
     Route::name('company.')->middleware(['auth:sanctum', 'can:company.edit'])->group(base_path('routes/api/admin/fragments/Company.php'));
+    Route::name('group.')->middleware(['auth:sanctum', 'can:group.edit'])->group(base_path('routes/api/admin/fragments/Group.php'));
     Route::name('genre.')->middleware(['auth:sanctum', 'can:genre.edit'])->group(base_path('routes/api/admin/fragments/Genre.php'));
     Route::name('gaming-platform.')->middleware(['auth:sanctum', 'can:gaming-platform.edit'])->group(base_path('routes/api/admin/fragments/GamingPlatform.php'));
 

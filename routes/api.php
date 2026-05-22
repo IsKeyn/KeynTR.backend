@@ -159,8 +159,9 @@ Route::name('api.')->group(function() {
 
     // Работа с сущностью movie
     Route::prefix('movie/')->controller(MovieController::class)->name('.movie')->group(function() {
-        Route::get('list', 'getList')->name('movie-list');
-        Route::get('{movie:slug}', 'getMovie')->name('get-movie');
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('list-filters');
+        Route::get('{movie:slug}', 'get')->name('get');
     });
 
     // Работа с сущностью series

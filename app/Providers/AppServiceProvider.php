@@ -8,11 +8,13 @@ use App\Models\GamingPlatform;
 use App\Models\Genre;
 use App\Models\Group;
 use App\Models\Menu;
+use App\Models\Movie;
 use App\Models\Permission;
 use App\Models\Person\Person;
 use App\Models\Role;
 use App\Models\Series;
 use App\Models\Setting;
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\User\Notification;
 use App\Models\Version;
@@ -22,12 +24,14 @@ use App\Observers\GamingPlatformObserver;
 use App\Observers\GenreObserver;
 use App\Observers\GroupObserver;
 use App\Observers\MenuObserver;
+use App\Observers\MovieObserver;
 use App\Observers\NotificationObserver;
 use App\Observers\PermissionObserver;
 use App\Observers\PersonObserver;
 use App\Observers\RoleObserver;
 use App\Observers\SeriesObserver;
 use App\Observers\SettingObserver;
+use App\Observers\TagObserver;
 use App\Observers\UserObserver;
 use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
@@ -56,6 +60,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Game::observe(GameObserver::class);
+        Movie::observe(MovieObserver::class);
         Series::observe(SeriesObserver::class);
         Person::observe(PersonObserver::class);
         Group::observe(GroupObserver::class);
@@ -69,5 +74,6 @@ class AppServiceProvider extends ServiceProvider
         Menu::observe(MenuObserver::class);
         Setting::observe(SettingObserver::class);
         Notification::observe(NotificationObserver::class);
+        Tag::observe(TagObserver::class);
     }
 }

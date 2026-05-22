@@ -9,9 +9,10 @@ class AdminCacheService extends ServiceProvider
 {
     public static function clearAdminAdditionalDataCache(): void
     {
-        Cache::forget(SeriesCacheService::ADMIN_ADDDATA_PREFIX);
-        Cache::forget(GameCacheService::ADMIN_ADDDATA_PREFIX);
         Cache::forget(UserCacheService::ADMIN_ADDDATA_PREFIX);
         Cache::forget(RoleCacheService::ADMIN_ADDDATA_PREFIX);
+        Cache::forget(GameCacheService::ADMIN_ADDDATA_PREFIX);
+        Cache::forget(MovieCacheService::ADMIN_ADDDATA_PREFIX);
+        Cache::forget(SeriesCacheService::ADMIN_ADDDATA_PREFIX);
     }
 }

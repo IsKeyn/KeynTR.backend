@@ -2,11 +2,11 @@
 
 namespace App\Observers;
 
-use App\Models\Group;
+use App\Models\Tag;
 use App\Services\Cache\AdminCacheService;
 use App\Services\Observer\DefaultObserverService;
 
-class GroupObserver
+class TagObserver
 {
     protected DefaultObserverService $defaultObserverService;
 
@@ -16,84 +16,84 @@ class GroupObserver
     }
 
     /**
-     * Handle the Group "created" event.
+     * Handle the Tag "created" event.
      *
-     * @param  \App\Models\Group  $group
+     * @param  \App\Models\Tag  $tag
      * @return void
      */
-    public function created(Group $group)
+    public function created(Tag $tag)
     {
         $this->defaultObserverService->created(
-            $group,
-            'App\Services\Cache\GroupCacheService',
-            'App\Services\GroupService'
+            $tag,
+            'App\Services\Cache\TagCacheService',
+            'App\Services\TagService'
         );
 
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
-     * Handle the Group "updated" event.
+     * Handle the Tag "updated" event.
      *
-     * @param  \App\Models\Group  $group
+     * @param  \App\Models\Tag  $tag
      * @return void
      */
-    public function updated(Group $group)
+    public function updated(Tag $tag)
     {
         $this->defaultObserverService->updated(
-            $group,
-            'App\Services\Cache\GroupCacheService',
-            'App\Services\GroupService'
+            $tag,
+            'App\Services\Cache\TagCacheService',
+            'App\Services\TagService'
         );
 
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
-     * Handle the Group "deleted" event.
+     * Handle the Tag "deleted" event.
      *
-     * @param  \App\Models\Group  $group
+     * @param  \App\Models\Tag  $tag
      * @return void
      */
-    public function deleted(Group $group)
+    public function deleted(Tag $tag)
     {
         $this->defaultObserverService->deleted(
-            $group,
-            'App\Services\Cache\GroupCacheService',
-            'App\Services\GroupService'
+            $tag,
+            'App\Services\Cache\TagCacheService',
+            'App\Services\TagService'
         );
 
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
-     * Handle the Group "restored" event.
+     * Handle the Tag "restored" event.
      *
-     * @param  \App\Models\Group  $group
+     * @param  \App\Models\Tag  $tag
      * @return void
      */
-    public function restored(Group $group)
+    public function restored(Tag $tag)
     {
         $this->defaultObserverService->restored(
-            $group,
-            'App\Services\Cache\GroupCacheService',
-            'App\Services\GroupService'
+            $tag,
+            'App\Services\Cache\TagCacheService',
+            'App\Services\TagService'
         );
 
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
-     * Handle the Group "force deleted" event.
+     * Handle the Tag "force deleted" event.
      *
-     * @param  \App\Models\Group  $group
+     * @param  \App\Models\Tag  $tag
      * @return void
      */
-    public function forceDeleted(Group $group)
+    public function forceDeleted(Tag $tag)
     {
         $this->defaultObserverService->forceDeleted(
-            $group,
-            'App\Services\Cache\GroupCacheService'
+            $tag,
+            'App\Services\Cache\TagCacheService'
         );
 
         AdminCacheService::clearAdminAdditionalDataCache();

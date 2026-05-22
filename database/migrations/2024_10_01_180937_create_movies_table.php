@@ -19,7 +19,10 @@ class CreateMoviesTable extends Migration
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->integer('sort')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
