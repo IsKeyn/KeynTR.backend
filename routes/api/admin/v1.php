@@ -3,7 +3,10 @@
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin/')->name('v1.')->group(function() {
+    Route::name('setting.')->middleware(['auth:sanctum', 'can:site.edit'])->group(base_path('routes/api/admin/fragments/Setting.php'));
+
     Route::name('user.')->middleware(['auth:sanctum', 'can:user.edit'])->group(base_path('routes/api/admin/fragments/User.php'));
+    Route::name('notification.')->middleware(['auth:sanctum', 'can:user.notification.edit'])->group(base_path('routes/api/admin/fragments/Notification.php'));
     Route::name('role.')->middleware(['auth:sanctum', 'can:user.roles.edit'])->group(base_path('routes/api/admin/fragments/Role.php'));
     Route::name('permission.')->middleware(['auth:sanctum', 'can:user.permission.edit'])->group(base_path('routes/api/admin/fragments/Permission.php'));
 

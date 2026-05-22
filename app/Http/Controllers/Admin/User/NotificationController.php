@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Admin\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SettingRequest;
-use App\Models\Setting;
+use App\Http\Requests\NotificationRequest;
+use App\Models\User\Notification;
 use App\Services\Entity\DefaultAdminEntityService;
 use Illuminate\Http\Request;
 
-class SettingController extends Controller
+class NotificationController extends Controller
 {
     protected DefaultAdminEntityService $defaultAdminEntityService;
 
@@ -21,26 +21,26 @@ class SettingController extends Controller
     {
         return $this->defaultAdminEntityService->index(
             $request,
-            'App\Models\Setting',
-            'App\Services\Cache\SettingCacheService',
-            'App\Filters\SettingFilter',
-            'App\Http\Resources\Admin\Setting\ListResource',
+            'App\Models\User\Notification',
+            'App\Services\Cache\NotificationCacheService',
+            'App\Filters\NotificationFilter',
+            'App\Http\Resources\Admin\Notification\ListResource',
         );
     }
 
-    public function store(SettingRequest $request)
+    public function store(NotificationRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,
-            'App\Models\Setting'
+            'App\Models\User\Notification'
         );
     }
 
-    public function update(SettingRequest $request, Setting $setting)
+    public function update(NotificationRequest $request, Notification $notification)
     {
         return $this->defaultAdminEntityService->update(
             $request,
-            $setting
+            $notification
         );
     }
 
@@ -49,19 +49,19 @@ class SettingController extends Controller
         return $this->defaultAdminEntityService->edit(
             $request,
             $id,
-            'App\Services\SettingService'
+            'App\Services\NotificationService'
         );
     }
 
-    public function destroy(Setting $setting)
+    public function destroy(Notification $notification)
     {
-        return $this->defaultAdminEntityService->destroy($setting);
+        return $this->defaultAdminEntityService->destroy($notification);
     }
 
     public function forceDelete($id)
     {
         return $this->defaultAdminEntityService->forceDelete(
-            'App\Models\Setting',
+            'App\Models\User\Notification',
             $id
         );
     }
@@ -69,7 +69,7 @@ class SettingController extends Controller
     public function recovery($id)
     {
         return $this->defaultAdminEntityService->recovery(
-            'App\Models\Setting',
+            'App\Models\User\Notification',
             $id
         );
     }
@@ -78,9 +78,9 @@ class SettingController extends Controller
     {
         return $this->defaultAdminEntityService->getListFilters(
             $request,
-            'App\Models\Setting',
-            'App\Filters\SettingFilter',
-            'App\Services\Cache\SettingCacheService',
+            'App\Models\User\Notification',
+            'App\Filters\NotificationFilter',
+            'App\Services\Cache\NotificationCacheService',
         );
     }
 }

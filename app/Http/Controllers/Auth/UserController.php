@@ -6,14 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Media;
 use App\Models\User;
-use App\Services\Cache\UserCacheService;
 use App\Services\MediaService;
 use App\Services\User\MagicLinkService;
 use App\Services\User\UserPasswordService;
 use App\Services\User\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class UserController extends Controller
 {
@@ -158,20 +158,70 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        if ($user) {
-            $tokenName = $request->name ? $request->name : config('app.name') . '_token';
-            $token = $user->createToken($tokenName);
-            $plainToken = $token->plainTextToken;
+        if (!$user) {
+            return response()->json([
+                'status'         => 'error',
+                'status_message' => 'Пользователь не найден или не авторизован',
+            ], 401);
+        }
+
+        $tokenName = $request->name ?: config('app.name') . '_token';
+
+        // Удаляем все существующие токены пользователя с таким же именем
+        $user->tokens()->where('name', $tokenName)->delete();
+
+        $newToken = $user->createToken($tokenName);
+        $plainToken = $newToken->plainTextToken;
+
+        $accessToken = $newToken->accessToken; // Это экземпляр PersonalAccessToken
+        $accessToken->expires_at = Carbon::now()->addHours(24);
+        $accessToken->save();
+
+        return response()->json([
+            'token' => $plainToken,
+            'expires_at' => $accessToken->expires_at,
+        ]);
+    }
+
+    public function verifyToken(Request $request)
+    {
+        $plainToken = $request->input('token');
+
+        if (!$plainToken) {
+            return response()->json([
+                'valid'   => false,
+                'message' => 'Токен не передан'
+            ], 400);
+        }
+
+        // 1. Ищем токен в БД (Sanctum автоматически применяет хеширование)
+        $token = PersonalAccessToken::findToken($plainToken);
+
+        if (!$token) {
+            return response()->json([
+                'valid'   => false,
+                'message' => 'Токен не найден или некорректен'
+            ], 404);
+        }
+
+        // 2. Проверяем срок действия (expires_at кастится к Carbon автоматически)
+        if ($token->expires_at && now()->greaterThan($token->expires_at)) {
+            // Опционально: сразу удаляем истекший токен из БД
+            $token->delete();
 
             return response()->json([
-                'user'  => $user,
-                'token' => $plainToken,
-            ]);
-        } else {
-            return response()->json([
-                'status' => 'error',
-                'status_message' => 'Пользователь не найден',
-            ]);
+                'valid'   => false,
+                'message' => 'Срок действия токена истёк'
+            ], 401);
         }
+
+        // 3. Токен валиден
+        return response()->json([
+            'valid'      => true,
+            'message'    => 'Токен действителен',
+            'user_id'    => $token->tokenable_id,
+            'user_type'  => $token->tokenable_type,
+            'expires_at' => $token->expires_at?->toISOString(),
+        ]);
     }
 }

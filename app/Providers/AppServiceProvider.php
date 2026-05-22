@@ -12,7 +12,9 @@ use App\Models\Permission;
 use App\Models\Person\Person;
 use App\Models\Role;
 use App\Models\Series;
+use App\Models\Setting;
 use App\Models\User;
+use App\Models\User\Notification;
 use App\Models\Version;
 use App\Observers\CompanyObserver;
 use App\Observers\GameObserver;
@@ -20,10 +22,12 @@ use App\Observers\GamingPlatformObserver;
 use App\Observers\GenreObserver;
 use App\Observers\GroupObserver;
 use App\Observers\MenuObserver;
+use App\Observers\NotificationObserver;
 use App\Observers\PermissionObserver;
 use App\Observers\PersonObserver;
 use App\Observers\RoleObserver;
 use App\Observers\SeriesObserver;
+use App\Observers\SettingObserver;
 use App\Observers\UserObserver;
 use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
@@ -63,5 +67,7 @@ class AppServiceProvider extends ServiceProvider
         Role::observe(RoleObserver::class);
         Permission::observe(PermissionObserver::class);
         Menu::observe(MenuObserver::class);
+        Setting::observe(SettingObserver::class);
+        Notification::observe(NotificationObserver::class);
     }
 }

@@ -10,4 +10,6 @@ Route::controller(UserController::class)->group(function() {
     Route::prefix('magical-link/')->controller(MagicLinkController::class)->name('magic-link.')->group(function() {
         Route::get('/login/{token}','login')->name('login');
     });
+
+    Route::post('verify-token', 'verifyToken')->name('verify-token');
 });

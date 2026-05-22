@@ -30,7 +30,7 @@ class SettingRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.site_id' => 'site_id обязательно для заполнения.',
+            'site_id.required' => 'site_id обязательно для заполнения.',
             'name.required' => 'Название обязательно для заполнения.',
             'code.required' => 'System name обязателен для заполнения.',
             'value.required' => 'value name обязателен для заполнения.',
