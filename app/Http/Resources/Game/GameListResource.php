@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Game;
 
+use App\Http\Resources\GroupResource;
 use App\Models\Game;
 use App\Models\Media;
 use App\Http\Resources\GenreResource;
@@ -28,6 +29,7 @@ class GameListResource extends JsonResource
             'covers' => $this->whenLoaded('media', ShortMediaResource::collection($this->media()->wherePivot('type', '=', Media::COVER_TYPE)->get())),
             'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
             'release_dates' => $this->whenLoaded('dates', DateShortResource::collection($this->dates)),
+            'groups' => $this->whenLoaded('groups', GroupResource::collection($this->groups)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

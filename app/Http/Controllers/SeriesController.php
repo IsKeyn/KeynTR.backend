@@ -52,6 +52,7 @@ class SeriesController extends Controller
             [
                 'games',
                 'games.media',
+                'games.groups',
                 'titleImage',
                 'cover',
                 'tags',

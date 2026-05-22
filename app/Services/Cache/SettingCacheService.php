@@ -33,24 +33,22 @@ class SettingCacheService
         self::clearAllDetailCache();
     }
 
-    public function clearListCache($showMessage = false)
+    public function clearListCache(
+        $showMessage = false,
+        $siteId = 1,
+        $entityType = null,
+        $entityId = null
+    )
     {
-        $perPageArray = [24, 28, 96];
+        $cacheKey = SettingCacheService::LIST_PREFIX . '_' . $siteId;
 
-        foreach ($perPageArray as $perPage) {
-            $lastPage = self::MODEL::query()
-                ->active()
-                ->paginate($perPage)->lastPage();
+        if ($entityType) $cacheKey .= '_' . $entityType;
+        if ($entityId) $cacheKey .= '_' . $entityId;
 
-            for ($i = 1; $i <= $lastPage; $i++) {
-                $cacheKey = self::LIST_PREFIX . '_' . $i . '_' . $perPage;
+        Cache::forget($cacheKey);
 
-                Cache::forget($cacheKey);
-
-                if ($showMessage) {
-                    echo $cacheKey . ' очищен' . PHP_EOL;
-                }
-            }
+        if ($showMessage) {
+            echo $cacheKey . ' очищен' . PHP_EOL;
         }
 
         Cache::forget(self::LIST_TOKEN);

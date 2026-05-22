@@ -16,8 +16,7 @@ class SettingObserver
     public function created(Setting $setting)
     {
         $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache();
-        $versionCacheService->clearListCacheByEntity($setting->entity_type, $setting->entity_id);
+        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
     }
 
     /**
@@ -29,7 +28,7 @@ class SettingObserver
     public function updated(Setting $setting)
     {
         $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache();
+        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
     }
 
     /**
@@ -41,7 +40,7 @@ class SettingObserver
     public function deleted(Setting $setting)
     {
         $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache();
+        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
     }
 
     /**
@@ -53,7 +52,7 @@ class SettingObserver
     public function restored(Setting $setting)
     {
         $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache();
+        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
     }
 
     /**
@@ -65,6 +64,6 @@ class SettingObserver
     public function forceDeleted(Setting $setting)
     {
         $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache();
+        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
     }
 }
