@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Article;
 use App\Models\Company;
 use App\Models\Game;
 use App\Models\GamingPlatform;
@@ -18,6 +19,7 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Models\User\Notification;
 use App\Models\Version;
+use App\Observers\ArticleObserver;
 use App\Observers\CompanyObserver;
 use App\Observers\GameObserver;
 use App\Observers\GamingPlatformObserver;
@@ -75,5 +77,6 @@ class AppServiceProvider extends ServiceProvider
         Setting::observe(SettingObserver::class);
         Notification::observe(NotificationObserver::class);
         Tag::observe(TagObserver::class);
+        Article::observe(ArticleObserver::class);
     }
 }

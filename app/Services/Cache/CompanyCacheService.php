@@ -12,7 +12,7 @@ class CompanyCacheService
     public const ADMIN_ADDDATA_PREFIX = 'admin_company_adddata_cache';
 
     public const LIST_PREFIX = 'company_list_cache';
-    public const FILTER_PREFIX = 'filter_detail_cache';
+    public const FILTER_PREFIX = 'company_filter_cache';
     public const DETAIL_PREFIX = 'company_detail_cache';
 
     public const LIST_TOKEN = 'company_list_token';

@@ -27,6 +27,7 @@ class CreateArticlesTable extends Migration
             $table->boolean('show_editor')->default(false);
             $table->string('entity_type')->nullable();
             $table->integer('entity_id')->nullable();
+            $table->integer('sort')->nullable();
             $table->boolean('active')->default(true);
             $table->dateTime('published_at')->nullable();
             $table->softDeletes();

@@ -13,7 +13,7 @@ class SeriesCacheService
     public const ADMIN_ADDDATA_PREFIX = 'admin_series_adddata_cache';
 
     public const LIST_PREFIX = 'series_list_cache';
-    public const FILTER_PREFIX = 'filter_detail_cache';
+    public const FILTER_PREFIX = 'series_filter_cache';
     public const DETAIL_PREFIX = 'series_detail_cache';
 
     public const LIST_TOKEN = 'series_list_token';

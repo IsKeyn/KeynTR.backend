@@ -13,7 +13,7 @@ class PersonCacheService
     public const ADMIN_ADDDATA_PREFIX = 'admin_person_adddata_cache';
 
     public const LIST_PREFIX = 'person_list_cache';
-    public const FILTER_PREFIX = 'filter_detail_cache';
+    public const FILTER_PREFIX = 'person_filter_cache';
     public const DETAIL_PREFIX = 'person_detail_cache';
 
     public const LIST_TOKEN = 'person_list_token';

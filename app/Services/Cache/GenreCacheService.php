@@ -12,7 +12,7 @@ class GenreCacheService
     public const ADMIN_ADDDATA_PREFIX = 'admin_genre_adddata_cache';
 
     public const LIST_PREFIX = 'genre_list_cache';
-    public const FILTER_PREFIX = 'filter_detail_cache';
+    public const FILTER_PREFIX = 'genre_filter_cache';
     public const DETAIL_PREFIX = 'genre_detail_cache';
 
     public const LIST_TOKEN = 'genre_list_token';

@@ -14,7 +14,7 @@ class GameCacheService
 
     public const LIST_PREFIX = 'game_list_cache';
     public const ROLL_LIST_PREFIX = 'game_roll_list_cache';
-    public const FILTER_PREFIX = 'filter_detail_cache';
+    public const FILTER_PREFIX = 'game_filter_cache';
     public const DETAIL_PREFIX = 'game_detail_cache';
 
     public const LIST_TOKEN = 'game_list_token';

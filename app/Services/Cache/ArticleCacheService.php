@@ -2,12 +2,12 @@
 
 namespace App\Services\Cache;
 
-use App\Models\Tag;
+use App\Models\Article;
 
-class TagCacheService extends BaseCacheService
+class ArticleCacheService extends BaseCacheService
 {
-    public const NAME = Tag::CACHE_NAME;
-    public const MODEL = Tag::class;
+    public const NAME = Article::CACHE_NAME;
+    public const MODEL = Article::class;
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

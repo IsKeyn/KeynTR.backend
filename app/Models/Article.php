@@ -2,13 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Person\Person;
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Article extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait, SoftDeletes;
+
+    public const CACHE_NAME = 'article';
+    public const TABLE_NAME = 'articles';
 
     const ARTICLE_TYPE = 0;
     const NEWS_TYPE = 1;
@@ -16,7 +22,7 @@ class Article extends Model
 
     protected $fillable = [
         'name',
-        'slug', // TODO slug Должен быть уникальным, если entity_type пуст и также уникальным, при при одинаково заполненных entity_type и entity_id
+        'slug',
         'text_preview',
         'text_full',
         'image',
@@ -27,6 +33,7 @@ class Article extends Model
         'editor',
         'show_author',
         'show_editor',
+        'sort',
         'active',
         'published_at',
         'created_at',
@@ -38,11 +45,6 @@ class Article extends Model
         'show_editor' => 'boolean',
     ];
 
-    public function getModelAttribute()
-    {
-        return get_class($this);
-    }
-
     public function getArticleTypeAttribute()
     {
         switch ($this->type) {
@@ -50,46 +52,6 @@ class Article extends Model
             case self::NEWS_TYPE: return 'news';
             case self::PROGRAM_TYPE: return 'program';
         }
-    }
-
-    public function tags()
-    {
-        return $this->morphToMany(Tag::class, 'tag_binds');
-    }
-
-    public function comments()
-    {
-        return $this->morphMany(Comments::class, 'entity');
-    }
-
-    public function media()
-    {
-        return $this->morphToMany(Media::class, 'media_bind');
-    }
-
-    public function titleImage()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
-    }
-
-    public function views()
-    {
-        return $this->morphOne(ViewsCount::class, 'entity');
-    }
-
-    public function likes()
-    {
-        return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
-    }
-
-    public function blocks()
-    {
-        return $this->morphToMany(Block::class, 'block_bind')->withPivot('type')->orderBy('position', 'asc');
-    }
-
-    public function seo()
-    {
-        return $this->morphOne(Seo::class, 'entity');
     }
 
     public function author(): BelongsTo
@@ -100,5 +62,20 @@ class Article extends Model
     public function articleEditor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'editor');
+    }
+
+    public function people()
+    {
+        return $this->morphToMany(Person::class, 'person_bind')->withTimestamps();
+    }
+
+    public function company()
+    {
+        return $this->morphToMany(Company::class, 'company_bind')->withPivot('additional_info')->withTimestamps();
+    }
+
+    public function link()
+    {
+        return $this->morphToMany(Link::class, 'link_bind')->withTimestamps();
     }
 }
