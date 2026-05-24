@@ -11,6 +11,9 @@ class Timer extends Model
 {
     use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
 
+    public const CACHE_NAME = 'timer';
+    public const TABLE_NAME = 'timers';
+
     protected $fillable = [
         'name',
         'slug',

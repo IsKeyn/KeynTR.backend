@@ -14,7 +14,8 @@ class DefaultAdminEntityService
         $entity,
         $cacheService,
         $filterClass,
-        $resource
+        $resource,
+        $hasSortField = true
     )
     {
         $cacheKey = $cacheService::ADMIN_LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
@@ -30,11 +31,20 @@ class DefaultAdminEntityService
             $time = $cacheService::FILTER_TIME;
         }
 
-        return Cache::remember($cacheKey, $time, function () use ($request, $entity, $filterClass, $resource) {
+        return Cache::remember(
+            $cacheKey,
+            $time,
+            function () use (
+                $request,
+                $entity,
+                $filterClass,
+                $resource,
+                $hasSortField
+        ) {
             $filter = new $filterClass($request);
             $elementsList = $filter->apply($entity::query())->with([]);
 
-            if (!isset($request->sort)) {
+            if (!isset($request->sort) && $hasSortField) {
                 $elementsList->orderByRaw('sort IS NULL, sort ASC');
             }
 

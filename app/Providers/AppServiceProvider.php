@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Article;
+use App\Models\BoardGame\BoardGamePlayerTimer;
+use App\Models\BoardGame\Timer;
 use App\Models\Company;
 use App\Models\Game;
 use App\Models\GamingPlatform;
@@ -20,6 +22,7 @@ use App\Models\User;
 use App\Models\User\Notification;
 use App\Models\Version;
 use App\Observers\ArticleObserver;
+use App\Observers\BgPlayerTimerObserver;
 use App\Observers\CompanyObserver;
 use App\Observers\GameObserver;
 use App\Observers\GamingPlatformObserver;
@@ -34,6 +37,7 @@ use App\Observers\RoleObserver;
 use App\Observers\SeriesObserver;
 use App\Observers\SettingObserver;
 use App\Observers\TagObserver;
+use App\Observers\TimerObserver;
 use App\Observers\UserObserver;
 use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
@@ -78,5 +82,7 @@ class AppServiceProvider extends ServiceProvider
         Notification::observe(NotificationObserver::class);
         Tag::observe(TagObserver::class);
         Article::observe(ArticleObserver::class);
+        Timer::observe(TimerObserver::class);
+        BoardGamePlayerTimer::observe(BgPlayerTimerObserver::class);
     }
 }

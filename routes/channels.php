@@ -21,6 +21,10 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
+Broadcast::channel('timer.${bgSlug}.${userId}.${slug}', function () {
+    return true;
+});
+
 Broadcast::channel('public.{roomId}', function () {
     return true;
 });
