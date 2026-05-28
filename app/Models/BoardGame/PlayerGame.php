@@ -9,10 +9,20 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PlayerGame extends Model
 {
-    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait, SoftDeletes;
+
+    public const CACHE_NAME = 'bg-player-game';
+    public const TABLE_NAME = 'player_games';
+
+    public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgPlayerGameCacheService';
+    public const FILTER = 'App\Filters\BoardGame\BgPlayerGameFilter';
+    public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerGame\DetailResource';
+    public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerGame\ListResource';
+    public const SERVICE = 'App\Services\BoardGame\BgPlayerGameService';
 
     /* Статусы */
     // TODO в будущем добавить префикс STATUS_ , пример STATUS_CURRENT
@@ -35,6 +45,8 @@ class PlayerGame extends Model
         'from_user_id',
         'comment_id',
         'time',
+        'sort',
+        'active',
         'created_by',
     ];
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Observers;
+namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\Timer;
 use App\Models\Version;

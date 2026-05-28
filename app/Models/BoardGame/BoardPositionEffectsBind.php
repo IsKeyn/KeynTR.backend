@@ -9,9 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class BoardPositionEffectsBind extends Model
 {
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+
     protected $table = 'bg_board_position_effect_binds';
 
-    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+    public const CACHE_NAME = 'bg-board-position-effect';
+    public const TABLE_NAME = 'bg_board_position_effect_binds';
+
+    public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgBoardPositionEffectBindCacheService';
+    public const FILTER = 'App\Filters\BoardGame\BgBoardPositionEffectBindFilter';
+    public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgBoardPositionEffectBind\DetailResource';
+    public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgBoardPositionEffectBind\ListResource';
+    public const SERVICE = 'App\Services\BoardGame\BgBoardPositionEffectBindService';
 
     protected $fillable = [
         'position_effect_id',

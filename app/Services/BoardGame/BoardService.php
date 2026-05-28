@@ -4,11 +4,35 @@ namespace App\Services\BoardGame;
 use App\Models\BoardGame\Board;
 use App\Models\BoardGame\BoardPositionEffectsBind;
 use App\Models\BoardGame\PlayerInteractions;
+use App\Services\Entity\EntityService;
 use App\Services\ErrorService;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 
 class BoardService
 {
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            Board::class,
+            Board::CACHE_SERVICE,
+            Board::DETAIL_RESOURCE,
+            $id,
+            [
+                'tags',
+                'additionalFields',
+                'media',
+                'seo',
+                'seo.entity',
+                'seo.entity.tags',
+                'menu',
+                'menu.elements',
+                'blocks',
+            ],
+            $forceRefresh,
+            $withTrashed,
+        );
+    }
+
     public static function setPosition(
         $params,
         $conditionData,

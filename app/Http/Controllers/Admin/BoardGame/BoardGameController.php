@@ -2,87 +2,62 @@
 namespace App\Http\Controllers\Admin\BoardGame;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Admin\BoardGame\BoardGameResource;
-use App\Jobs\BoardGame\BoardGameShortCacheClear;
+use App\Http\Requests\BoardGame\BoardGameRequest;
 use App\Models\BoardGame\BoardGame;
-use App\Services\BlockService;
-use App\Services\MediaService;
+use App\Services\Entity\DefaultAdminEntityService;
+use App\Traits\HasBaseAdminFunc;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 
-class BoardGameController extends Controller {
+class BoardGameController extends Controller
+{
+    use HasBaseAdminFunc;
 
-    // TODO почему то не работает связка BoardGame $boardGame, почему? Что-то с моделью
+    private const MODEL = BoardGame::class;
+    private const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BoardGameCacheService';
+    private const FILTER = 'App\Filters\BoardGame\BoardGameFilter';
+    private const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\DetailResource';
+    private const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\ListResource';
+    private const SERVICE = 'App\Services\BoardGame\BoardGameService';
 
-    public function index()
+    protected DefaultAdminEntityService $defaultAdminEntityService;
+
+    public function __construct(DefaultAdminEntityService $defaultAdminEntityService)
     {
-        return BoardGameResource::collection(BoardGame::query()->get());
+        $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(Request $request)
+    public function index(Request $request)
     {
-        $params = $request->all();
-        $entity = BoardGame::create($params);
-
-        $mediaService = new MediaService();
-
-        if (isset($params['media'])) {
-            $mediaService->setTitleImage($entity, $params['media']);
-        }
-
-        if (isset($params['blocks'])) {
-            BlockService::set($entity, $params['blocks']);
-        }
-
-        $this->clearCache($entity);
-
-        return $entity;
+        return $this->defaultAdminEntityService->index(
+            $request,
+            self::MODEL,
+            self::CACHE_SERVICE,
+            self::FILTER,
+            self::LIST_RESOURCE,
+            true,
+            ['media']
+        );
     }
 
-    public function update(Request $request, $id)
+    public function store(BoardGameRequest $request): JsonResponse
     {
-        $boardGame = BoardGame::findById($id)->first();
-
-        $params = $request->all();
-
-        $mediaService = new MediaService();
-
-
-        if (isset($params['media'])) {
-            $mediaService->setTitleImage($boardGame, $params['media']);
-        }
-
-        if (isset($params['blocks'])) {
-            BlockService::set($boardGame, $params['blocks']);
-        }
-
-        $this->clearCache($boardGame);
-
-        return $boardGame->update($params);
+        return $this->defaultAdminEntityService->store(
+            $request,
+            self::MODEL
+        );
     }
 
-    private function clearCache($entity)
+    public function update(BoardGameRequest $request, BoardGame $boardGame)
     {
-        Cache::forget('board_game_' . $entity->slug . '_short_cache');
-        BoardGameShortCacheClear::dispatch($entity->slug)->delay(Carbon::create($entity->ended_at));
+        return $this->defaultAdminEntityService->update(
+            $request,
+            $boardGame
+        );
     }
 
-    public function edit($id) {
-        $boardGame = BoardGame::findById($id)->first();
-
-        return BoardGameResource::make($boardGame);
-    }
-
-    public function destroy($id) {
-        // TODO Очищать все привязки, операция опасна, может добавить soft delete а удалять полностью по команде?
-        $boardGame = BoardGame::findById($id)->first();
-        return $boardGame->delete();
-    }
-
-    public function setAdditionalFields($model, $validated) {
-        if (isset($validated['blocks'])) {
-            BlockService::set($model, $validated['blocks']);
-        }
+    public function destroy(BoardGame $boardGame)
+    {
+        return $this->defaultAdminEntityService->destroy($boardGame);
     }
 }

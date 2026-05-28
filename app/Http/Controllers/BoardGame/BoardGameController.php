@@ -16,10 +16,18 @@ use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
 use App\Services\TwitchService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class BoardGameController extends Controller
 {
+    public function getLayoutData(Request $request)
+    {
+        $twitchService = app(TwitchService::class);
+
+        return [
+            'twitchOnline' => $twitchService->streamersLive(),
+        ];
+    }
+
     public function getList(BoardGame $boardGame)
     {
         $boardGameList = $boardGame::active()->orderBy('created_at', 'desc')->get();

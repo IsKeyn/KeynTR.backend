@@ -3,11 +3,37 @@
 namespace App\Services\BoardGame;
 
 use App\Models\BoardGame\PlayerStatusEffect;
+use App\Models\BoardGame\StatusEffect;
+use App\Services\Entity\EntityService;
 
 class StatusEffectService
 {
     public $statusEffect = null;
     public $conditionData = [];
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            StatusEffect::class,
+            StatusEffect::CACHE_SERVICE,
+            StatusEffect::DETAIL_RESOURCE,
+            $id,
+            [
+                'settings',
+                'tags',
+                'additionalFields',
+                'media',
+                'seo',
+                'seo.entity',
+                'seo.entity.tags',
+                'menu',
+                'menu.elements',
+                'blocks',
+            ],
+            $forceRefresh,
+            $withTrashed,
+        );
+    }
 
     public function useStatusEffect($request)
     {

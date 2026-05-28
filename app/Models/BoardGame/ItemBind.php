@@ -11,9 +11,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ItemBind extends Model
 {
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+
     protected $table = 'bg_items_binds';
 
-    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+    public const CACHE_NAME = 'bg-item-bind';
+    public const TABLE_NAME = 'bg_items_binds';
+
+    public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgItemBindCacheService';
+    public const FILTER = 'App\Filters\BoardGame\BgItemBindFilter';
+    public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgItemBind\DetailResource';
+    public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgItemBind\ListResource';
+    public const SERVICE = 'App\Services\BoardGame\BgItemBindService';
 
     protected $fillable = [
         'item_id',

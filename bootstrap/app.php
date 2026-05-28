@@ -86,6 +86,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('board-game:unset-players-streak')->sundays()->at('23:59');
         $schedule->command('board-game:stop-limited-timer')->everyFifteenMinutes();
         $schedule->command('version:clear-versions 365')->sundays()->at('23:59');
+        $schedule->command('twitch:get-online-list')->everyFiveMinutes();
 
         // Закомментированные задачи при необходимости:
         // $schedule->command('log:set')->everyMinute();

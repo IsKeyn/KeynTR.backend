@@ -2,17 +2,53 @@
 
 namespace App\Http\Controllers\Admin\BoardGame;
 
+use App\Http\Requests\BoardGame\BgItemBindRequest;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\ItemBind;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Services\Entity\DefaultAdminEntityService;
+use App\Traits\HasBaseAdminFunc;
+use Illuminate\Http\JsonResponse;
 use App\Http\Resources\Admin\BoardGame\ItemBindResource;
 use Illuminate\Support\Facades\Cache;
 
 class ItemBindController extends Controller
 {
-    public function index(ItemBind $ItemBind) {
-        return $ItemBind::all();
+    use HasBaseAdminFunc;
+
+    private const MODEL = ItemBind::class;
+    private const CACHE_SERVICE = ItemBind::CACHE_SERVICE;
+    private const FILTER = ItemBind::FILTER;
+    private const DETAIL_RESOURCE = ItemBind::DETAIL_RESOURCE;
+    private const LIST_RESOURCE = ItemBind::LIST_RESOURCE;
+    private const SERVICE = ItemBind::SERVICE;
+
+    protected DefaultAdminEntityService $defaultAdminEntityService;
+
+    public function __construct(DefaultAdminEntityService $defaultAdminEntityService)
+    {
+        $this->defaultAdminEntityService = $defaultAdminEntityService;
+    }
+
+    public function store(BgItemBindRequest $request): JsonResponse
+    {
+        return $this->defaultAdminEntityService->store(
+            $request,
+            self::MODEL
+        );
+    }
+
+    public function update(BgItemBindRequest $request, ItemBind $ItemBind)
+    {
+        return $this->defaultAdminEntityService->update(
+            $request,
+            $ItemBind
+        );
+    }
+
+    public function destroy(ItemBind $ItemBind)
+    {
+        return $this->defaultAdminEntityService->destroy($ItemBind);
     }
 
     public function list(ItemBind $ItemBind) {
@@ -30,37 +66,28 @@ class ItemBindController extends Controller
         return $validated;
     }
 
-    public function store(Request $request)
-    {
-        $fields = $this->validateFields($request);
-
-        $fields['created_by'] = $request->user()->id;
-
-        $ItemBind = ItemBind::create($fields);
-        $this->clearCache($ItemBind);
-        return $ItemBind;
-    }
-
-    public function update(Request $request, ItemBind $ItemBind) {
-        $fields = $this->validateFields($request);
-
-        $this->clearCache($ItemBind);
-        return $ItemBind->update($fields);
-    }
+//    public function store(Request $request)
+//    {
+//        $fields = $this->validateFields($request);
+//
+//        $fields['created_by'] = $request->user()->id;
+//
+//        $ItemBind = ItemBind::create($fields);
+//        $this->clearCache($ItemBind);
+//        return $ItemBind;
+//    }
+//
+//    public function update(Request $request, ItemBind $ItemBind) {
+//        $fields = $this->validateFields($request);
+//
+//        $this->clearCache($ItemBind);
+//        return $ItemBind->update($fields);
+//    }
 
     private function clearCache($item)
     {
         $slug = BoardGame::FindById($item->board_game_id)->value('slug');
 
         Cache::forget('board_game_' . $slug . '_item_list_cache');
-    }
-
-    public function edit(ItemBind $ItemBind)
-    {
-        return ItemBindResource::make($ItemBind);
-    }
-
-    public function destroy(ItemBind $ItemBind) {
-        return $ItemBind->delete();
     }
 }

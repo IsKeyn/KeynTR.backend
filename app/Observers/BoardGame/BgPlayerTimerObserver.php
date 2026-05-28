@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Observers;
+namespace App\Observers\BoardGame;
 
 use App\Events\TimerStatusToggle;
 use App\Models\BoardGame\BoardGamePlayerTimer;

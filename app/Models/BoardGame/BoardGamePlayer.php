@@ -9,10 +9,20 @@ use App\Models\Traits\ExtendModelForBoardGameTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardGamePlayer extends Model
 {
-    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait, SoftDeletes;
+
+    public const CACHE_NAME = 'bg-player';
+    public const TABLE_NAME = 'board_game_players';
+
+    public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgPlayerCacheService';
+    public const FILTER = 'App\Filters\BoardGame\BgPlayerFilter';
+    public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\DetailResource';
+    public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\ListResource';
+    public const SERVICE = 'App\Services\BoardGame\PlayerGameService';
 
     protected $fillable = [
         'user_id',
@@ -22,13 +32,16 @@ class BoardGamePlayer extends Model
         'step_count',
         'streak',
         'rerolled_own_game_count',
-        'not_active_reason',
         'active',
+        'not_active_reason',
+        'premium',
+        'sort',
         'created_by',
     ];
 
     protected $casts = [
         'active' => 'boolean',
+        'premium' => 'boolean',
     ];
 
     public function user(): BelongsTo

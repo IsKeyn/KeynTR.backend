@@ -22,6 +22,8 @@ class CreateStatusEffectsTable extends Migration
             $table->json('actions')->nullable();
             $table->foreignId('board_game_id')->nullable();
             $table->boolean('debuff')->default(false);
+            $table->boolean('active')->default(true);
+            $table->integer('sort')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

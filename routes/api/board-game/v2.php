@@ -20,6 +20,7 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
     Route::controller(BoardGameController::class)->group(function() {
         Route::get('get/{slug}', 'getBySlug')->name('get-by-slug');
+        Route::get('layout/get', 'getLayoutData')->name('get-layout-data');
         Route::get('list', 'getList')->name('list');
     });
 

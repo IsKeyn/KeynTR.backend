@@ -15,8 +15,9 @@ class DefaultAdminEntityService
         $cacheService,
         $filterClass,
         $resource,
-        $hasSortField = true
-    )
+        $hasSortField = true,
+        $with = []
+    ) : \Illuminate\Http\Resources\Json\JsonResource
     {
         $cacheKey = $cacheService::ADMIN_LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
         $time = $cacheService::TIME;
@@ -39,10 +40,11 @@ class DefaultAdminEntityService
                 $entity,
                 $filterClass,
                 $resource,
-                $hasSortField
+                $hasSortField,
+                $with
         ) {
             $filter = new $filterClass($request);
-            $elementsList = $filter->apply($entity::query())->with([]);
+            $elementsList = $filter->apply($entity::query())->with($with);
 
             if (!isset($request->sort) && $hasSortField) {
                 $elementsList->orderByRaw('sort IS NULL, sort ASC');
@@ -80,7 +82,7 @@ class DefaultAdminEntityService
     public function update(
         $request,
         $entity
-    )
+    ) : Bool
     {
         $validated = $request->validated();
 

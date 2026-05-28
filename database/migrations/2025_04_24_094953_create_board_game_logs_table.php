@@ -17,8 +17,11 @@ class CreateBoardGameLogsTable extends Migration
             $table->id();
             $table->text('message');
             $table->foreignId('board_game_id')->nullable();
+            $table->boolean('active')->default(true);
+            $table->integer('sort')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
