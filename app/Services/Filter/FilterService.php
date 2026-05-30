@@ -22,42 +22,12 @@ class FilterService
                 foreach ($filterList as $filterKey) {
                     $name = $this->getNameByKey($filterKey);
 
-                    foreach ($game->{$name} as $element) {
-                        if ($name === 'dates') {
-                            if (isset($result[$filterKey]['min'])) {
-                                if ($result[$filterKey]['min'] > $element->date) {
-                                    $result[$filterKey]['min'] = $element->date;
-                                }
-                            } else {
-                                $result[$filterKey]['min'] = $element->date;
-                            }
-
-                            if (isset($result[$filterKey]['max'])) {
-                                if ($result[$filterKey]['max'] < $element->date) {
-                                    $result[$filterKey]['max'] = $element->date;
-                                }
-                            } else {
-                                $result[$filterKey]['max'] = $element->date;
-                            }
-                        } else if ($name === 'bgGamesList') {
-                            if ($element->relationLoaded('boardGame') && $element->boardGame && $element->boardGame->slug !== 'demo') {
-                                $result[$filterKey][$element->boardGame->id] = [
-                                    'id' => $element->boardGame->id,
-                                    'name' => $element->boardGame->name,
-                                    'sort' => isset($element->boardGame->sort) ? $element->boardGame->sort : null,
-                                    'active' => true,
-                                ];
-                            }
-                        } else {
-                            if (!isset($result[$filterKey][$element->id])) {
-                                $result[$filterKey][$element->id] = [
-                                    'id' => $element->id,
-                                    'name' => $element->name,
-                                    'sort' => isset($element->sort) ? $element->sort : null,
-                                    'active' => true,
-                                ];
-                            }
+                    if ($game->{$name} instanceof \Illuminate\Support\Collection) {
+                        foreach ($game->{$name} as $element) {
+                            $result = $this->elementHandler($element, $name, $filterKey, $result);
                         }
+                    } else {
+                        $result = $this->elementHandler($game->{$name}, $name, $filterKey, $result);
                     }
                 }
             }
@@ -91,6 +61,47 @@ class FilterService
                         return strcmp($a['name'], $b['name']);
                     });
                 }
+            }
+        }
+
+        return $result;
+    }
+
+    private function elementHandler($element, $name, $filterKey, $result)
+    {
+        if ($name === 'dates') {
+            if (isset($result[$filterKey]['min'])) {
+                if ($result[$filterKey]['min'] > $element->date) {
+                    $result[$filterKey]['min'] = $element->date;
+                }
+            } else {
+                $result[$filterKey]['min'] = $element->date;
+            }
+
+            if (isset($result[$filterKey]['max'])) {
+                if ($result[$filterKey]['max'] < $element->date) {
+                    $result[$filterKey]['max'] = $element->date;
+                }
+            } else {
+                $result[$filterKey]['max'] = $element->date;
+            }
+        } else if ($name === 'bgGamesList') {
+            if ($element->relationLoaded('boardGame') && $element->boardGame && $element->boardGame->slug !== 'demo') {
+                $result[$filterKey][$element->boardGame->id] = [
+                    'id' => $element->boardGame->id,
+                    'name' => $element->boardGame->name,
+                    'sort' => isset($element->boardGame->sort) ? $element->boardGame->sort : null,
+                    'active' => true,
+                ];
+            }
+        } else {
+            if (!isset($result[$filterKey][$element->id])) {
+                $result[$filterKey][$element->id] = [
+                    'id' => $element->id,
+                    'name' => $element->name,
+                    'sort' => isset($element->sort) ? $element->sort : null,
+                    'active' => true,
+                ];
             }
         }
 

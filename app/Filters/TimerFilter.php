@@ -11,4 +11,9 @@ class TimerFilter
 
     private const MODEL = Timer::class;
     private const TABLE_NAME = Timer::TABLE_NAME;
+
+    protected function boardGame($value): void
+    {
+        $this->query->where('board_game_id', $value);
+    }
 }
