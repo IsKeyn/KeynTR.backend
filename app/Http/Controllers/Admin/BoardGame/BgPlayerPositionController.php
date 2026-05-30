@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Admin\BoardGame;
 
+use App\Http\Requests\BoardGame\BgPlayerPositionRequest;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
 
 class BgPlayerPositionController extends Controller
 {
@@ -26,7 +26,7 @@ class BgPlayerPositionController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BgPlayerPositionRequest $request): JsonResponse
+    public function store(BgPlayerPositionRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

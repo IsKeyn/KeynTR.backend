@@ -5,8 +5,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('Log/')->controller(BgLogController::class)->group(function() {
     Route::get('get-additional-data', 'getAdditionalData')->name('get-additional-data');
-    Route::post('{Log}/force-delete', 'forceDelete')->name('force-delete');
-    Route::post('{Log}/recovery', 'recovery')->name('recovery');
+    Route::post('{log}/force-delete', 'forceDelete')->name('force-delete');
+    Route::post('{log}/recovery', 'recovery')->name('recovery');
     Route::get('filters', 'getListFilters')->name('filters');
 });
-Route::resource('Log', BgLogController::class);
+Route::resource('Log', BgLogController::class)
+    ->parameters(['Log' => 'log']);

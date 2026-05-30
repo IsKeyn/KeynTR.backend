@@ -20,8 +20,11 @@ class DefaultEntityService
     )
     {
         $cacheKey = $cacheService::LIST_PREFIX;
-        if ($request->page) $cacheKey .= '_' . $request->page;
-        if ($request->perPage) $cacheKey .= '_' . $request->perPage;
+
+        if (!$request->fullList) {
+            if ($request->page) $cacheKey .= '_' . $request->page;
+            if ($request->perPage) $cacheKey .= '_' . $request->perPage;
+        }
 
         $time = $cacheService::TIME;
 
@@ -56,7 +59,7 @@ class DefaultEntityService
             if (method_exists($entity, 'scopeActive')) $item->active();
             if (!isset($request->sort)) $item->orderByRaw('sort IS NULL, sort ASC');
 
-            $result = $item->paginate($request->perPage ? $request->perPage : 10);
+            $result = $request->fullList ? $item->get() : $item->paginate($request->perPage ? $request->perPage : 10);
 
             return $resource::collection($result);
         });

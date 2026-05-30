@@ -7,7 +7,6 @@ use App\Models\BoardGame\BoardGameInventory;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
 
 class InventoryController extends Controller
 {
@@ -27,7 +26,7 @@ class InventoryController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(InventoryRequest $request): JsonResponse
+    public function store(InventoryRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

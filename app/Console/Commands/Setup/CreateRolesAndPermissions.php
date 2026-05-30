@@ -465,6 +465,14 @@ class CreateRolesAndPermissions extends Command
                 'active' => true,
             ],
             [
+                'id' => 44,
+                'name' => 'Редактирование привязки статус эффектов (ни)',
+                'system_name' => 'bg.status-effect-bind.edit',
+                'entity_type' => null,
+                'sort' => 325,
+                'active' => true,
+            ],
+            [
                 'id' => 33,
                 'name' => 'Редактирование статус эффектов на игроках (ни)',
                 'system_name' => 'bg.status-effect-on-player.edit',

@@ -6,10 +6,11 @@ use App\Models\Traits\ExtendModelForBoardGameTrait;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardPositionEffectsBind extends Model
 {
-    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait, SoftDeletes;
 
     protected $table = 'bg_board_position_effect_binds';
 

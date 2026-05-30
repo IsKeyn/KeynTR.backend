@@ -7,7 +7,7 @@ use App\Models\BoardGame\StatusEffectBind;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class StatusEffectBindController extends Controller
 {
@@ -27,7 +27,19 @@ class StatusEffectBindController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BgStatusEffectBindRequest $request): JsonResponse
+    public function index(Request $request)
+    {
+        return $this->defaultAdminEntityService->index(
+            $request,
+            self::MODEL,
+            self::CACHE_SERVICE,
+            self::FILTER,
+            self::LIST_RESOURCE,
+            false
+        );
+    }
+
+    public function store(BgStatusEffectBindRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

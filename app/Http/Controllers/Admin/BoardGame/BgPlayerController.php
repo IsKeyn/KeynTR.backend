@@ -26,7 +26,7 @@ class BgPlayerController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BgPlayerRequest $request): JsonResponse
+    public function store(BgPlayerRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

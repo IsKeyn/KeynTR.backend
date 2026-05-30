@@ -20,7 +20,12 @@ use Symfony\Component\HttpFoundation\Response;
 class GameController extends Controller
 {
     public function getList(Request $request) {
-        $cacheKey = GameCacheService::LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        if ($request->fullList) {
+            $cacheKey = GameCacheService::LIST_PREFIX;
+        } else {
+            $cacheKey = GameCacheService::LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        }
+
         $time = GameCacheService::TIME;
 
         if ($request->filters) {
@@ -44,7 +49,7 @@ class GameController extends Controller
                 $games->orderByRaw('sort IS NULL, sort ASC');
             }
 
-            $result = $games->paginate($request->perPage ? $request->perPage : 10);
+            $result = $request->fullList ? $games->get() : $games->paginate($request->perPage ? $request->perPage : 10);
 
             return GameListResource::collection($result);
         });

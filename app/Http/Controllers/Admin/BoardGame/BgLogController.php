@@ -6,7 +6,6 @@ use App\Http\Requests\BoardGame\BgLogRequest;
 use App\Models\BoardGame\BoardGameLog;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
 
 class BgLogController extends Controller
 {
@@ -26,7 +25,7 @@ class BgLogController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BgLogRequest $request): JsonResponse
+    public function store(BgLogRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,
@@ -34,16 +33,16 @@ class BgLogController extends Controller
         );
     }
 
-    public function update(BgLogRequest $request, BoardGameLog $boardGameLog)
+    public function update(BgLogRequest $request, BoardGameLog $log)
     {
         return $this->defaultAdminEntityService->update(
             $request,
-            $boardGameLog
+            $log
         );
     }
 
-    public function destroy(BoardGameLog $boardGameLog)
+    public function destroy(BoardGameLog $log)
     {
-        return $this->defaultAdminEntityService->destroy($boardGameLog);
+        return $this->defaultAdminEntityService->destroy($log);
     }
 }

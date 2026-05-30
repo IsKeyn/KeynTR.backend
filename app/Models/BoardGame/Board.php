@@ -31,6 +31,7 @@ class Board extends Model
         'media',
         'sort',
         'active',
+        'created_by',
     ];
 
     protected $casts = [

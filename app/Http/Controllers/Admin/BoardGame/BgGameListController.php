@@ -2,11 +2,10 @@
 namespace App\Http\Controllers\Admin\BoardGame;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\BoardGame\BgPlayerRequest;
+use App\Http\Requests\BoardGame\BgGameListRequest;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
 
 class BgGameListController extends Controller
 {
@@ -26,7 +25,7 @@ class BgGameListController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BgPlayerRequest $request): JsonResponse
+    public function store(BgGameListRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,
@@ -34,16 +33,16 @@ class BgGameListController extends Controller
         );
     }
 
-    public function update(BgPlayerRequest $request, BoardGameGameList $boardGameGameList)
+    public function update(BgGameListRequest $request, BoardGameGameList $gameList)
     {
         return $this->defaultAdminEntityService->update(
             $request,
-            $boardGameGameList
+            $gameList
         );
     }
 
-    public function destroy(BoardGameGameList $boardGameGameList)
+    public function destroy(BoardGameGameList $gameList)
     {
-        return $this->defaultAdminEntityService->destroy($boardGameGameList);
+        return $this->defaultAdminEntityService->destroy($gameList);
     }
 }

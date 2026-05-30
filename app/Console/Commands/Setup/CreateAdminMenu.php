@@ -81,6 +81,16 @@ class CreateAdminMenu extends Command
                 'sort' => 50,
                 'active' => true,
             ],
+            [
+                'id' => 34,
+                'name' => 'Настольная игры',
+                'code' => 'admin',
+                'group' => 1,
+                'group_icon' => 'fa-solid fa-dice',
+                'menu_type_bind_id' => null,
+                'sort' => 100,
+                'active' => true,
+            ],
         ];
 
         foreach ($types as $type) {
@@ -198,6 +208,16 @@ class CreateAdminMenu extends Command
                 'link_type' => 'route',
                 'icon' => null,
                 'sort' => 55,
+                'active' => true,
+            ],
+            [
+                'name' => 'Привязка статус эффектов',
+                'url' => '/admin/board-game-status-effect-bind/',
+                'target' => null,
+                'menu_type_id' => 34,
+                'link_type' => 'route',
+                'icon' => null,
+                'sort' => 45,
                 'active' => true,
             ],
         ];
@@ -348,6 +368,10 @@ class CreateAdminMenu extends Command
             [
                 'url' => '/admin/board-game-status-effect',
                 'permissions' => ['bg.status-effect.edit'],
+            ],
+            [
+                'url' => '/admin/board-game-status-effect-bind',
+                'permissions' => ['bg.status-effect-bind.edit'],
             ],
             [
                 'url' => '/admin/board-game-player-status-effect',

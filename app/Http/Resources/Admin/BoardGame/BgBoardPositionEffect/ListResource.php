@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources\Admin\BoardGame\BgBoardPositionEffect;
 
+use App\Http\Resources\Media\ShortMediaResource;
+use App\Models\Media;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,6 +18,8 @@ class ListResource extends JsonResource
 
             'description' => $this->description,
             'actions' => $this->actions,
+
+            'title_image' => $this->whenLoaded('media', ShortMediaResource::make($this->media()->wherePivot('type', '=', Media::TITLE_TYPE)->first())),
         ];
     }
 }

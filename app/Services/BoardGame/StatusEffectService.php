@@ -19,7 +19,6 @@ class StatusEffectService
             StatusEffect::DETAIL_RESOURCE,
             $id,
             [
-                'settings',
                 'tags',
                 'additionalFields',
                 'media',

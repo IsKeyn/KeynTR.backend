@@ -20,6 +20,7 @@ class CreateBgStatusEffectsBindsTable extends Migration
             $table->boolean('active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

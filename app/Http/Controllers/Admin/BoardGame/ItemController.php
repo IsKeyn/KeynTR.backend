@@ -8,8 +8,8 @@ use App\Models\BoardGame\Item;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
 use App\Http\Resources\Admin\BoardGame\ItemResource;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class ItemController extends Controller
@@ -30,7 +30,20 @@ class ItemController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BgItemRequest $request): JsonResponse
+    public function index(Request $request)
+    {
+        return $this->defaultAdminEntityService->index(
+            $request,
+            self::MODEL,
+            self::CACHE_SERVICE,
+            self::FILTER,
+            self::LIST_RESOURCE,
+            true,
+            ['media'],
+        );
+    }
+
+    public function store(BgItemRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

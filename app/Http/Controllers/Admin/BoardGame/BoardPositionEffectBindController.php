@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Admin\BoardGame;
 
-use App\Http\Requests\BoardGame\BoardPositionEffectRequest;
+use App\Http\Requests\BoardGame\BoardPositionEffectBindRequest;
 use App\Models\BoardGame\BoardPositionEffectsBind;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BoardPositionEffectBindController extends Controller
 {
@@ -27,7 +27,19 @@ class BoardPositionEffectBindController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BoardPositionEffectRequest $request): JsonResponse
+    public function index(Request $request)
+    {
+        return $this->defaultAdminEntityService->index(
+            $request,
+            self::MODEL,
+            self::CACHE_SERVICE,
+            self::FILTER,
+            self::LIST_RESOURCE,
+            false
+        );
+    }
+
+    public function store(BoardPositionEffectBindRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,
@@ -35,16 +47,16 @@ class BoardPositionEffectBindController extends Controller
         );
     }
 
-    public function update(BoardPositionEffectRequest $request, BoardPositionEffectsBind $boardPositionEffectBind)
+    public function update(BoardPositionEffectBindRequest $request, BoardPositionEffectsBind $boardPositionEffectsBind)
     {
         return $this->defaultAdminEntityService->update(
             $request,
-            $boardPositionEffectBind
+            $boardPositionEffectsBind
         );
     }
 
-    public function destroy(BoardPositionEffectsBind $boardPositionEffectBind)
+    public function destroy(BoardPositionEffectsBind $boardPositionEffectsBind)
     {
-        return $this->defaultAdminEntityService->destroy($boardPositionEffectBind);
+        return $this->defaultAdminEntityService->destroy($boardPositionEffectsBind);
     }
 }

@@ -25,7 +25,8 @@ class DefaultObserverService
     public function updated(
         $entity,
         $cacheServiceClass,
-        $service
+        $service,
+        $withTrashed = true
     )
     {
         $entityCacheService = app($cacheServiceClass);
@@ -33,7 +34,7 @@ class DefaultObserverService
         $entityCacheService->clearAdminDetailCacheById($entity->id);
         $entityCacheService->clearDetailCacheBySlug($entity->slug);
 
-        $version = $service::getById($entity->id, true, true)->toArray(request());
+        $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
         VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_UPDATE);
     }
 
@@ -41,11 +42,12 @@ class DefaultObserverService
     public function deleted(
         $entity,
         $cacheServiceClass,
-        $service
+        $service,
+        $withTrashed = true
     )
     {
         if (!$entity->isForceDeleting()) {
-            $version = $service::getById($entity->id, true, true)->toArray(request());
+            $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
             VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_SOFT_DELETE);
         } else {
             $lastVersion = Version::query()
@@ -69,7 +71,8 @@ class DefaultObserverService
     public function restored(
         $entity,
         $cacheServiceClass,
-        $service
+        $service,
+        $withTrashed = true
     )
     {
         $entityCacheService = app($cacheServiceClass);
@@ -77,7 +80,7 @@ class DefaultObserverService
         $entityCacheService->clearAdminDetailCacheById($entity->id);
         $entityCacheService->clearDetailCacheBySlug($entity->slug);
 
-        $version = $service::getById($entity->id, true, true)->toArray(request());
+        $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
         VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_RECOVERY);
     }
 

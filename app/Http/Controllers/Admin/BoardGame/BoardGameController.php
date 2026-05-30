@@ -6,7 +6,6 @@ use App\Http\Requests\BoardGame\BoardGameRequest;
 use App\Models\BoardGame\BoardGame;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class BoardGameController extends Controller
@@ -40,7 +39,7 @@ class BoardGameController extends Controller
         );
     }
 
-    public function store(BoardGameRequest $request): JsonResponse
+    public function store(BoardGameRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

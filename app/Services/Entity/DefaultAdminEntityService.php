@@ -17,7 +17,7 @@ class DefaultAdminEntityService
         $resource,
         $hasSortField = true,
         $with = []
-    ) : \Illuminate\Http\Resources\Json\JsonResource
+    )
     {
         $cacheKey = $cacheService::ADMIN_LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
         $time = $cacheService::TIME;

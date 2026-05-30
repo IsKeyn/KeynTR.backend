@@ -54,6 +54,7 @@ abstract class BaseCacheService
             }
         }
 
+        Cache::forget(static::LIST_PREFIX);
         Cache::forget(static::LIST_TOKEN);
         Cache::forget(static::LIST_FILTER_TOKEN);
         Cache::forget(static::ADMIN_LIST_TOKEN);

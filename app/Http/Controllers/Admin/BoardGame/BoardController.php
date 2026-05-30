@@ -7,7 +7,7 @@ use App\Models\BoardGame\Board;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BoardController extends Controller
 {
@@ -27,7 +27,20 @@ class BoardController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BoardRequest $request): JsonResponse
+    public function index(Request $request)
+    {
+        return $this->defaultAdminEntityService->index(
+            $request,
+            self::MODEL,
+            self::CACHE_SERVICE,
+            self::FILTER,
+            self::LIST_RESOURCE,
+            true,
+            ['media']
+        );
+    }
+
+    public function store(BoardRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

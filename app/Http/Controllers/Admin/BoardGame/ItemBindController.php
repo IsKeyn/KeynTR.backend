@@ -8,8 +8,8 @@ use App\Models\BoardGame\ItemBind;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
 use App\Http\Resources\Admin\BoardGame\ItemBindResource;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class ItemBindController extends Controller
@@ -30,7 +30,19 @@ class ItemBindController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BgItemBindRequest $request): JsonResponse
+    public function index(Request $request)
+    {
+        return $this->defaultAdminEntityService->index(
+            $request,
+            self::MODEL,
+            self::CACHE_SERVICE,
+            self::FILTER,
+            self::LIST_RESOURCE,
+            false,
+        );
+    }
+
+    public function store(BgItemBindRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

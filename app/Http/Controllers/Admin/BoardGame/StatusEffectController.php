@@ -11,6 +11,7 @@ use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\Admin\BoardGame\ItemResource;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class StatusEffectController extends Controller
@@ -31,7 +32,20 @@ class StatusEffectController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BgStatusEffectRequest $request): JsonResponse
+    public function index(Request $request)
+    {
+        return $this->defaultAdminEntityService->index(
+            $request,
+            self::MODEL,
+            self::CACHE_SERVICE,
+            self::FILTER,
+            self::LIST_RESOURCE,
+            true,
+            ['media']
+        );
+    }
+
+    public function store(BgStatusEffectRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,

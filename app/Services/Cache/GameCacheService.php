@@ -53,6 +53,7 @@ class GameCacheService
             }
         }
 
+        Cache::forget(self::LIST_PREFIX);
         Cache::forget(self::LIST_TOKEN);
         Cache::forget(self::LIST_FILTER_TOKEN);
         Cache::forget(self::ADMIN_LIST_TOKEN);

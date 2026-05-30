@@ -7,7 +7,7 @@ use App\Models\BoardGame\BoardPositionEffect;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class BoardPositionEffectController extends Controller
 {
@@ -27,7 +27,20 @@ class BoardPositionEffectController extends Controller
         $this->defaultAdminEntityService = $defaultAdminEntityService;
     }
 
-    public function store(BoardPositionEffectRequest $request): JsonResponse
+    public function index(Request $request)
+    {
+        return $this->defaultAdminEntityService->index(
+            $request,
+            self::MODEL,
+            self::CACHE_SERVICE,
+            self::FILTER,
+            self::LIST_RESOURCE,
+            true,
+            ['media']
+        );
+    }
+
+    public function store(BoardPositionEffectRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,
