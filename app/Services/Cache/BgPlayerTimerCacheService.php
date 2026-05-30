@@ -5,7 +5,7 @@ namespace App\Services\Cache;
 use App\Models\BoardGame\BoardGamePlayerTimer;
 use Illuminate\Support\Facades\Cache;
 
-class BgPlayerTimerCacheService extends BaseCacheService
+class BgPlayerTimerCacheService
 {
     public const NAME = BoardGamePlayerTimer::CACHE_NAME;
     public const MODEL = BoardGamePlayerTimer::class;
@@ -22,6 +22,10 @@ class BgPlayerTimerCacheService extends BaseCacheService
     public const LIST_TOKEN = self::NAME . '_list_token';
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
+
+    public const ARR_PER_PAGE = [24, 28, 96];
+    public const TIME = 6 * 30 * 24 * 60 * 60;
+    public const FILTER_TIME = 15 * 24 * 60 * 60;
 
     public function clearAllCache()
     {

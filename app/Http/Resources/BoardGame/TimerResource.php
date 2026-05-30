@@ -21,6 +21,7 @@ class TimerResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'limit' => $this->limit,
+            'settings' => $this->settings,
             'status' => TimerService::getTimerStatus($this),
             'active' => $this->actions,
             'board_game_id' => $this->board_game_id,

@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\TimerStatusToggle;
 use App\Models\BoardGame\Timer;
 use App\Models\Version;
 use App\Services\Observer\DefaultObserverService;
@@ -21,70 +22,87 @@ class TimerObserver
 
     public function created(Timer $timer)
     {
-        $this->defaultObserverService->created(
-            $timer,
-            self::CACHE_SERVICE,
-            self::SERVICE
-        );
+        $entityCacheService = app(self::CACHE_SERVICE);
+        $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
+        $entityCacheService->clearAdminDetailCacheById($timer->id);
+        $entityCacheService->clearDetailCacheBySlug($timer->slug);
+
+        $version = self::SERVICE::getById($timer->id, true)->toArray(request());
+        VersionService::set($version, $timer->model, $timer->id, $timer->name, Version::TYPE_CREATE);
     }
+
 
     public function updated(Timer $timer)
     {
-        $entity = $timer;
-
         $entityCacheService = app(self::CACHE_SERVICE);
-        $entityCacheService->clearListCache();
-        $entityCacheService->clearAdminDetailCacheById($entity->id);
-        $entityCacheService->clearDetailCacheBySlug($entity->slug);
+        $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
+        $entityCacheService->clearAdminDetailCacheById($timer->id);
+        $entityCacheService->clearDetailCacheBySlug($timer->slug);
 
-        $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
-        VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_UPDATE);
+        $version = self::SERVICE::getById($timer->id, true, true)->toArray(request());
+        VersionService::set($version, $timer->model, $timer->id, $timer->name, Version::TYPE_UPDATE);
+
+        $timer->load(['playerTimer']);
+        $playerTimerAction = $timer->playerTimer()->orderBy('id', 'desc')->first();
+
+        if ($playerTimerAction) {
+            TimerStatusToggle::dispatch($playerTimerAction);
+        }
     }
 
     public function deleted(Timer $timer)
     {
-        $entity = $timer;
+        $hasSoftDeletes = in_array(
+            \Illuminate\Database\Eloquent\SoftDeletes::class,
+            class_uses_recursive($timer)
+        );
 
-        if (!$entity->isForceDeleting()) {
-            $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
-            VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_SOFT_DELETE);
+        if ($hasSoftDeletes && !$timer->isForceDeleting()) {
+            $version = self::SERVICE::getById($timer->id, true, true)->toArray(request());
+            VersionService::set($version, $timer->model, $timer->id, $timer->name, Version::TYPE_SOFT_DELETE);
         } else {
             $lastVersion = Version::query()
-                ->where('entity_type', $entity->model)
-                ->where('entity_id', $entity->id)
+                ->where('entity_type', $timer->model)
+                ->where('entity_id', $timer->id)
                 ->latest()
                 ->first();
 
             if ($lastVersion) {
-                VersionService::set($lastVersion->data, $entity->model, $entity->id, $entity->name, Version::TYPE_DELETE);
+                VersionService::set($lastVersion->data, $timer->model, $timer->id, $timer->name, Version::TYPE_DELETE);
             }
-            return;
+
+            if (!$hasSoftDeletes) {
+                $this->detachRelation($timer);
+            }
         }
 
         $entityCacheService = app(self::CACHE_SERVICE);
-        $entityCacheService->clearListCache();
-        $entityCacheService->clearAdminDetailCacheById($entity->id);
-        $entityCacheService->clearDetailCacheBySlug($entity->slug);
+        $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
+        $entityCacheService->clearAdminDetailCacheById($timer->id);
+        $entityCacheService->clearDetailCacheBySlug($timer->slug);
     }
 
     public function restored(Timer $timer)
     {
-        $entity = $timer;
-
         $entityCacheService = app(self::CACHE_SERVICE);
-        $entityCacheService->clearListCache();
-        $entityCacheService->clearAdminDetailCacheById($entity->id);
-        $entityCacheService->clearDetailCacheBySlug($entity->slug);
+        $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
+        $entityCacheService->clearAdminDetailCacheById($timer->id);
+        $entityCacheService->clearDetailCacheBySlug($timer->slug);
 
-        $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
-        VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_RECOVERY);
+        $version = self::SERVICE::getById($timer->id, true, true)->toArray(request());
+        VersionService::set($version, $timer->model, $timer->id, $timer->name, Version::TYPE_RECOVERY);
     }
 
     public function forceDeleted(Timer $timer)
     {
-        $this->defaultObserverService->forceDeleted(
-            $timer,
-            self::CACHE_SERVICE
-        );
+        $entityCacheService = app(self::CACHE_SERVICE);
+        $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
+
+        $this->detachRelation($timer);
+    }
+
+    private function detachRelation($entity)
+    {
+        $entity->playerTimer->each->delete();
     }
 }

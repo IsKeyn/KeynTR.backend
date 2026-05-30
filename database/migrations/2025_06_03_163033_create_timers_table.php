@@ -19,11 +19,13 @@ class CreateTimersTable extends Migration
             $table->string('slug');
             $table->text('description')->nullable();
             $table->bigInteger('limit')->nullable();
+            $table->json('settings')->nullable();
             $table->boolean('active')->default(true);
             $table->foreignId('user_id');
             $table->foreignId('board_game_id')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

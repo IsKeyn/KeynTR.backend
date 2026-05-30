@@ -48,6 +48,7 @@ class TimerService
             'name' => $timer->name,
             'limit' => $timer->limit,
             'reached_the_limit' => false,
+            'settings' => $timer->settings,
         ];
 
         foreach ($timer->playerTimer as $playerTimer) {

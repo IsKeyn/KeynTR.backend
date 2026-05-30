@@ -14,11 +14,11 @@ class TimerController extends Controller
     use HasBaseAdminFunc;
 
     private const MODEL = Timer::class;
-    private const CACHE_SERVICE = 'App\Services\Cache\TimerCacheService';
-    private const FILTER = 'App\Filters\TimerFilter';
-    private const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Timer\DetailResource';
-    private const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Timer\ListResource';
-    private const SERVICE = 'App\Services\BoardGame\TimerService';
+    private const CACHE_SERVICE = Timer::CACHE_SERVICE;
+    private const FILTER = Timer::FILTER;
+    private const DETAIL_RESOURCE = Timer::DETAIL_RESOURCE;
+    private const LIST_RESOURCE = Timer::LIST_RESOURCE;
+    private const SERVICE = Timer::SERVICE;
 
     protected DefaultAdminEntityService $defaultAdminEntityService;
 

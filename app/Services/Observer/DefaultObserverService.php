@@ -46,7 +46,12 @@ class DefaultObserverService
         $withTrashed = true
     )
     {
-        if (!$entity->isForceDeleting()) {
+        $hasSoftDeletes = in_array(
+            \Illuminate\Database\Eloquent\SoftDeletes::class,
+            class_uses_recursive($entity)
+        );
+
+        if ($hasSoftDeletes && !$entity->isForceDeleting()) {
             $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
             VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_SOFT_DELETE);
         } else {
@@ -59,7 +64,10 @@ class DefaultObserverService
             if ($lastVersion) {
                 VersionService::set($lastVersion->data, $entity->model, $entity->id, $entity->name, Version::TYPE_DELETE);
             }
-            return;
+
+            if (!$hasSoftDeletes) {
+                $this->detachRelation($entity);
+            }
         }
 
         $entityCacheService = app($cacheServiceClass);
@@ -92,7 +100,14 @@ class DefaultObserverService
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
 
-        // Удаление связей
+        $this->detachRelation($entity);
+    }
+
+    /**
+     * Удаление связей
+     */
+    private function detachRelation($entity)
+    {
         $entity->tags()->detach();
 
         $entity->additionalFields()->delete();

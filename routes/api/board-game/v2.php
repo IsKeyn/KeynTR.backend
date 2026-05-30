@@ -16,6 +16,9 @@ use App\Http\Controllers\BoardGame\StatsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('board-game/v2/')->name('v2.')->group(function() {
+    Route::name('timer')->group(base_path('routes/api/board-game/fragments/Timer.php'));
+
+
     Route::post('roll-dice', [DiceController::class, 'rollDice'])->name('roll-dice');
 
     Route::controller(BoardGameController::class)->group(function() {

@@ -52,7 +52,12 @@ class BgPlayerTimerObserver
     {
         $entity = $boardGamePlayerTimer;
 
-        if (!$entity->isForceDeleting()) {
+        $hasSoftDeletes = in_array(
+            \Illuminate\Database\Eloquent\SoftDeletes::class,
+            class_uses_recursive($entity)
+        );
+
+        if ($hasSoftDeletes && !$entity->isForceDeleting()) {
             $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
             VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_SOFT_DELETE);
         } else {
@@ -65,7 +70,6 @@ class BgPlayerTimerObserver
             if ($lastVersion) {
                 VersionService::set($lastVersion->data, $entity->model, $entity->id, $entity->name, Version::TYPE_DELETE);
             }
-            return;
         }
 
         $entityCacheService = app(self::CACHE_SERVICE);
