@@ -14,20 +14,7 @@ class CompanyResource extends JsonResource
      */
     public function toArray($request)
     {
-        $group = null;
-        $entity = null;
-
-        if ($this->pivot) {
-            $entity = $this->pivot->company_bind_type;
-        }
-
-        if ($entity === 'App\Models\Game' && $game = $this->game()->first()) {
-            $group = $this->group($game->id, get_class($game))->first();
-        }
-
-        if ($entity === 'App\Models\Movie' && $movie = $this->movie()->first()) {
-            $group = $this->group($movie->id, get_class($movie))->first();
-        }
+        $group = $this->resolveCompanyGroup();
 
         return [
             'id' => $this->id,
@@ -38,5 +25,14 @@ class CompanyResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    private function resolveCompanyGroup()
+    {
+        if (!$this->pivot || !$this->pivot->company_bind_type || !$this->pivot->company_bind_id) {
+            return null;
+        }
+
+        return $this->group($this->pivot->company_bind_id, $this->pivot->company_bind_type)->first();
     }
 }

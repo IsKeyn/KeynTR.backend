@@ -5,17 +5,25 @@ namespace App\Models;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Company extends Model
 {
-    use HasFactory, ExtendModelTrait;
+    use HasFactory, ExtendModelTrait, SoftDeletes;
 
     protected $fillable = [
         'name',
         'slug',
         'description',
+        'sort',
+        'active',
         'release_date',
         'spc_id',
+        'created_by',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
     ];
 
     public function game()
@@ -26,14 +34,5 @@ class Company extends Model
     public function movie()
     {
         return $this->morphedByMany(Movie::class, 'company_bind');
-    }
-
-    public function group($id = null, $type = null)
-    {
-        return $this->morphToMany(Group::class, 'group_bind')
-            ->withPivot(['first_b_id', 'first_b_type'])
-            ->wherePivot('first_b_id', '=', $id)
-            ->wherePivot('first_b_type', '=', $type)
-            ->withTimestamps();
     }
 }

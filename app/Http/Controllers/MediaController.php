@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\Media\MediaDetailResource;
 use App\Http\Resources\MediaResource;
+use App\Http\Resources\UserActions\UserActionsResource;
 use App\Models\Media;
+use App\Services\Cache\MediaCacheService;
 use App\Services\ViewsLogService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Response;
 
 class MediaController extends Controller
 {
@@ -89,10 +94,38 @@ class MediaController extends Controller
         return MediaResource::collection($result);
     }
 
-    public function mediaById(Media $media, Request $request)
+    public function mediaById($id, Request $request)
     {
-        ViewsLogService::set($request, $media->model, $media->id);
+        $media = Media::findById($id)
+            ->with([
+                'views',
+                'likes',
+                'comments',
+            ])
+            ->first();
 
-        return MediaResource::make($media);
+        if ($media) {
+            $cacheKey = MediaCacheService::DETAIL_PREFIX . '_' . $id;
+
+            ViewsLogService::set($request, $media->model, $media->id);
+
+            $data = Cache::remember($cacheKey, MediaCacheService::TIME, function () use ($request, $id) {
+                $media = Media::findById($id)
+                    ->with([
+                        'tags',
+                        'user',
+                    ])
+                    ->first();
+
+                return MediaDetailResource::make($media);
+            });
+
+            return [
+                ...$data->toArray(request()),
+                ...UserActionsResource::make($media)->toArray(request())
+            ];
+        } else {
+            return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+        }
     }
 }

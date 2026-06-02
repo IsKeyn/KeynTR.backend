@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PlayerGameService
 {
+    // TODO Грязный сервайс, разнести методы по BgPlayerService и BgPlayerGameService и удалить
     public static function joinTheGame($user, $slug)
     {
         if ($user && $slug) {

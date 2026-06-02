@@ -26,7 +26,7 @@ class GameShortResource extends JsonResource
             'entity_type' => Game::class,
             'name' => $this->name,
             'slug' => $this->slug,
-            'platforms' => $this->platforms,
+            'platforms' => $this->gamePlatform,
             'description' => $this->description,
             'active' => $this->active,
             'release_dates' => ReleaseDateResource::collection($this->dates),

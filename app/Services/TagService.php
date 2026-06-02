@@ -3,10 +3,24 @@
 namespace App\Services;
 
 use App\Models\Tag;
+use App\Services\Entity\EntityService;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class TagService extends ServiceProvider
 {
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            'App\Models\Tag',
+            'App\Services\Cache\TagCacheService',
+            'App\Http\Resources\Admin\Tag\DetailResource',
+            $id,
+            ['additionalFields'],
+            $forceRefresh,
+            $withTrashed,
+        );
+    }
+
     public static function attacheTagsToEntity($entity, $tags) {
         $arTag = [];
 

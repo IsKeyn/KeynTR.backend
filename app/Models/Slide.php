@@ -17,6 +17,10 @@ class Slide extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'active' => 'boolean',
+    ];
+
     public function getModelAttribute()
     {
         return get_class($this);

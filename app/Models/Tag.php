@@ -2,15 +2,26 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tag extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait, SoftDeletes;
+
+    public const CACHE_NAME = 'tag';
+    public const TABLE_NAME = 'tags';
 
     protected $fillable = [
-      'name'
+        'name',
+        'sort',
+        'active',
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
     ];
 
     public function media()

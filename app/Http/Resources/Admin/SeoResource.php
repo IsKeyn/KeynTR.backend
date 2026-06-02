@@ -19,8 +19,6 @@ class SeoResource extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
             'keywords' => $this->keywords,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -22,6 +22,8 @@ class CreateNotificationsTable extends Migration
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->integer('entity_id')->nullable();
             $table->string('entity_type')->nullable();
+            $table->integer('sort')->nullable();
+            $table->boolean('active')->default(true);
             $table->softDeletes();
             $table->timestamps();
         });

@@ -2,54 +2,61 @@
 
 namespace App\Models;
 
+use App\Models\Person\Person;
+use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Movie extends Model
 {
-    use HasFactory;
+    use HasFactory, ExtendModelTrait, SoftDeletes;
+
+    public const CACHE_NAME = 'movie';
+    public const TABLE_NAME = 'movies';
+
+    const SERIES_TYPE = 2;
 
     protected $fillable = [
         'name',
         'slug',
         'description',
+        'sort',
+        'active',
         'created_by',
         'created_at',
     ];
 
-    public function getModelAttribute()
-    {
-        return get_class($this);
-    }
-
-    public function additionalFields()
-    {
-        return $this->morphMany(AdditionalField::class, 'entity');
-    }
-
-    public function tags()
-    {
-        return $this->morphToMany(Tag::class, 'tag_binds');
-    }
-
-    public function media()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
-    }
-
-    public function titleImage()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type')->wherePivot('type', '=', Media::TITLE_TYPE);
-    }
-
-    public function cover()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type')->wherePivot('type', '=', Media::COVER_TYPE);
-    }
+    protected $casts = [
+        'active' => 'boolean',
+    ];
 
     public function dates()
     {
         return $this->morphToMany(Date::class, 'date_bind')->withPivot('type');
+    }
+
+    public function anonsDates()
+    {
+        return $this->morphToMany(Date::class, 'date_bind')
+            ->withPivot('type')
+            ->wherePivot('type', '=', Game::DATE_ANONS_TYPE)
+            ->withTimestamps();
+    }
+
+    public function series()
+    {
+        return $this->morphToMany(Series::class, 'series_bind')->withTimestamps();
+    }
+
+    public function people()
+    {
+        return $this->morphToMany(Person::class, 'person_bind')->withTimestamps();
+    }
+
+    public function groups()
+    {
+        return $this->morphToMany(Group::class, 'group_bind')->withPivot('type')->wherePivot('type', '=', Game::SERIES_TYPE)->withTimestamps();
     }
 
     public function genres()
@@ -65,30 +72,5 @@ class Movie extends Model
     public function link()
     {
         return $this->morphToMany(Link::class, 'link_bind');
-    }
-
-    public function comments()
-    {
-        return $this->morphMany(Comments::class, 'entity');
-    }
-
-    public function views()
-    {
-        return $this->morphOne(ViewsCount::class, 'entity');
-    }
-
-    public function likes()
-    {
-        return $this->morphOne(VotesCount::class, 'entity')->where('vote_type', VotesLog::LIKE);
-    }
-
-    public function menu()
-    {
-        return $this->morphMany(MenuType::class, 'menu_type_bind');
-    }
-
-    public function seo()
-    {
-        return $this->morphOne(Seo::class, 'entity');
     }
 }

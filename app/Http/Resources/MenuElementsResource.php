@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Permission\ShortResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class MenuElementsResource extends JsonResource
@@ -24,6 +25,7 @@ class MenuElementsResource extends JsonResource
             'icon' => $this->icon,
             'sort' => $this->sort,
             'active' => $this->active,
+            'permissions' => $this->whenLoaded('permissions', ShortResource::collection($this->permissions)),
         ];
     }
 }

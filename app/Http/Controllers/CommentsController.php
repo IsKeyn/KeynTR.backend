@@ -2,51 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\CommentResource;
+use App\Http\Resources\Comments\CommentResource;
 use App\Models\Comments;
+use App\Services\Cache\CommentCacheService;
 use App\Services\CommentService;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Cache;
 
 class CommentsController extends Controller
 {
-    protected $model = Comments::class;
-
     public function getList(Request $request) {
-        // 1. Получаем список родительских комментариев, делим их по пагинации
-        $comments = $this->model::query()
-            ->where('entity_type', '=', $request->entityType)
-            ->where('entity_id', '=', $request->entityId)
-            ->where('answer_to', '=', null)
-            ->orderBy('created_at', 'desc')
-            ->paginate($request->perPage ? $request->perPage : 10);
+        $perPage = $request->perPage ? $request->perPage : 10;
+        $cacheKey = CommentCacheService::LIST_PREFIX . '_' . $request->entityType . '_' . $request->entityId . '_' . $request->page . '_' . $perPage;
 
-        // 2. Формируем массив из ID полученных комментариев
-        $arCommentsIds = [];
+        return Cache::remember($cacheKey, CommentCacheService::TIME, function () use ($request) {
+            // 1. Получаем список родительских комментариев, делим их по пагинации
+            $comments = Comments::query()
+                ->with([
+                    'user',
+                    'user.avatar',
+                    'bgPlayerGame.boardGame',
+                ])
+                ->where('entity_type', '=', $request->entityType)
+                ->where('entity_id', '=', $request->entityId)
+                ->where('answer_to', '=', null)
+                ->orderBy('created_at', 'desc')
+                ->paginate($request->perPage ? $request->perPage : 10);
 
-        foreach ($comments as $comment) {
-            $arCommentsIds[] = $comment['id'];
-        }
+            // 2. Формируем массив из ID полученных комментариев
+            $arCommentsIds = [];
 
-        // 3. Получаем все ответы для комментариев с ID из массива полученного ранее, используем для этого значение first_parent (родительский комментарий)
-        $answers = Comments::query()
-            ->where('entity_type', '=', $request->entityType)
-            ->where('entity_id','=', $request->entityId)
-            ->whereIn('first_parent', $arCommentsIds)
-            ->get();
+            foreach ($comments as $comment) {
+                $arCommentsIds[] = $comment['id'];
+            }
 
-        // 4. Формируем массив с ответами, сгруппированными по ID родительского комментария
-        $preparedAnswers = [];
-        foreach ($answers as $answer) {
-            $preparedAnswers[$answer->answer_to][] = $answer;
-        }
+            // 3. Получаем все ответы для комментариев с ID из массива полученного ранее, используем для этого значение first_parent (родительский комментарий)
+            $answers = Comments::query()
+                ->with([
+                    'user',
+                    'user.avatar',
+                    'bgPlayerGame.boardGame',
+                ])
+                ->where('entity_type', '=', $request->entityType)
+                ->where('entity_id', '=', $request->entityId)
+                ->whereIn('first_parent', $arCommentsIds)
+                ->get();
 
-        // 5. Связываем родительские комметарии с дочерними
-        foreach ($comments as &$comment) {
-            $comment['answers'] = $this->answerWithAnswers($preparedAnswers, $comment->id);
-        }
+            // 4. Формируем массив с ответами, сгруппированными по ID родительского комментария
+            $preparedAnswers = [];
+            foreach ($answers as $answer) {
+                $preparedAnswers[$answer->answer_to][] = $answer;
+            }
 
-        return CommentResource::collection($comments);
+            // 5. Связываем родительские комметарии с дочерними
+            foreach ($comments as &$comment) {
+                $comment['answers'] = $this->answerWithAnswers($preparedAnswers, $comment->id);
+            }
+
+            return CommentResource::collection($comments);
+        });
     }
 
     private function answerWithAnswers($preparedAnswers, $commentId) {

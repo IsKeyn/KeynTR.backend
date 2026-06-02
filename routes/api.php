@@ -2,13 +2,19 @@
 
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentsController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FormResultController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\GamingPlatformController;
+use App\Http\Controllers\GenreController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\MediaGroupController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PersonController;
+use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SlideController;
 use App\Http\Controllers\SocialController;
@@ -20,7 +26,6 @@ use App\Http\Controllers\YouTubeController;
 use App\Services\SearchService;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\Route;
-use App\Http\Resources\UserResource;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
@@ -136,33 +141,80 @@ Route::name('api.')->group(function() {
 //        Route::get('{slide:slug}', 'getSlide')->name('get-slide');
     });
 
+    Route::prefix('recommendation/')->controller(RecommendationController::class)->name('.recommendation')->group(function() {
+        Route::get('get', 'get')->name('get');
+    });
+
     // Работа с сущностью game
-    //    Route::resource('game', GameController::class);
     Route::prefix('game/')->controller(GameController::class)->name('.game')->group(function() {
-        Route::get('list', 'getList')->name('game-list');
-        Route::get('{game:slug}', 'getGame')->name('get-game');
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('list-filters');
+        Route::get('{game:slug}', 'getGame')->name('get');
+
+        Route::prefix('roll/')->name('.roll')->group(function() {
+            Route::get('list', 'getRollList')->name('list');
+            Route::get('{game:slug}', 'getGame')->name('get');
+        });
     });
 
     // Работа с сущностью movie
     Route::prefix('movie/')->controller(MovieController::class)->name('.movie')->group(function() {
-        Route::get('list', 'getList')->name('movie-list');
-        Route::get('{movie:slug}', 'getMovie')->name('get-movie');
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('list-filters');
+        Route::get('{movie:slug}', 'get')->name('get');
     });
 
+    // Работа с сущностью series
+    Route::prefix('series/')->controller(SeriesController::class)->name('.series')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{series:slug}', 'get')->name('get');
+    });
+
+    // Работа с сущностью person
+    Route::prefix('person/')->controller(PersonController::class)->name('.person')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{person:slug}', 'get')->name('get');
+    });
+
+    // Работа с сущностью company
+    Route::prefix('company/')->controller(CompanyController::class)->name('.company')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{person:slug}', 'get')->name('get');
+    });
+
+    // Работа с сущностью genre
+    Route::prefix('genre/')->controller(GenreController::class)->name('.genre')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{person:slug}', 'get')->name('get');
+    });
+
+    // Работа с сущностью gaming_platforms
+    Route::prefix('gaming-platform/')->controller(GamingPlatformController::class)->name('.gaming-platform')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{gamingPlatform:slug}', 'get')->name('get');
+    });
 
     // Работа с сущностью youtube
     Route::prefix('youtube/')->controller(YouTubeController::class)->name('.youtube')->group(function() {
         Route::post('lastVideo', 'getLastVideos')->name('get-last-videos');
     });
 
-    // Работа с настольной игрой
+    /* Данные для layout */
+    Route::name('layout.')->group(base_path('routes/api/layout/v1.php'));
+
+    /* Работа с настольной игрой */
     Route::name('board-game.')->group(base_path('routes/api/board-game/v1.php'));
     Route::name('board-game.')->group(base_path('routes/api/board-game/v2.php'));
 
-    // Действия в админке
+    /* Действия в админке */
     Route::name('admin.')->group(base_path('routes/api/admin/v1.php'));
 
-    // Работа с сущностями
+    /* Работа с сущностями */
     Route::name('entity.')->group(base_path('routes/api/entity/v1.php'));
 });
 

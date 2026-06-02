@@ -5,6 +5,7 @@ namespace App\Services\BoardGame;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayerTimer;
 use App\Models\BoardGame\Timer;
+use App\Services\Entity\EntityService;
 use Carbon\Carbon;
 
 class TimerService
@@ -47,6 +48,7 @@ class TimerService
             'name' => $timer->name,
             'limit' => $timer->limit,
             'reached_the_limit' => false,
+            'settings' => $timer->settings,
         ];
 
         foreach ($timer->playerTimer as $playerTimer) {
@@ -165,5 +167,18 @@ class TimerService
                 return $time;
             }
         }
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            Timer::class,
+            'App\Services\Cache\TimerCacheService',
+            'App\Http\Resources\Admin\BoardGame\Timer\DetailResource',
+            $id,
+            [],
+            $forceRefresh,
+            $withTrashed,
+        );
     }
 }

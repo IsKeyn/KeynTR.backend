@@ -16,6 +16,8 @@ class CreateDatesTable extends Migration
         Schema::create('dates', function (Blueprint $table) {
             $table->id();
             $table->date('date');
+            $table->boolean('hide_day')->default(false);
+            $table->boolean('hide_month')->default(false);
             $table->timestamps();
         });
     }

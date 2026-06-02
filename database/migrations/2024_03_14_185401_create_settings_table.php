@@ -21,7 +21,10 @@ class CreateSettingsTable extends Migration
             $table->string('value')->nullable();
             $table->string('entity_type')->nullable();
             $table->integer('entity_id')->nullable();
+            $table->integer('sort')->nullable();
+            $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

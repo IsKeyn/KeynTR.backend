@@ -24,11 +24,13 @@ class CreateBoardGameGameListsTable extends Migration
             $table->bigInteger('game_completion_time')->nullable();
             $table->boolean('coop')->default(0);
             $table->integer('list_type')->nullable();
+            $table->integer('sort')->nullable();
             $table->boolean('active')->default(1);
             $table->text('source')->nullable();
             $table->foreignId('added_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

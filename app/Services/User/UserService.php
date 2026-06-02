@@ -5,10 +5,38 @@ namespace App\Services\User;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AdditionalFieldsService;
+use App\Services\Cache\UserCacheService;
+use App\Services\Entity\EntityService;
 use App\Services\TwitchService;
+use Illuminate\Support\Facades\Cache;
 
 class UserService
 {
+    public static function getAuthUser($request)
+    {
+        if (!$request->user()) {
+            return null;
+        }
+
+        $id = $request->user()->id;
+
+        $cacheKey = UserCacheService::DETAIL_PREFIX . '_' . $id;
+
+        return Cache::remember($cacheKey, UserCacheService::TIME, function () use ($id) {
+            $user = User::findById($id)
+                ->active()
+                ->with(
+                    'avatar',
+                    'roles',
+                    'roles.permissions',
+                    'additionalFields'
+                )
+                ->first();
+
+            return UserResource::make($user);
+        });
+    }
+
     public static function verifyEmail($request)
     {
         $request->fulfill();
@@ -75,5 +103,18 @@ class UserService
         } else {
             return $login;
         }
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            'App\Models\User',
+            'App\Services\Cache\UserCacheService',
+            'App\Http\Resources\Admin\User\DetailResource',
+            $id,
+            ['tags', 'additionalFields', 'roles', 'avatar'],
+            $forceRefresh,
+            $withTrashed,
+        );
     }
 }

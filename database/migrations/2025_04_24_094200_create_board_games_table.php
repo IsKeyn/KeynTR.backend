@@ -19,6 +19,7 @@ class CreateBoardGamesTable extends Migration
             $table->string('slug')->nullable()->unique();
             $table->text('description')->nullable();
             $table->boolean('active')->default(true);
+            $table->integer('sort')->nullable();
             $table->boolean('is_close')->default(false);
             $table->dateTime('started_at')->nullable();
             $table->dateTime('ended_at')->nullable();

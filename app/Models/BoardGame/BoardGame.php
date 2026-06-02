@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardGame extends Model
 {
-    use HasFactory, SoftDeletes, ExtendModelTrait;
+    use HasFactory, ExtendModelTrait, SoftDeletes;
 
     /*
      * Настройки BoardGame
@@ -24,6 +24,9 @@ class BoardGame extends Model
      * time_limit (в минутах, максимальное количество времени для челенджа, используется в таймере)
      */
 
+    public const CACHE_NAME = 'board-game';
+    public const TABLE_NAME = 'board_games';
+
     const CLOSE_STATUS = 0;
     const OPEN_STATUS = 1;
     const COMING_SOON = 2;
@@ -33,6 +36,7 @@ class BoardGame extends Model
         'slug',
         'description',
         'active',
+        'sort',
         'is_close',
         'started_at',
         'ended_at',
@@ -73,6 +77,6 @@ class BoardGame extends Model
 
     public function settings()
     {
-        return $this->morphMany(Setting::class, 'entity')->where('entity_type', BoardGame::class)->where('entity_id', $this->id);
+        return $this->morphMany(Setting::class, 'entity');
     }
 }

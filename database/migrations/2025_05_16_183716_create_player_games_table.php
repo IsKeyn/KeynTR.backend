@@ -23,8 +23,11 @@ class CreatePlayerGamesTable extends Migration
             $table->foreignId('from_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('comment_id')->nullable();
             $table->bigInteger('time')->nullable();
+            $table->integer('sort')->nullable();
+            $table->boolean('active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

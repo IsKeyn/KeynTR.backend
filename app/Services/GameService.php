@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Http\Resources\Admin\AdminGameResource;
 use App\Models\Date;
 use App\Models\Game;
 use App\Models\GamingPlatform;
 use App\Models\Seo;
+use App\Services\Cache\GameCacheService;
+use Illuminate\Support\Facades\Cache;
 use phpDocumentor\Reflection\Types\Boolean;
 
 class GameService
@@ -24,7 +27,9 @@ class GameService
         }
 
         if ($game = Game::create($fields)) {
-            $this->setAdditionalFields($game, $fields);
+            $relatedDataService = app(RelatedDataService::class);
+            $relatedDataService->set($game, $fields);
+
             return $game;
         }
     }
@@ -96,7 +101,10 @@ class GameService
             foreach ($releaseDates as $item) {
                 if (isset($item['date']) && $item['date']) {
                     /* Ищем дату, которая равна переданой и привязана к текущеё сущности */
-                    $dateQuery = Date::where('date', $item['date']);
+                    $hideDay = isset($item['hideDay']) ? $item['hideDay'] : false;
+                    $hideMonth = isset($item['hideMonth']) ? $item['hideMonth'] : false;
+
+                    $dateQuery = Date::where('date', $item['date'])->where('hide_day', $hideDay)->where('hide_month', $hideMonth);
                     $dateQuery->whereHas('games', function ($q) use ($entity) {
                         $q->where('games.id', $entity->id);
                     });
@@ -114,15 +122,25 @@ class GameService
                     }
 
                     if (!$dateEntity) {
-                        $dateEntity = Date::create(['date' => $item['date']]);
+                        $dateEntity = Date::create(
+                            [
+                                'date' => $item['date'],
+                                'hide_day' => $hideDay,
+                                'hide_month' => $hideMonth,
+                            ]
+                        );
                     }
 
                     $arDatesIds[$dateEntity->id] = [];
 
                     if ($gamePlatformEntity) {
                         if ($dateEntity) {
-                            $dateEntity->gamePlatform()->syncWithPivotValues($gamePlatformEntity->id,
-                                ['additional_info' => $item['addInfo']]);
+                            $dateEntity
+                                ->gamePlatform()
+                                ->syncWithPivotValues(
+                                    $gamePlatformEntity->id,
+                                    ['additional_info' => $item['addInfo']]
+                                );
                             $arGamingPlatformsIds[$gamePlatformEntity->id] = [];
                         }
                     }
@@ -142,7 +160,10 @@ class GameService
             foreach ($anonsDates as $item) {
                 if (isset($item['date']) && $item['date']) {
                     /* Ищем дату, которая равна переданой и привязана к текущеё сущности с типом DATE_ANONS_TYPE */
-                    $dateQuery = Date::where('date', $item['date']);
+                    $hideDay = isset($item['hideDay']) ? $item['hideDay'] : false;
+                    $hideMonth = isset($item['hideMonth']) ? $item['hideMonth'] : false;
+
+                    $dateQuery = Date::where('date', $item['date'])->where('hide_day', $hideDay)->where('hide_month', $hideMonth);
                     $dateQuery->whereHas(
                         'gamesAnons',
                         function ($q) use ($entity) {
@@ -153,7 +174,13 @@ class GameService
                     $dateEntity = $dateQuery->first();
 
                     if (!$dateEntity) {
-                        $dateEntity = Date::create(['date' => $item['date']]);
+                        $dateEntity = Date::create(
+                            [
+                                'date' => $item['date'],
+                                'hide_day' => $hideDay,
+                                'hide_month' => $hideMonth,
+                            ]
+                        );
                     }
 
                     $arDatesIds[] = $dateEntity->id;
@@ -163,5 +190,73 @@ class GameService
             // TODO не работает выяснить причину
             $entity->anonsDates()->syncWithPivotValues($arDatesIds, ['type' => Game::DATE_ANONS_TYPE]);
         }
+    }
+
+    public static function getGameById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        $cacheKey = GameCacheService::ADMIN_DETAIL_PREFIX . '_' . $id;
+
+        // Выносим логику в замыкание, чтобы избежать дублирования
+        $fetchData = function () use ($id, $withTrashed) {
+            $item = Game::findById($id)
+                ->with([
+                    'titleImage',
+                    'cover',
+                    'gamePlatform',
+                    'dates',
+                    'dates.gamePlatform',
+                    'anonsDates',
+                    'tags',
+                    'series',
+                    'people',
+                    'groups',
+                    'genres',
+                    'company',
+                    'company.group',
+                    'link',
+                    'additionalFields',
+                    'seo',
+                    'seo.entity',
+                    'seo.entity.tags',
+                    'menu',
+                    'menu.elements',
+                    'blocks',
+                    'bgGamesList',
+                    'bgGamesList.boardGame',
+                    'bgGamesList.boardGame.titleImage',
+                ]);
+
+            if ($withTrashed) {
+                $item->withTrashed();
+            }
+
+            $item = $item->first();
+
+            return AdminGameResource::make($item);
+        };
+
+        // Если передан флаг принудительного обновления, игнорируем кеш
+        if ($forceRefresh) {
+            return $fetchData();
+        }
+
+        return Cache::remember($cacheKey, GameCacheService::TIME, $fetchData);
+    }
+
+    public static function set($entity, $items)
+    {
+        $arGameIds = [];
+
+        foreach ($items as $item) {
+            if (isset($item['game'])) {
+                $gameEntity = Game::query()->where('id', $item['game'])->first();
+
+                if ($gameEntity) {
+                    $arGameIds[] = $gameEntity->id;
+                }
+            }
+        }
+
+        return $entity->games()->sync($arGameIds);
     }
 }

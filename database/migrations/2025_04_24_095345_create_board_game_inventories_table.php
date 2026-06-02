@@ -20,8 +20,11 @@ class CreateBoardGameInventoriesTable extends Migration
             $table->foreignId('board_game_item_id')->nullable();
             $table->boolean('has_used')->default(false);
             $table->json('use_result')->nullable();
+            $table->boolean('active')->default(true);
+            $table->integer('sort')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

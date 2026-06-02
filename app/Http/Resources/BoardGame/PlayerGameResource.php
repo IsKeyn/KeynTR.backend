@@ -20,6 +20,8 @@ class PlayerGameResource extends JsonResource
      */
     public function toArray($request)
     {
+        // TODO Не оптимизирвоанный легаси, перевести на App\Http\Resources\BoardGame\PlayerGame\BgPlayerGameFullResource
+
         $otherPlayersActions = PlayerGameService::actionsWithGame($this->board_game_game_list_id, $this->board_game_id);
         $otherPlayersActionsInOtherEvents = PlayerGameService::actionsWithGameInOtherEvents($this->game, $this->board_game_id);
 

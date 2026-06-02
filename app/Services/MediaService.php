@@ -16,7 +16,7 @@ class MediaService
         $fileData = [];
 
         if (isset($fileArray['name'])) $fileData['name'] = $fileArray['name'];
-        if (isset($fileArray['description'])) $fileData['name'] = $fileArray['description'];
+        if (isset($fileArray['description'])) $fileData['description'] = $fileArray['description'];
         if (isset($fileArray['type'])) $fileData['name'] = $fileArray['type'];
 
         $fileData['created_by'] = $user->id;
@@ -25,13 +25,27 @@ class MediaService
 
         if (isset($fileArray['tags'])) {
             foreach ($fileArray['tags'] as $tagName) {
-                $tag = $this->findOrCreateTag($tagName);
+                $tag = TagService::findOrCreateTag($tagName);
                 $media->tags()->save($tag);
             }
         }
 
+        $file = $fileArray['src'];
+
         if (!$name) {
             $name = $fileArray['src']->getClientOriginalName();
+        }
+
+        // Проверяем, есть ли уже расширение в имени
+        $ext = pathinfo($name, PATHINFO_EXTENSION);
+
+        if (empty($ext)) {
+            // Получаем расширение из MIME-типа (использует Symfony MIME Guesser)
+            $guessedExt = $file->guessExtension();
+
+            if ($guessedExt) {
+                $name .= '.' . strtolower($guessedExt);
+            }
         }
 
         $path = $fileArray['src']->storeAs(
@@ -76,20 +90,36 @@ class MediaService
         }
     }
 
+    public function setAvatar($entity, $mediaId)
+    {
+        $media = Media::query()->where('id', $mediaId)->first();
+
+        if ($media) {
+            return $entity->avatar()->syncWithPivotValues($media->id, ['type' => Media::TITLE_TYPE]);
+        }
+    }
+
     public function setCovers($entity, $coversArray)
     {
-        $arCoversIds = [];
+        $coversData = [];
 
         foreach ($coversArray as $cover) {
             if (isset($cover['id'])) {
-                $media = Media::query()->where('id', $cover['id'])->first();
+                $media = Media::query()->find($cover['id']);
 
+                if ($media) {
+                    $pivotValues = ['type' => Media::COVER_TYPE];
 
-                $arCoversIds[] = $media->id;
+                    if (isset($cover['sort'])) {
+                        $pivotValues['sort'] = $cover['sort'];
+                    }
+
+                    $coversData[$media->id] = $pivotValues;
+                }
             }
         }
 
-        return $entity->cover()->syncWithPivotValues($arCoversIds, ['type' => Media::COVER_TYPE]);
+        return $entity->cover()->sync($coversData);
     }
 
     public function setMediaGroup($entity, $galleryArray)
@@ -121,7 +151,7 @@ class MediaService
         $originalPath = "media/$media->id/$media->file_name";
         $webpPath = str_replace($media->mime_type, 'webp', $originalPath);
 
-        /* Проверяем, что файл, который мы собираемся обрабатывать существуе */
+        /* Проверяем, что файл, который мы собираемся обрабатывать существует */
         if (!Storage::disk('public')->exists($originalPath)) {
             return false;
         }

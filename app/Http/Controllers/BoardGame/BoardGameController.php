@@ -14,12 +14,24 @@ use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
+use App\Services\BoardGame\BgPlayerService;
+use App\Services\BoardGame\BoardGameService;
 use App\Services\TwitchService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class BoardGameController extends Controller
 {
+    public function getLayoutData(Request $request)
+    {
+        $twitchService = app(TwitchService::class);
+
+        return [
+            'twitchOnline' => $twitchService->streamersLive(),
+            'boardGame' => BoardGameService::getBySlug($request->slug),
+            'player' => BgPlayerService::getCurrent($request->slug),
+        ];
+    }
+
     public function getList(BoardGame $boardGame)
     {
         $boardGameList = $boardGame::active()->orderBy('created_at', 'desc')->get();
@@ -29,6 +41,7 @@ class BoardGameController extends Controller
 
     public function getBySlug($slug, Request $request, BoardGame $boardGame)
     {
+        // TODO устаревший метод, удалить когда более не будет использоваться
         $validated = $request->validate([
             'type' => 'sometimes|string',
         ]);

@@ -1,86 +1,40 @@
 <?php
 
-use App\Http\Controllers\Admin\BoardGame\ItemBindController;
-use App\Http\Controllers\Admin\BoardGame\ItemController;
-use App\Http\Controllers\Admin\BoardGame\BoardGameController;
-use App\Http\Controllers\Admin\Games\GamesApiController;
-use App\Http\Controllers\Admin\User\UserController;
-use App\Http\Controllers\User\MagicLinkController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\AdminGameController;
-use App\Http\Controllers\Admin\AdminMediaGroupController;
-use App\Http\Controllers\Admin\AdminMovieController;
-use App\Http\Controllers\Admin\AdminPageController;
-use App\Http\Controllers\System\ParamController;
-use App\Http\Controllers\Admin\AdminArticlePagesController;
-use App\Http\Controllers\Admin\AdminEntityController;
-use App\Http\Controllers\Admin\AdminMediaPagesController;
-use App\Http\Controllers\Admin\AdminSlideController;
-use App\Http\Controllers\BoardGame\BoardGameInventoryController;
 
-Route::prefix('admin/')->name('v1.')->middleware(['auth:sanctum', 'is_admin'])->group(function() {
-    Route::prefix('entity')->controller(AdminEntityController::class)->name('entity.')->group(function () {
-        Route::get('{entityName}', 'index')->name('index');
-        Route::post('{entityName}', 'store')->name('store');
-        Route::put('{entityName}/{id}', 'update')->name('update');
-        Route::delete('{entityName}/{id}', 'destroy')->name('destroy');
-        Route::get('{entityName}/{id}/edit','edit')->name('edit');
+Route::prefix('admin/')->name('v1.')->group(function() {
+    Route::name('setting.')->middleware(['auth:sanctum', 'can:site.edit'])->group(base_path('routes/api/admin/fragments/Setting.php'));
 
-        Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
-        Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
-        Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
+    Route::name('user.')->middleware(['auth:sanctum', 'can:user.edit'])->group(base_path('routes/api/admin/fragments/User.php'));
+    Route::name('notification.')->middleware(['auth:sanctum', 'can:user.notification.edit'])->group(base_path('routes/api/admin/fragments/Notification.php'));
+    Route::name('role.')->middleware(['auth:sanctum', 'can:user.roles.edit'])->group(base_path('routes/api/admin/fragments/Role.php'));
+    Route::name('permission.')->middleware(['auth:sanctum', 'can:user.permission.edit'])->group(base_path('routes/api/admin/fragments/Permission.php'));
 
-        Route::prefix('{folder}')->controller(AdminEntityController::class)->name('{folder}.')->group(function () {
-            Route::get('{entityName}', 'index')->name('index');
-            Route::post('{entityName}', 'store')->name('store');
-            Route::put('{entityName}/{id}', 'update')->name('update');
-            Route::delete('{entityName}/{id}', 'destroy')->name('destroy');
-            Route::get('{entityName}/{id}/edit','edit')->name('edit');
+    Route::name('version.')->middleware(['auth:sanctum', 'is_admin'])->group(base_path('routes/api/admin/fragments/Version.php'));
+    Route::name('entity.')->middleware(['auth:sanctum', 'is_admin'])->group(base_path('routes/api/admin/fragments/Entity.php'));
 
-            Route::post('{entityName}/{id}/store-additional-field', 'storeAdditionalField')->name('store-element-additional-field');
-            Route::post('{entityName}/{id}/update-additional-field', 'updateAdditionalField')->name('update-element-additional-field');
-            Route::post('{entityName}/{id}/delete-additional-field', 'deleteAdditionalField')->name('delete-element-additional-field');
-        });
+    Route::name('param.')->middleware(['auth:sanctum', 'is_admin'])->group(base_path('routes/api/admin/fragments/Param.php'));
+    Route::name('magic-link.')->middleware(['auth:sanctum', 'is_admin'])->group(base_path('routes/api/admin/fragments/MagicLink.php'));
+    Route::name('menu.')->middleware(['auth:sanctum', 'can:menu.edit'])->group(base_path('routes/api/admin/fragments/Menu.php'));
+    Route::name('slide.')->middleware(['auth:sanctum', 'can:slide.edit'])->group(base_path('routes/api/admin/fragments/Slide.php'));
+    Route::name('recommendation.')->middleware(['auth:sanctum', 'can:recommend.edit'])->group(base_path('routes/api/admin/fragments/Recommendation.php'));
 
-        Route::get('getList','getEntityList')->name('getEntityList');
-    });
+    Route::name('media.')->middleware(['auth:sanctum', 'can:media.edit'])->group(base_path('routes/api/admin/fragments/Media.php'));
+    Route::name('tag.')->middleware(['auth:sanctum', 'can:tags.edit'])->group(base_path('routes/api/admin/fragments/Tag.php'));
+    Route::name('media-group.')->middleware(['auth:sanctum', 'can:media-group.edit'])->group(base_path('routes/api/admin/fragments/MediaGroup.php'));
+    Route::name('series.')->middleware(['auth:sanctum', 'can:series.edit'])->group(base_path('routes/api/admin/fragments/Series.php'));
+    Route::name('person.')->middleware(['auth:sanctum', 'can:person.edit'])->group(base_path('routes/api/admin/fragments/Person.php'));
+    Route::name('company.')->middleware(['auth:sanctum', 'can:company.edit'])->group(base_path('routes/api/admin/fragments/Company.php'));
+    Route::name('group.')->middleware(['auth:sanctum', 'can:group.edit'])->group(base_path('routes/api/admin/fragments/Group.php'));
+    Route::name('genre.')->middleware(['auth:sanctum', 'can:genre.edit'])->group(base_path('routes/api/admin/fragments/Genre.php'));
+    Route::name('gaming-platform.')->middleware(['auth:sanctum', 'can:gaming-platform.edit'])->group(base_path('routes/api/admin/fragments/GamingPlatform.php'));
 
-    Route::prefix('BoardGame')->name('BoardGame.')->group(function () {
-        Route::resource('BoardGame', BoardGameController::class);
-        Route::resource('Item', ItemController::class);
-        Route::resource('ItemBind', ItemBindController::class);
-        Route::resource('BoardGameInventory', BoardGameInventoryController::class);
-    });
+    Route::name('page.')->middleware(['auth:sanctum', 'can:page.edit'])->group(base_path('routes/api/admin/fragments/Page.php'));
+    Route::name('article.')->middleware(['auth:sanctum', 'can:article.edit'])->group(base_path('routes/api/admin/fragments/Article.php'));
+    Route::name('game.')->middleware(['auth:sanctum', 'can:game.edit'])->group(base_path('routes/api/admin/fragments/Game.php'));
+    Route::name('movie.')->middleware(['auth:sanctum', 'can:movie.edit'])->group(base_path('routes/api/admin/fragments/Movie.php'));
 
-    Route::resource('media', AdminMediaPagesController::class);
-    Route::prefix('media/')->controller(AdminMediaPagesController::class)->name('media.')->group(function() {
-        Route::post('multi-store', 'multiStore')->name('multi-store');
-    });
+    Route::name('BoardGame.')->middleware(['auth:sanctum'])->group(base_path('routes/api/admin/fragments/BoardGame.php'));
 
-    Route::resource('pages', AdminPageController::class);
-    Route::resource('articles', AdminArticlePagesController::class);
-    Route::resource('slides', AdminSlideController::class);
-
-    Route::get('game/get-additional-data', [AdminGameController::class, 'getAdditionalData'])->name('game.get-additional-data');
-    Route::get('movie/get-additional-data', [AdminMovieController::class, 'getAdditionalData'])->name('movie.get-additional-data');
-    Route::resource('game', AdminGameController::class);
-    Route::resource('movie', AdminMovieController::class);
-    Route::resource('media-group', AdminMediaGroupController::class);
-
-    Route::get('param-value/{paramName}', [ParamController::class, 'getPhpParamValue'])->name('param.value');
-
-    Route::prefix('magical-link/')->controller(MagicLinkController::class)->name('magic-link.')->group(function() {
-        Route::get('generate/{userId}', 'createLink')->name('generate');
-    });
-
-    Route::prefix('user/')->controller(UserController::class)->name('user.')->group(function() {
-        Route::get('full-logout/{userId}', 'fullLogout')->name('full-logout');
-    });
-
-    Route::prefix('api/')->name('api.')->group(function() {
-        Route::prefix('games/')->name('games.')->controller(GamesApiController::class)->group(function() {
-            Route::get('search', 'search')->name('search');
-            Route::post('add', 'add')->name('add');
-        });
-    });
+    Route::name('api.')->middleware(['auth:sanctum'])->group(base_path('routes/api/admin/fragments/Api.php'));
 });

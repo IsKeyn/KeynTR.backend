@@ -16,8 +16,6 @@ class GameShortestResource extends JsonResource
      */
     public function toArray($request)
     {
-        $image = $this->whenLoaded('titleImage', $this->titleImage()->first());
-
         return [
             'id' => $this->id,
             'entity_type' => Game::class,
@@ -26,7 +24,7 @@ class GameShortestResource extends JsonResource
             'description' => $this->description,
             'active' => $this->active,
             'show_in_list' => $this->show_in_list,
-            'title_image' => $image ? ShortMediaResource::make($image) : null,
+            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

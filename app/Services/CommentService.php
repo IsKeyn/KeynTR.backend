@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Comments;
+use App\Services\Cache\CommentCacheService;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,6 +25,9 @@ class CommentService extends ServiceProvider
         }
 
         if ($comment = Comments::create($newComment)) {
+            $commentCacheService = app(CommentCacheService::class);
+            $commentCacheService->clearListCacheByEntity($request->entity_type, $request->entity_id);
+
             UserAgentService::setData($request, $comment);
 
             return response($comment, Response::HTTP_CREATED);

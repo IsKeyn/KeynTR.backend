@@ -10,8 +10,11 @@ use App\Models\BoardGame\Timer;
 use App\Models\User;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\TimerService;
+use App\Services\Cache\TimerCacheService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -122,7 +125,7 @@ class TimerController extends Controller
         }
 
         $cacheKey = 'bg_game_timer_' . $user->id . '_' . $request->boardGameSlug . '_' . $request->slug;
-        $minutes = 30; // 7 дней в минутах
+        $minutes = 30;
 
         return Cache::remember($cacheKey, $minutes, function () use ($request, $user) {
             // Легковесное получение board_game_id
@@ -135,7 +138,7 @@ class TimerController extends Controller
 
             // Получаем только один нужный таймер + связанные таймеры игрока
             $timer = Timer::with('playerTimer')
-                ->select(['id', 'name', 'limit', 'user_id', 'board_game_id', 'slug']) // только нужные поля
+                ->select(['id', 'name', 'limit', 'user_id', 'board_game_id', 'slug', 'settings']) // только нужные поля
                 ->where([
                     ['user_id', '=', $user->id],
                     ['board_game_id', '=', $boardGameId],
@@ -287,21 +290,35 @@ class TimerController extends Controller
         }
     }
 
-    public function list(Request $request)
+    /**
+     * Возвращает коллекцию таймеров текущего пользователя.
+     *
+     * @return ResourceCollection|null
+     */
+    public function list(Request $request): ?ResourceCollection
     {
-        $user = $request->user();
+        $user = $request->user_id
+            ? User::select('id')->find($request->user_id)
+            : $request->user();
 
-        if ($user) {
+        if (!$user) {
+            return null;
+        }
+
+        $cacheKey = TimerCacheService::LIST_PREFIX . '_' . $user->id;
+        $time = TimerCacheService::TIME;
+
+        return Cache::remember($cacheKey, $time, function () use ($request, $user) {
             $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
 
             $timers = Timer::query()
-                ->where('user_id', $user->id)
-                ->where('board_game_id', $boardGameId)
-                ->where('active', true)
+                ->findByUserId($user->id)
+                ->findByBoardGame($boardGameId)
+                ->active()
                 ->get();
 
             return TimerResource::collection($timers);
-        }
+        });
     }
 
     public function add(Request $request)
@@ -379,14 +396,46 @@ class TimerController extends Controller
             if (!$timer) {
                 return response()->json(['error' => 'Таймер не найден'])->setStatusCode(Response::HTTP_OK);
             } else {
-                foreach ($timer->playerTimer as $playerTimer) {
-                    $playerTimer->delete();
-                }
-
                 return $timer->delete();
             }
         } else {
             return response()->json(['error' => 'Пользователь не найден'])->setStatusCode(Response::HTTP_OK);
+        }
+    }
+
+    /**
+     * Обновляет настройки таймера
+     *
+     * @return JsonResponse
+     */
+    public function setSettings(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user) {
+            $boardGameId = BoardGame::findBySlug($request->bgSlug)->value('id');
+
+            $timer = Timer::query()
+                ->findByUserId($user->id)
+                ->findByBoardGame($boardGameId)
+                ->findBySlug($request->slug)
+                ->active()
+                ->first();
+
+            if (!$timer) {
+                return response()->json(['error' => __('boardGame.timer_not_found')])->setStatusCode(Response::HTTP_OK);
+            } else {
+                if ($request->settings) {
+                    $timer->settings = $request->settings;
+                    $timer->save();
+
+                    return response()->json(['status' => __('boardGame.timer_settings_updated')])->setStatusCode(Response::HTTP_OK);
+                } else {
+                    return response()->json(['error' => __('boardGame.timer_settings_not_received')])->setStatusCode(Response::HTTP_OK);
+                }
+            }
+        } else {
+            return response()->json(['error' => __('boardGame.user_not_found')])->setStatusCode(Response::HTTP_OK);
         }
     }
 }

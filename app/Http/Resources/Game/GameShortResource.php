@@ -5,7 +5,7 @@ namespace App\Http\Resources\Game;
 use App\Http\Resources\AnonsDateResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\GenreResource;
-use App\Http\Resources\Admin\LinkResource;
+use App\Http\Resources\Admin\ForExtension\AdminLinkResource;;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\MediaResource;
 use App\Http\Resources\ReleaseDateResource;
@@ -34,7 +34,7 @@ class GameShortResource extends JsonResource
             'entity_type' => Game::class,
             'name' => $this->name,
             'slug' => $this->slug,
-            'platforms' => $this->platforms,
+            'platforms' => $this->gamePlatform,
             'description' => $this->description,
             'active' => $this->active,
             'show_in_list' => $this->show_in_list,
@@ -46,7 +46,7 @@ class GameShortResource extends JsonResource
             'groups' => GroupResource::collection($this->groups),
             'genres' => GenreResource::collection($this->genres),
             'companies' => CompanyResource::collection($this->company),
-            'links' => LinkResource::collection($this->link),
+            'links' => AdminLinkResource::collection($this->link),
             'additional_fields' => $this->additionalFields,
             'views' => $this->views ? $this->views->value : null,
             'likes' => $this->likes ? $this->likes->value : null,

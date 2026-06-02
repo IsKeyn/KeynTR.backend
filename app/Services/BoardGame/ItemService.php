@@ -3,6 +3,8 @@
 namespace App\Services\BoardGame;
 
 use App\Models\BoardGame\BoardGameInventory;
+use App\Models\BoardGame\Item;
+use App\Services\Entity\EntityService;
 
 class ItemService
 {
@@ -16,5 +18,28 @@ class ItemService
         ];
 
         return BoardGameInventory::create($fields);
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            Item::class,
+            Item::CACHE_SERVICE,
+            Item::DETAIL_RESOURCE,
+            $id,
+            [
+                'tags',
+                'additionalFields',
+                'media',
+                'seo',
+                'seo.entity',
+                'seo.entity.tags',
+                'menu',
+                'menu.elements',
+                'blocks',
+            ],
+            $forceRefresh,
+            $withTrashed,
+        );
     }
 }
