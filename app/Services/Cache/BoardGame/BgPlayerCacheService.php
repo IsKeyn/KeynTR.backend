@@ -4,6 +4,7 @@ namespace App\Services\Cache\BoardGame;
 
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Services\Cache\BaseCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class BgPlayerCacheService extends BaseCacheService
 {
@@ -22,4 +23,26 @@ class BgPlayerCacheService extends BaseCacheService
     public const LIST_TOKEN = self::NAME . '_list_token';
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
+
+    public function clearAllDetailCache()
+    {
+        $data = static::MODEL::query()->get();
+
+        foreach ($data as $element) {
+            $this->clearDetailCacheAllTypes($element);
+        }
+    }
+
+    public function clearDetailCacheAllTypes($element)
+    {
+        $this->clearClientDetailCache($element);
+        $this->clearDetailCacheBySlug($element->slug);
+        $this->clearAdminDetailCacheById($element->id);
+    }
+
+    public function clearClientDetailCache($element)
+    {
+        $cacheKey = static::DETAIL_PREFIX . '_' . $element->boardGame->slug . '_' . $element->user->id;
+        Cache::forget($cacheKey);
+    }
 }

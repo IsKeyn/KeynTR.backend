@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserPublicResource extends JsonResource
 {
+    // TODO устаревший ресурс, удалить когда более не будет использоваться, заменить его на App\Http\Resources\User\UserPublicResource
     /**
      * Transform the resource into an array.
      *

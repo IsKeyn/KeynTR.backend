@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\Traits\ExtendModelTrait;
 use App\Models\User\Message;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -154,5 +155,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasPermission(string $permissionName): bool
     {
         return in_array($permissionName, $this->getAllPermissions(), true);
+    }
+
+    public function bgPlayer(): hasMany
+    {
+        return $this->hasMany(BoardGamePlayer::class, 'user_id');
     }
 }

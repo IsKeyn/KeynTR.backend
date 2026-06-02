@@ -65,9 +65,20 @@ abstract class BaseCacheService
         $data = static::MODEL::query()->get();
 
         foreach ($data as $element) {
-            $this->clearDetailCacheBySlug($element->slug);
-            $this->clearAdminDetailCacheById($element->id);
+            $this->clearDetailCacheAllTypes($element);
         }
+    }
+
+    public function clearDetailCacheAllTypes($element)
+    {
+        $this->clearClientDetailCache($element);
+        $this->clearDetailCacheBySlug($element->slug);
+        $this->clearAdminDetailCacheById($element->id);
+    }
+
+    public function clearClientDetailCache($element)
+    {
+
     }
 
     public function clearDetailCacheBySlug($slug, $showMessage = false)

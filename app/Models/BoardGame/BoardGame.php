@@ -77,6 +77,6 @@ class BoardGame extends Model
 
     public function settings()
     {
-        return $this->morphMany(Setting::class, 'entity')->where('entity_type', BoardGame::class)->where('entity_id', $this->id);
+        return $this->morphMany(Setting::class, 'entity');
     }
 }

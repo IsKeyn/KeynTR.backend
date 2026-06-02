@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\PlayerData;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Services\Observer\DefaultObserverService;
 
@@ -19,38 +20,54 @@ class BgPlayerObserver
 
     public function created(BoardGamePlayer $boardGamePlayer)
     {
+        $boardGamePlayer->load(['boardGame', 'user']);
+
         $this->defaultObserverService->created(
             $boardGamePlayer,
             self::CACHE_SERVICE,
             self::SERVICE
         );
+
+        PlayerData::dispatch($boardGamePlayer);
     }
 
     public function updated(BoardGamePlayer $boardGamePlayer)
     {
+        $boardGamePlayer->load(['boardGame', 'user']);
+
         $this->defaultObserverService->updated(
             $boardGamePlayer,
             self::CACHE_SERVICE,
             self::SERVICE
         );
+
+        PlayerData::dispatch($boardGamePlayer);
     }
 
     public function deleted(BoardGamePlayer $boardGamePlayer)
     {
+        $boardGamePlayer->load(['boardGame', 'user']);
+
         $this->defaultObserverService->deleted(
             $boardGamePlayer,
             self::CACHE_SERVICE,
             self::SERVICE
         );
+
+        PlayerData::dispatch($boardGamePlayer);
     }
 
     public function restored(BoardGamePlayer $boardGamePlayer)
     {
+        $boardGamePlayer->load(['boardGame', 'user']);
+
         $this->defaultObserverService->restored(
             $boardGamePlayer,
             self::CACHE_SERVICE,
             self::SERVICE
         );
+
+        PlayerData::dispatch($boardGamePlayer);
     }
 
     public function forceDeleted(BoardGamePlayer $boardGamePlayer)

@@ -22,7 +22,7 @@ class BoardGamePlayer extends Model
     public const FILTER = 'App\Filters\BoardGame\BgPlayerFilter';
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\PlayerGameService';
+    public const SERVICE = 'App\Services\BoardGame\BgPlayerService';
 
     protected $fillable = [
         'user_id',

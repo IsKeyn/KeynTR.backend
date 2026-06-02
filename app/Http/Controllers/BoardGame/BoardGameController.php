@@ -14,6 +14,8 @@ use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
+use App\Services\BoardGame\BgPlayerService;
+use App\Services\BoardGame\BoardGameService;
 use App\Services\TwitchService;
 use Illuminate\Http\Request;
 
@@ -25,6 +27,8 @@ class BoardGameController extends Controller
 
         return [
             'twitchOnline' => $twitchService->streamersLive(),
+            'boardGame' => BoardGameService::getBySlug($request->slug),
+            'player' => BgPlayerService::getCurrent($request->slug),
         ];
     }
 
@@ -37,6 +41,7 @@ class BoardGameController extends Controller
 
     public function getBySlug($slug, Request $request, BoardGame $boardGame)
     {
+        // TODO устаревший метод, удалить когда более не будет использоваться
         $validated = $request->validate([
             'type' => 'sometimes|string',
         ]);

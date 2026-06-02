@@ -8,12 +8,12 @@ use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\PlayerGame;
-use App\Services\Entity\EntityService;
 use App\Services\ErrorService;
 use Illuminate\Support\Facades\Auth;
 
 class PlayerGameService
 {
+    // TODO Грязный сервайс, разнести методы по BgPlayerService и BgPlayerGameService и удалить
     public static function joinTheGame($user, $slug)
     {
         if ($user && $slug) {
@@ -200,28 +200,5 @@ class PlayerGameService
         }
 
         return GameListResource::collection($boardGameGameList->filter(function ($value) use ($usedGames) { return !in_array($value->id, $usedGames); }));
-    }
-
-    public static function getById($id, $forceRefresh = false, $withTrashed = false)
-    {
-        return EntityService::getById(
-            BoardGamePlayer::class,
-            BoardGamePlayer::CACHE_SERVICE,
-            BoardGamePlayer::DETAIL_RESOURCE,
-            $id,
-            [
-                'tags',
-                'additionalFields',
-                'media',
-                'seo',
-                'seo.entity',
-                'seo.entity.tags',
-                'menu',
-                'menu.elements',
-                'blocks',
-            ],
-            $forceRefresh,
-            $withTrashed,
-        );
     }
 }
