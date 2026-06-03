@@ -12,6 +12,9 @@ class Person extends Model
 {
     use HasFactory, ExtendModelTrait, SoftDeletes;
 
+    public const CACHE_NAME = 'person';
+    public const TABLE_NAME = 'persons';
+
     protected $fillable = [
         'name',
         'slug',

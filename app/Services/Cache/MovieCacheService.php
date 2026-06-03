@@ -5,10 +5,10 @@ namespace App\Services\Cache;
 use App\Models\Movie;
 use Illuminate\Support\Facades\Cache;
 
-class MovieCacheService
+class MovieCacheService extends BaseCacheService
 {
-    private const NAME = Movie::CACHE_NAME;
-    private const MODEL = Movie::class;
+    public const NAME = Movie::CACHE_NAME;
+    public const MODEL = Movie::class;
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

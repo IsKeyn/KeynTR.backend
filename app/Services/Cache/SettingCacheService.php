@@ -5,10 +5,10 @@ namespace App\Services\Cache;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 
-class SettingCacheService
+class SettingCacheService extends BaseCacheService
 {
-    private const NAME = Setting::CACHE_NAME;
-    private const MODEL = Setting::class;
+    public const NAME = Setting::CACHE_NAME;
+    public const MODEL = Setting::class;
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

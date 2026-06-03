@@ -5,8 +5,11 @@ namespace App\Services\Cache;
 use App\Models\Person\Person;
 use Illuminate\Support\Facades\Cache;
 
-class PersonCacheService
+class PersonCacheService extends BaseCacheService
 {
+    public const NAME = Person::CACHE_NAME;
+    public const MODEL = Person::class;
+
     public const ADMIN_LIST_PREFIX = 'admin_person_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_person_filter_detail_cache';
     public const ADMIN_DETAIL_PREFIX = 'admin_person_detail_cache';

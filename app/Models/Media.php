@@ -11,6 +11,9 @@ class Media extends Model
 {
     use HasFactory, ExtendModelTrait;
 
+    public const CACHE_NAME = 'media';
+    public const TABLE_NAME = 'media';
+
     const TITLE_TYPE = 1;
     const COVER_TYPE = 2;
     const MEDIA_GROUP = 3;

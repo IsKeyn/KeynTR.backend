@@ -6,10 +6,10 @@ namespace App\Services\Cache;
 use App\Models\User\Notification;
 use Illuminate\Support\Facades\Cache;
 
-class NotificationCacheService
+class NotificationCacheService extends BaseCacheService
 {
-    private const NAME = Notification::CACHE_NAME;
-    private const MODEL = Notification::class;
+    public const NAME = Notification::CACHE_NAME;
+    public const MODEL = Notification::class;
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

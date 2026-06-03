@@ -4,10 +4,10 @@ namespace App\Services\Cache;
 
 use Illuminate\Support\Facades\Cache;
 
-class MenuCacheService
+class MenuCacheService extends BaseCacheService
 {
-    private const NAME = 'menu';
-    private const MODEL = 'App\Models\Menu';
+    public const NAME = 'menu';
+    public const MODEL = 'App\Models\Menu';
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

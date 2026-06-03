@@ -11,6 +11,9 @@ class Series extends Model
 {
     use HasFactory, ExtendModelTrait, SoftDeletes;
 
+    public const CACHE_NAME = 'series';
+    public const TABLE_NAME = 'series';
+
     protected $fillable = [
         'name',
         'slug',

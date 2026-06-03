@@ -10,6 +10,9 @@ class Recommendation extends Model
 {
     use HasFactory, ExtendModelTrait;
 
+    public const CACHE_NAME = 'recommendation';
+    public const TABLE_NAME = 'recommendations';
+
     protected $fillable = [
         'name',
         'url',

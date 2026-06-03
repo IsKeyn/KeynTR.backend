@@ -5,8 +5,11 @@ namespace App\Services\Cache;
 use App\Models\Recommendation;
 use Illuminate\Support\Facades\Cache;
 
-class RecommendationCacheService
+class RecommendationCacheService extends BaseCacheService
 {
+    public const NAME = Recommendation::CACHE_NAME;
+    public const MODEL = Recommendation::class;
+
     public const LIST_PREFIX = 'recommendation_list_cache';
     public const DETAIL_PREFIX = 'recommendation_detail_cache';
     public const ADMIN_LIST_PREFIX = 'admin_recommendation_list_cache';
@@ -19,7 +22,7 @@ class RecommendationCacheService
         self::clearAllDetailCache();
     }
 
-    public function clearListCache()
+    public function clearListCache($showMessage = false)
     {
         Cache::forget(self::LIST_PREFIX);
         Cache::forget(self::ADMIN_LIST_PREFIX);

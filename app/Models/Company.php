@@ -11,6 +11,9 @@ class Company extends Model
 {
     use HasFactory, ExtendModelTrait, SoftDeletes;
 
+    public const CACHE_NAME = 'company';
+    public const TABLE_NAME = 'companies';
+
     protected $fillable = [
         'name',
         'slug',

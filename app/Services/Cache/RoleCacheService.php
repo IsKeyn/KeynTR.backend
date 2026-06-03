@@ -4,10 +4,10 @@ namespace App\Services\Cache;
 
 use Illuminate\Support\Facades\Cache;
 
-class RoleCacheService
+class RoleCacheService extends BaseCacheService
 {
-    private const NAME = 'role';
-    private const MODEL = 'App\Models\Role';
+    public const NAME = 'role';
+    public const MODEL = 'App\Models\Role';
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

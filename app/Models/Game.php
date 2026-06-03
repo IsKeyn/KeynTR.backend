@@ -19,8 +19,10 @@ class Game extends Model
 {
     use HasFactory, ExtendModelTrait, SoftDeletes;
 
-    const SERIES_TYPE = 1;
+    public const CACHE_NAME = 'game';
+    public const TABLE_NAME = 'games';
 
+    const SERIES_TYPE = 1;
     const DATE_ANONS_TYPE = 1;
 
     protected $fillable = [

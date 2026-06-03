@@ -5,8 +5,11 @@ namespace App\Services\Cache;
 use App\Models\Media;
 use Illuminate\Support\Facades\Cache;
 
-class MediaCacheService
+class MediaCacheService extends BaseCacheService
 {
+    public const NAME = Media::CACHE_NAME;
+    public const MODEL = Media::class;
+
     public const LIST_PREFIX = 'media_list_cache';
     public const DETAIL_PREFIX = 'media_detail_cache';
     public const TIME = 6 * 30 * 24 * 60 * 60;

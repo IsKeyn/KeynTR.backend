@@ -5,8 +5,11 @@ namespace App\Services\Cache;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Game;
 
-class GameCacheService
+class GameCacheService extends BaseCacheService
 {
+    public const NAME = Game::CACHE_NAME;
+    public const MODEL = Game::class;
+
     public const ADMIN_LIST_PREFIX = 'admin_game_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_game_filter_detail_cache';
     public const ADMIN_DETAIL_PREFIX = 'admin_game_detail_cache';

@@ -2,10 +2,14 @@
 
 namespace App\Services\Cache;
 
+use App\Models\Company;
 use Illuminate\Support\Facades\Cache;
 
-class CompanyCacheService
+class CompanyCacheService extends BaseCacheService
 {
+    public const NAME = Company::CACHE_NAME;
+    public const MODEL = Company::class;
+
     public const ADMIN_LIST_PREFIX = 'admin_company_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_company_filter_detail_cache';
     public const ADMIN_DETAIL_PREFIX = 'admin_company_detail_cache';
@@ -22,8 +26,6 @@ class CompanyCacheService
 
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;
-
-    private const MODEL = 'App\Models\Company';
 
     public function clearAllCache()
     {

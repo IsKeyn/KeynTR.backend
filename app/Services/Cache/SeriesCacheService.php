@@ -5,8 +5,11 @@ namespace App\Services\Cache;
 use App\Models\Series;
 use Illuminate\Support\Facades\Cache;
 
-class SeriesCacheService
+class SeriesCacheService extends BaseCacheService
 {
+    public const NAME = Series::CACHE_NAME;
+    public const MODEL = Series::class;
+
     public const ADMIN_LIST_PREFIX = 'admin_series_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_series_filter_detail_cache';
     public const ADMIN_DETAIL_PREFIX = 'admin_series_detail_cache';

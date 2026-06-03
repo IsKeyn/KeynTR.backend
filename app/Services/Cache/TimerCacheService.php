@@ -5,7 +5,7 @@ namespace App\Services\Cache;
 use App\Models\BoardGame\Timer;
 use Illuminate\Support\Facades\Cache;
 
-class TimerCacheService
+class TimerCacheService extends BaseCacheService
 {
     public const NAME = Timer::CACHE_NAME;
     public const MODEL = Timer::class;

@@ -4,10 +4,10 @@ namespace App\Services\Cache;
 
 use Illuminate\Support\Facades\Cache;
 
-class UserCacheService
+class UserCacheService extends BaseCacheService
 {
-    private const NAME = 'user';
-    private const MODEL = 'App\Models\User';
+    public const NAME = 'user';
+    public const MODEL = 'App\Models\User';
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

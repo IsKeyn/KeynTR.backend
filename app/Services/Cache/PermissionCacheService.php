@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Cache;
 
 class PermissionCacheService extends BaseCacheService
 {
-    private const NAME = 'permission';
-    private const MODEL = 'App\Models\Permission';
+    public const NAME = 'permission';
+    public const MODEL = 'App\Models\Permission';
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

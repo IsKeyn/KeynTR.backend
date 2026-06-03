@@ -5,10 +5,10 @@ namespace App\Services\Cache;
 use App\Models\Group;
 use Illuminate\Support\Facades\Cache;
 
-class GroupCacheService
+class GroupCacheService extends BaseCacheService
 {
-    private const NAME = Group::CACHE_NAME;
-    private const MODEL = Group::class;
+    public const NAME = Group::CACHE_NAME;
+    public const MODEL = Group::class;
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

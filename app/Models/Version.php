@@ -11,6 +11,9 @@ class Version extends Model
 {
     use HasFactory, ExtendModelTrait;
 
+    public const CACHE_NAME = 'version';
+    public const TABLE_NAME = 'versions';
+
     const TYPE_CREATE = 1;
     const TYPE_UPDATE = 2;
     const TYPE_SOFT_DELETE = 3;

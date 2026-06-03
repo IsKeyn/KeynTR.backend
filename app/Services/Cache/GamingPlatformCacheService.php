@@ -4,10 +4,10 @@ namespace App\Services\Cache;
 
 use Illuminate\Support\Facades\Cache;
 
-class GamingPlatformCacheService
+class GamingPlatformCacheService extends BaseCacheService
 {
-    private const NAME = 'gaming_platform';
-    private const MODEL = 'App\Models\GamingPlatform';
+    public const NAME = 'gaming_platform';
+    public const MODEL = 'App\Models\GamingPlatform';
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

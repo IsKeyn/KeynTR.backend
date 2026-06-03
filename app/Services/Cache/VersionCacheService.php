@@ -5,8 +5,11 @@ namespace App\Services\Cache;
 use App\Models\Version;
 use Illuminate\Support\Facades\Cache;
 
-class VersionCacheService
+class VersionCacheService extends BaseCacheService
 {
+    public const NAME = Version::CACHE_NAME;
+    public const MODEL = Version::class;
+
     public const LIST_PREFIX = 'version_list_cache';
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;

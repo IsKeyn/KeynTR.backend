@@ -4,8 +4,11 @@ namespace App\Services\Cache;
 
 use Illuminate\Support\Facades\Cache;
 
-class GenreCacheService
+class GenreCacheService extends BaseCacheService
 {
+    public const NAME = 'genre';
+    private const MODEL = 'App\Models\Genre';
+
     public const ADMIN_LIST_PREFIX = 'admin_genre_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_genre_filter_detail_cache';
     public const ADMIN_DETAIL_PREFIX = 'admin_genre_detail_cache';
@@ -22,8 +25,6 @@ class GenreCacheService
 
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;
-
-    private const MODEL = 'App\Models\Genre';
 
     public function clearAllCache()
     {
