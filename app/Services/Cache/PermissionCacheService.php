@@ -4,7 +4,7 @@ namespace App\Services\Cache;
 
 use Illuminate\Support\Facades\Cache;
 
-class PermissionCacheService
+class PermissionCacheService extends BaseCacheService
 {
     private const NAME = 'permission';
     private const MODEL = 'App\Models\Permission';
