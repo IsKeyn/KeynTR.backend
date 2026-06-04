@@ -24,6 +24,7 @@ class CreateMenusTable extends Migration
             $table->integer('sort')->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -29,7 +29,7 @@ class AdminPersonResource extends JsonResource
             'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage()->first())),
             'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->orderByPivot('sort')->get())),
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
-            'game' => $this->whenLoaded('game', AdminGameResource::collection($this->game)),
+            'game' => $this->whenLoaded('games', AdminGameResource::collection($this->games)),
             'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
             'seo' => $this->whenLoaded('seo', function() {
                 return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;

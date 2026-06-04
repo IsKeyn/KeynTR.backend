@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CheckIsAdmin
@@ -30,6 +29,9 @@ class CheckIsAdmin
         } else {
             session()->flash('warning', 'У вас нет прав администратора');
 //            return redirect()->route('home');
+            return response()->json([
+                'message' => 'У вас нет прав администратора',
+            ], 403);
         }
     }
 }

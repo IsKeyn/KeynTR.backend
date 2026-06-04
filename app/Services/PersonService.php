@@ -73,7 +73,7 @@ class PersonService
                     'titleImage',
                     'cover',
                     'tags',
-                    'game',
+                    'games',
                     'additionalFields',
                     'seo',
                     'seo.entity',

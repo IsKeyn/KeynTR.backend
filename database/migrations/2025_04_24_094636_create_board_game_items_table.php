@@ -15,9 +15,12 @@ class CreateBoardGameItemsTable extends Migration
     {
         Schema::create('board_game_items', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('item_id')->nullable();
             $table->string('name');
             $table->string('slug')->nullable();
             $table->text('description')->nullable();
+            $table->json('actions')->nullable();
+            $table->bigInteger('type')->default(1);
             $table->foreignId('board_game_id')->nullable();
             $table->boolean('active')->default(true);
             $table->integer('sort')->nullable();

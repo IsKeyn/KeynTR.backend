@@ -34,6 +34,7 @@ class RoleObserver
         $userCacheService->clearAllDetailCache();
 
         AdminCacheService::clearAdminAdditionalDataCache();
+        $this->clearRelationCache();
     }
 
     /**
@@ -54,6 +55,7 @@ class RoleObserver
         $userCacheService->clearAllDetailCache();
 
         AdminCacheService::clearAdminAdditionalDataCache();
+        $this->clearRelationCache();
     }
 
     /**
@@ -74,6 +76,7 @@ class RoleObserver
         $userCacheService->clearAllDetailCache();
 
         AdminCacheService::clearAdminAdditionalDataCache();
+        $this->clearRelationCache();
     }
 
     /**
@@ -94,6 +97,7 @@ class RoleObserver
         $userCacheService->clearAllDetailCache();
 
         AdminCacheService::clearAdminAdditionalDataCache();
+        $this->clearRelationCache();
     }
 
     /**
@@ -113,5 +117,12 @@ class RoleObserver
         $userCacheService->clearAllDetailCache();
 
         AdminCacheService::clearAdminAdditionalDataCache();
+        $this->clearRelationCache();
+    }
+
+    public function clearRelationCache()
+    {
+        $userCacheService = app(UserCacheService::class);
+        $userCacheService->clearAllDetailCache();
     }
 }
