@@ -233,6 +233,14 @@ class CreateRolesAndPermissions extends Command
                 'active' => true,
             ],
             [
+                'id' => 44,
+                'name' => 'Доступ в админку',
+                'system_name' => 'version.edit',
+                'entity_type' => null,
+                'sort' => 35,
+                'active' => true,
+            ],
+            [
                 'id' => 4,
                 'name' => 'Редактирование сайта',
                 'system_name' => 'site.edit',
