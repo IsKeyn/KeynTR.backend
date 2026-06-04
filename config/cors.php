@@ -23,7 +23,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => [env('PA_PUBLIC_URL', 'http://localhost:3000')],
 
     'allowed_origins_patterns' => [],
 
