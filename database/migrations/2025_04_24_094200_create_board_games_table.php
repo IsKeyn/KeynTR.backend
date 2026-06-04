@@ -24,8 +24,8 @@ class CreateBoardGamesTable extends Migration
             $table->dateTime('started_at')->nullable();
             $table->dateTime('ended_at')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->softDeletes();
             $table->timestamps();
+
         });
     }
 

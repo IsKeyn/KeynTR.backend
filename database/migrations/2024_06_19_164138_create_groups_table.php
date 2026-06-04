@@ -22,8 +22,8 @@ class CreateGroupsTable extends Migration
             $table->integer('sort')->nullable();
             $table->string('entity_type');
             $table->boolean('active')->default(true);
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

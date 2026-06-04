@@ -30,8 +30,8 @@ class CreateArticlesTable extends Migration
             $table->integer('sort')->nullable();
             $table->boolean('active')->default(true);
             $table->dateTime('published_at')->nullable();
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
