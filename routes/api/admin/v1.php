@@ -7,7 +7,8 @@ Route::prefix('admin/')->name('v1.')->group(function() {
 
     Route::name('user.')->middleware(['auth:sanctum', 'can:user.edit'])->group(base_path('routes/api/admin/fragments/User.php'));
     Route::name('notification.')->middleware(['auth:sanctum', 'can:user.notification.edit'])->group(base_path('routes/api/admin/fragments/Notification.php'));
-    Route::name('role.')->middleware(['auth:sanctum', 'can:user.roles.edit'])->group(base_path('routes/api/admin/fragments/Role.php'));
+    Route::name('role.')->middleware(['auth:sanctum', 'is_admin'])->group(base_path('routes/api/admin/fragments/Role.php'));
+//    Route::name('role.')->middleware(['auth:sanctum', 'can:user.roles.edit'])->group(base_path('routes/api/admin/fragments/Role.php'));
     Route::name('permission.')->middleware(['auth:sanctum', 'can:user.permission.edit'])->group(base_path('routes/api/admin/fragments/Permission.php'));
 
     Route::name('version.')->middleware(['auth:sanctum', 'is_admin'])->group(base_path('routes/api/admin/fragments/Version.php'));
