@@ -46,9 +46,8 @@ class BoardGame extends Model
     protected $casts = [
         'active' => 'boolean',
         'is_close' => 'boolean',
+        'deleted_at' => 'datetime',
     ];
-
-    protected $dates = ['deleted_at'];
 
     public function scopeOpen(Builder $query): Builder
     {

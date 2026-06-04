@@ -14,10 +14,6 @@ class FormResult extends Model
         'data'
     ];
 
-    protected $dates = [
-        'created_at'
-    ];
-
     protected $casts = [
         'created_at' => 'date:Y-m-d H:i:s',
         'data' => 'array'

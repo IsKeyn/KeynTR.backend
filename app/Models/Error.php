@@ -15,10 +15,6 @@ class Error extends Model
         'from'
     ];
 
-    protected $dates = [
-      'created_at'
-    ];
-
     protected $casts = [
         'created_at' => 'date:Y-m-d H:i:s'
     ];

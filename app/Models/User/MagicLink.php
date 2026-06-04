@@ -15,7 +15,9 @@ class MagicLink extends Model
         'qr_code',
     ];
 
-    protected $dates = ['expires_at'];
+    protected $casts = [
+        'expires_at' => 'datetime',
+    ];
 
     public static function generateFor($user, $redirectUrl = null)
     {
