@@ -32,7 +32,7 @@ class AdminVersionController extends Controller {
             $versions = $filter->apply(Version::query())->orderBy('created_at', 'desc');
 
             if (!isset($request->sort)) {
-                $versions->orderByRaw('sort IS NULL, sort ASC');
+                $versions->orderBy('sort', 'desc');
             }
 
             $result = $versions->paginate($request->perPage ? $request->perPage : 10);
