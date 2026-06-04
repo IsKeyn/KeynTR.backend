@@ -21,19 +21,15 @@ class CheckIsAdmin
 
         $testPassed = false;
 
-        if ($user) {
-            foreach ($user->roles as $role) {
-                if ($role->system_name === 'super_admin') {
-                    $testPassed = true;
-                }
-            }
+        if ($user && $user->hasPermission('admin.super')) {
+            $testPassed = true;
         }
 
         if ($testPassed) {
             return $next($request);
         } else {
             session()->flash('warning', 'У вас нет прав администратора');
-            return redirect()->route('home');
+//            return redirect()->route('home');
         }
     }
 }
