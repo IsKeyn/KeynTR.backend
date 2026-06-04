@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 class GenreCacheService extends BaseCacheService
 {
     public const NAME = 'genre';
-    private const MODEL = 'App\Models\Genre';
+    public const MODEL = 'App\Models\Genre';
 
     public const ADMIN_LIST_PREFIX = 'admin_genre_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_genre_filter_detail_cache';
