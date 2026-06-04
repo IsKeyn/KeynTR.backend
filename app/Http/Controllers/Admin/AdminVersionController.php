@@ -29,10 +29,10 @@ class AdminVersionController extends Controller {
         return Cache::remember($cacheKey, $time, function () use ($request) {
             $filter = new VersionFilter($request);
 
-            $versions = $filter->apply(Version::query())->orderBy('created_at', 'desc');
+            $versions = $filter->apply(Version::query())->orderBy('id', 'desc');
 
             if (!isset($request->sort)) {
-                $versions->orderBy('sort', 'desc');
+                $versions->orderByRaw('sort IS NULL, sort ASC');
             }
 
             $result = $versions->paginate($request->perPage ? $request->perPage : 10);
@@ -107,7 +107,7 @@ class AdminVersionController extends Controller {
             $versions = $filter->apply(Version::query())
                 ->where('entity_type', $request->entity_type)
                 ->where('entity_id', $request->entity_id)
-                ->orderBy('created_at', 'desc');
+                ->orderBy('id', 'desc');
 
             if (!isset($request->sort)) {
                 $versions->orderByRaw('sort IS NULL, sort ASC');
