@@ -38,6 +38,7 @@ class AdminVersionController extends Controller {
                     'do_type',
                     'sort',
                     'active',
+                    'created_by',
                     'created_at',
                     'updated_at'
                 ])
@@ -125,6 +126,7 @@ class AdminVersionController extends Controller {
                     'do_type',
                     'sort',
                     'active',
+                    'created_by',
                     'created_at',
                     'updated_at'
                 ])
