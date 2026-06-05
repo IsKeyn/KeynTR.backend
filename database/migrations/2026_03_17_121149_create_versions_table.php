@@ -24,6 +24,8 @@ class CreateVersionsTable extends Migration
             $table->boolean('active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+
+            $table->index(['created_at', 'sort'], 'idx_versions_created_sort');
         });
     }
 
