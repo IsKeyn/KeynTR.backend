@@ -8,6 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardGame extends Model
@@ -77,5 +79,22 @@ class BoardGame extends Model
     public function settings()
     {
         return $this->morphMany(Setting::class, 'entity');
+    }
+
+    public function statusEffectBinds(): HasMany
+    {
+        return $this->hasMany(StatusEffectBind::class, 'board_game_id');
+    }
+
+    public function statusEffects(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            StatusEffect::class,
+            'bg_status_effects_binds',
+            'board_game_id',
+            'status_effect_id'
+        )
+            ->withPivot('active', 'created_by')
+            ->withTimestamps();
     }
 }

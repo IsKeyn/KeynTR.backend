@@ -6,6 +6,8 @@ use App\Models\Traits\ExtendModelForBoardGameTrait;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StatusEffect extends Model
@@ -51,4 +53,20 @@ class StatusEffect extends Model
             'name' => 'points'
         ],
     ];
+
+    public function statusEffectBinds(): HasMany
+    {
+        return $this->hasMany(StatusEffectBind::class, 'status_effect_id');
+    }
+
+    public function boardGames(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            BoardGame::class,
+            'bg_status_effects_binds',
+            'status_effect_id',
+            'board_game_id'
+        )->withPivot('active', 'created_by')
+        ->withTimestamps();
+    }
 }

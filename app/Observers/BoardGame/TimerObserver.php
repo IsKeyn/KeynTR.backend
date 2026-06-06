@@ -43,11 +43,7 @@ class TimerObserver
         VersionService::set($version, $timer->model, $timer->id, $timer->name, Version::TYPE_UPDATE);
 
         $timer->load(['playerTimer']);
-        $playerTimerAction = $timer->playerTimer()->orderBy('id', 'desc')->first();
-
-        if ($playerTimerAction) {
-            TimerStatusToggle::dispatch($playerTimerAction);
-        }
+        TimerStatusToggle::dispatch($timer);
     }
 
     public function deleted(Timer $timer)

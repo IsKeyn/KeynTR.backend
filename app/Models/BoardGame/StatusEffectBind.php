@@ -6,6 +6,7 @@ use App\Models\Traits\ExtendModelForBoardGameTrait;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StatusEffectBind extends Model
@@ -33,4 +34,14 @@ class StatusEffectBind extends Model
     protected $casts = [
         'active' => 'boolean',
     ];
+
+    public function statusEffect(): BelongsTo
+    {
+        return $this->belongsTo(StatusEffect::class);
+    }
+
+    public function boardGame(): BelongsTo
+    {
+        return $this->belongsTo(BoardGame::class);
+    }
 }

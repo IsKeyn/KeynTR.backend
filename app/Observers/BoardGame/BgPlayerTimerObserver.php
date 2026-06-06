@@ -45,7 +45,7 @@ class BgPlayerTimerObserver
         VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_UPDATE);
 
         $boardGamePlayerTimer->load(['timer.boardGame']);
-        TimerStatusToggle::dispatch($boardGamePlayerTimer);
+        TimerStatusToggle::dispatch($boardGamePlayerTimer->timer);
     }
 
     public function deleted(BoardGamePlayerTimer $boardGamePlayerTimer)
