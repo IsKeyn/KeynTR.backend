@@ -10,6 +10,7 @@ Route::prefix('BoardGame')->group(function () {
     Route::name('inventory')->middleware(['can:bg.player-inventory.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/Inventory.php'));
     Route::name('status-effect')->middleware(['can:bg.status-effect.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/StatusEffect.php'));
     Route::name('status-effect-bind')->middleware(['can:bg.status-effect-bind.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/StatusEffectBind.php'));
+    Route::name('player-status-effect')->middleware(['can:bg.status-effect-on-player.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/PlayerStatusEffect.php'));
     Route::name('board')->middleware(['can:bg.board.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/Board.php'));
     Route::name('board-position-effect')->middleware(['can:bg.board-position-effect.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/BoardPositionEffect.php'));
     Route::name('board-position-effect-bind')->middleware(['can:bg.board-position-effects-bind.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/BoardPositionEffectsBind.php'));

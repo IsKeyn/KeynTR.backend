@@ -21,7 +21,7 @@ class StatusEffectService
             [
                 'tags',
                 'additionalFields',
-                'media',
+                'titleImage',
                 'seo',
                 'seo.entity',
                 'seo.entity.tags',

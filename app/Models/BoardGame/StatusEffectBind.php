@@ -18,11 +18,16 @@ class StatusEffectBind extends Model
     public const CACHE_NAME = 'bg-status-effect-binds';
     public const TABLE_NAME = 'bg_status_effects_binds';
 
-    public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgStatusEffectBindCacheService';
+    public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\StatusEffect\BgStatusEffectBindCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgStatusEffectBindFilter';
+    public const SERVICE = 'App\Services\BoardGame\BgStatusEffectBindService';
+
+    /* Resource for admin panel */
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgStatusEffectBind\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgStatusEffectBind\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\BgStatusEffectBindService';
+
+    /* Resource for public */
+    public const PUBLIC_RESOURCES = [];
 
     protected $fillable = [
         'status_effect_id',

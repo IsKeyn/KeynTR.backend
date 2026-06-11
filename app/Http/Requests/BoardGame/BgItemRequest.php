@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BoardGame;
 
+use App\Models\BoardGame\Item;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,7 @@ class BgItemRequest extends FormRequest
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('games', 'slug')->ignore($id),
+                Rule::unique(Item::TABLE_NAME, 'slug')->ignore($id),
             ],
             'short_description' => 'sometimes|string|nullable',
             'full_description' => 'sometimes|string|nullable',

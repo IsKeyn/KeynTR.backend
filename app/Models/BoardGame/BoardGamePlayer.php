@@ -55,11 +55,16 @@ class BoardGamePlayer extends Model
             ->hasMany(BoardGameInventory::class, 'user_id', 'user_id');
     }
 
-    public function statusEffects()
+    public function statusEffects() // TODO устаревший
     {
         return $this
             ->hasMany(PlayerStatusEffect::class, 'user_id', 'user_id')
             ->active();
+    }
+
+    public function playerStatuses()
+    {
+        return $this->hasMany(PlayerStatusEffect::class);
     }
 
     public function positions()

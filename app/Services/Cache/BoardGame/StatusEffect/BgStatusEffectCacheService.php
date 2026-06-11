@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Services\Cache\BoardGame;
+namespace App\Services\Cache\BoardGame\StatusEffect;
 
-use App\Models\BoardGame\StatusEffectBind;
+use App\Models\BoardGame\StatusEffect;
 use App\Services\Cache\BaseCacheService;
 
-class BgStatusEffectBindCacheService extends BaseCacheService
+class BgStatusEffectCacheService extends BaseCacheService
 {
-    public const NAME = StatusEffectBind::CACHE_NAME;
-    public const MODEL = StatusEffectBind::class;
+    public const NAME = StatusEffect::CACHE_NAME;
+    public const MODEL = StatusEffect::class;
 
     public const ADMIN_LIST_PREFIX = 'admin_' . self::NAME . '_list_cache';
     public const ADMIN_FILTER_PREFIX = 'admin_' . self::NAME . '_filter_cache';

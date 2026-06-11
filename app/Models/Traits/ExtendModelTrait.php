@@ -37,14 +37,14 @@ trait ExtendModelTrait
         return $query->where('active', true);
     }
 
-    public function cover()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::COVER_TYPE)->withTimestamps();
-    }
-
     public function media()
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->withTimestamps();
+    }
+
+    public function cover()
+    {
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::COVER_TYPE)->withTimestamps();
     }
 
     public function titleImage()
@@ -69,9 +69,7 @@ trait ExtendModelTrait
 
     public function getTitleImageAttribute()
     {
-        return $this->titleImage()
-            ->wherePivot('type', '=', Media::TITLE_TYPE)
-            ->first();
+        return $this->titleImage()->first();
     }
 
     public function comments()

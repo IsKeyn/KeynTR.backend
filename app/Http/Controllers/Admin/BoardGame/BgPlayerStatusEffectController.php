@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers\Admin\BoardGame;
 
-use App\Http\Requests\BoardGame\BgItemRequest;
-use App\Models\BoardGame\Item;
+use App\Http\Requests\BoardGame\BgPlayerStatusEffectRequest;
+use App\Models\BoardGame\PlayerStatusEffect;
 use App\Http\Controllers\Controller;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
-use App\Http\Resources\Admin\BoardGame\ItemResource;
 use Illuminate\Http\Request;
 
-class ItemController extends Controller
+class BgPlayerStatusEffectController extends Controller
 {
     use HasBaseAdminFunc;
 
-    private const MODEL = Item::class;
-    private const CACHE_SERVICE = Item::CACHE_SERVICE;
-    private const FILTER = Item::FILTER;
-    private const DETAIL_RESOURCE = Item::DETAIL_RESOURCE;
-    private const LIST_RESOURCE = Item::LIST_RESOURCE;
-    private const SERVICE = Item::SERVICE;
+    private const MODEL = PlayerStatusEffect::class;
+    private const CACHE_SERVICE = PlayerStatusEffect::CACHE_SERVICE;
+    private const FILTER = PlayerStatusEffect::FILTER;
+    private const DETAIL_RESOURCE = PlayerStatusEffect::DETAIL_RESOURCE;
+    private const LIST_RESOURCE = PlayerStatusEffect::LIST_RESOURCE;
+    private const SERVICE = PlayerStatusEffect::SERVICE;
 
     protected DefaultAdminEntityService $defaultAdminEntityService;
 
@@ -36,12 +35,11 @@ class ItemController extends Controller
             self::CACHE_SERVICE,
             self::FILTER,
             self::LIST_RESOURCE,
-            true,
-            ['media'],
+            false
         );
     }
 
-    public function store(BgItemRequest $request)
+    public function store(BgPlayerStatusEffectRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,
@@ -49,22 +47,16 @@ class ItemController extends Controller
         );
     }
 
-    public function update(BgItemRequest $request, Item $item)
+    public function update(BgPlayerStatusEffectRequest $request, PlayerStatusEffect $playerStatusEffect)
     {
         return $this->defaultAdminEntityService->update(
             $request,
-            $item
+            $playerStatusEffect
         );
     }
 
-    public function destroy(Item $item)
+    public function destroy(PlayerStatusEffect $playerStatusEffect)
     {
-        return $this->defaultAdminEntityService->destroy($item);
-    }
-
-
-    public function list(Item $Item)
-    {
-        return ItemResource::collection($Item::all());
+        return $this->defaultAdminEntityService->destroy($playerStatusEffect);
     }
 }

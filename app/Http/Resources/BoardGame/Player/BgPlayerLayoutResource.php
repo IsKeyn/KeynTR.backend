@@ -24,10 +24,7 @@ class BgPlayerLayoutResource extends JsonResource
         });
 
         $fullPoints = $this->points;
-
-        if ($position) {
-            $fullPoints += $position->position;
-        }
+        if ($position) $fullPoints += $position->position;
 
         $status = $this->whenLoaded('mainTimers', function() {
             $timer = $this->mainTimers->first();

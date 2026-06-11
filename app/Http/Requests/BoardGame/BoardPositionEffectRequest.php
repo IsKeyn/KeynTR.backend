@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BoardGame;
 
+use App\Models\BoardGame\BoardPositionEffect;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,7 @@ class BoardPositionEffectRequest extends FormRequest
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('games', 'slug')->ignore($id),
+                Rule::unique(BoardPositionEffect::TABLE_NAME, 'slug')->ignore($id),
             ],
             'description' => 'sometimes|string|nullable',
             'actions' => 'sometimes|string|nullable',

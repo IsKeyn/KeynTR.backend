@@ -24,6 +24,14 @@ class RelatedDataService
             }
         }
 
+        if (isset($validated['sound'])) {
+            $mediaService = new MediaService();
+
+            if (isset($validated['sound'])) {
+                $mediaService->setSound($model, $validated['sound']);
+            }
+        }
+
         if (isset($validated['additional_fields'])) {
             $additionalFieldsService = new AdditionalFieldsService();
             $additionalFieldsService->sync($model, $validated['additional_fields']);

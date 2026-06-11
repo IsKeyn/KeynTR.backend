@@ -122,6 +122,15 @@ class MediaService
         return $entity->cover()->sync($coversData);
     }
 
+    public function setSound($entity, $mediaId)
+    {
+        $media = Media::query()->where('id', $mediaId)->first();
+
+        if ($media) {
+            return $entity->media()->syncWithPivotValues($media->id, ['type' => Media::SOUND]);
+        }
+    }
+
     public function setMediaGroup($entity, $galleryArray)
     {
         $arGalleryIds = [];
