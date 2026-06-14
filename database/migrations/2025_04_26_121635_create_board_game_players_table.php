@@ -18,6 +18,7 @@ class CreateBoardGamePlayersTable extends Migration
             $table->foreignId('user_id')->nullable();
             $table->foreignId('board_game_id')->nullable();
             $table->bigInteger('points')->default(0);
+            $table->integer('points_per_hour')->default(0)->comment('Очков в час');
             $table->integer('item_roll_count')->default(0);
             $table->integer('step_count')->default(0);
             $table->integer('streak')->default(0);

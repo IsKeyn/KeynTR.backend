@@ -58,6 +58,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'settings' => 'array',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function (User $user) {
+            if (blank($user->public_name)) {
+                $user->public_name = $user->name;
+            }
+        });
+    }
+
     public function isAdmin() {
         return $this->is_admin === 1;
     }

@@ -16,7 +16,7 @@ class CreatePlayerStatusEffectsTable extends Migration
         Schema::create('player_status_effects', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable();
-            $table->foreignId('board_game_player_id');
+            $table->foreignId('bg_player_id');
             $table->foreignId('board_game_id')->nullable();
             $table->foreignId('status_effect_id')->nullable();
             $table->foreignId('status_effect_bind_id')->nullable()->after('status_effect_id');

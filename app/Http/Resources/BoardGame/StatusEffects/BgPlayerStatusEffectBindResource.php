@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Resources\Game;
+namespace App\Http\Resources\BoardGame\StatusEffects;
 
-use App\Http\Resources\Media\ShortMediaResource;
-use App\Models\Game;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameShortestResource extends JsonResource
+class BgPlayerStatusEffectBindResource extends JsonResource
 {
     use CommonResourceFields;
 
@@ -21,10 +19,13 @@ class GameShortestResource extends JsonResource
     {
         return [
             ...$this->commonFields(),
+            ...$this->commonLoadedFields(),
 
-            'entity_type' => Game::class,
-            'show_in_list' => $this->show_in_list,
-            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage)),
+            'status_effect_id' => $this->status_effect_id,
+            'board_game_id' => $this->board_game_id,
+            'statusEffect' => $this->whenLoaded('statusEffect',
+                BgStatusEffectResource::make($this->statusEffect)
+            ),
         ];
     }
 }

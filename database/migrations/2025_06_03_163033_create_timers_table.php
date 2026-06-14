@@ -19,6 +19,7 @@ class CreateTimersTable extends Migration
             $table->string('slug');
             $table->text('description')->nullable();
             $table->bigInteger('limit')->nullable();
+            $table->unsignedInteger('elapsed_seconds')->default(0)->comment('Длительность в секундах');
             $table->json('settings')->nullable();
             $table->boolean('active')->default(true);
             $table->foreignId('user_id');

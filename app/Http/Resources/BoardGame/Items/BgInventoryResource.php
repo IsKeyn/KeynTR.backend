@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Resources\Game;
+namespace App\Http\Resources\BoardGame\Items;
 
-use App\Http\Resources\Media\ShortMediaResource;
-use App\Models\Game;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameShortestResource extends JsonResource
+class BgInventoryResource extends JsonResource
 {
     use CommonResourceFields;
 
@@ -22,9 +20,10 @@ class GameShortestResource extends JsonResource
         return [
             ...$this->commonFields(),
 
-            'entity_type' => Game::class,
-            'show_in_list' => $this->show_in_list,
-            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage)),
+            'bg_player_id' => $this->bg_player_id,
+            'board_game_item_id' => $this->board_game_item_id,
+            'item' => $this->whenLoaded('item', BgItemBindResource::make($this->item)),
+            'has_used' => $this->has_used,
         ];
     }
 }

@@ -41,7 +41,13 @@ class GameController extends Controller
         return Cache::remember($cacheKey, $time, function () use ($request) {
             $filter = new GameFilter($request);
             $games = $filter->apply(Game::query())
-                ->with(['media', 'genres', 'dates'])
+                ->with([
+                    'cover' => function ($query) {
+                        $query->orderByPivot('sort');
+                    },
+                    'genres',
+                    'dates'
+                ])
                 ->where('show_in_list', true)
                 ->active();
 
@@ -183,7 +189,9 @@ class GameController extends Controller
                 $game = Game::findBySlug($slug)
                     ->with([
                         'titleImage',
-                        'cover',
+                        'cover' => function ($query) {
+                            $query->orderByPivot('sort');
+                        },
                         'gamePlatform',
                         'dates',
                         'dates.gamePlatform',

@@ -4,14 +4,16 @@ namespace App\Http\Resources\Game;
 
 use App\Http\Resources\GroupResource;
 use App\Models\Game;
-use App\Models\Media;
 use App\Http\Resources\GenreResource;
 use App\Http\Resources\Date\DateShortResource;
 use App\Http\Resources\Media\ShortMediaResource;
+use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class GameListResource extends JsonResource
 {
+    use CommonResourceFields;
+
     /**
      * Transform the resource into an array.
      *
@@ -21,17 +23,13 @@ class GameListResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
+            ...$this->commonFields(),
+
             'entity_type' => Game::class,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
-            'covers' => $this->whenLoaded('media', ShortMediaResource::collection($this->media()->wherePivot('type', '=', Media::COVER_TYPE)->get())),
+            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover)),
             'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
             'release_dates' => $this->whenLoaded('dates', DateShortResource::collection($this->dates)),
             'groups' => $this->whenLoaded('groups', GroupResource::collection($this->groups)),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

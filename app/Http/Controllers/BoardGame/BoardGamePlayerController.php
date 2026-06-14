@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\BoardGame;
 
+use App\Filters\BoardGame\BgPlayerFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
@@ -10,10 +11,10 @@ use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithInventoryResource;
-use App\Http\Resources\BoardGame\BoardGamePlayerWithStatusEffectsResource;
 use App\Http\Resources\BoardGame\BoardGameShortResource;
 use App\Http\Resources\BoardGame\ItemBindResource;
 use App\Http\Resources\BoardGame\LogResource;
+use App\Http\Resources\BoardGame\Player\BgPlayerListResource;
 use App\Http\Resources\BoardGame\PlayerGameResource;
 use App\Http\Resources\BoardGame\PlayerInteractionResource;
 use App\Http\Resources\BoardGame\PlayerStatusEffectResource;
@@ -26,18 +27,27 @@ use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
-use App\Models\BoardGame\StatusEffect;
 use App\Models\User;
 use App\Services\BoardGame\ItemService;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
 use App\Services\BoardGame\UseItemService;
+use App\Services\Cache\BoardGame\BgPlayerCacheService;
+use App\Services\Entity\DefaultEntityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class BoardGamePlayerController extends Controller
 {
+    protected DefaultEntityService $defaultEntityService;
+
+    public function __construct(DefaultEntityService $defaultEntityService)
+    {
+        $this->defaultEntityService = $defaultEntityService;
+    }
+
     public function getPlayer (
         $slug,
         $name,
@@ -97,21 +107,99 @@ class BoardGamePlayerController extends Controller
         return false;
     }
 
-    public function getList(
-        $slug,
-        BoardGame $BoardGame,
-        BoardGamePlayer $BoardGamePlayer
-    )
+    public function getList(BoardGame $boardGame, Request $request)
     {
-//        $cacheKey = 'board_game_' . $slug . '_player_list_cache';
-//        $minutes = 60 * 24 * 30; // 30 дней
-//
-//        return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $slug) {
-            $boardGameId = $BoardGame->findBySlug($slug)->value('id');
-            $players = $BoardGamePlayer->where('board_game_id', $boardGameId)->get();
+        if ($request->fullList) {
+            $cacheKey = BgPlayerCacheService::LIST_PREFIX;
+        } else {
+            $cacheKey = BgPlayerCacheService::LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        }
 
-            return BoardGamePlayerWithStatusEffectsResource::collection($players);
+        $time = BgPlayerCacheService::TIME;
+
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                BgPlayerCacheService::LIST_TOKEN,
+                fn() => Str::random(10)
+            );
+
+            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $time = BgPlayerCacheService::FILTER_TIME;
+        }
+
+//        return Cache::remember($cacheKey, $time, function () use ($request, $boardGame) {
+            $filter = new BgPlayerFilter($request);
+            $players = $filter->apply(BoardGamePlayer::where('board_game_id', $boardGame->id))
+                ->with([
+                    'positions',
+                    'mainTimers' => function ($query) use ($boardGame) {
+                        $query->where('board_game_id', $boardGame->id);
+                    },
+                    'user',
+                    'user.avatar',
+                    'currentGames',
+                    'statusEffects',
+                    'statusEffects' => function ($query) {
+                        $query->active()->orderBy('updated_at', 'desc');
+                    },
+                    'statusEffects.statusEffectBind.statusEffect.titleImage',
+                    'inventory' => function ($query) {
+                        $query->active()->where('has_used', false)->orderBy('created_at', 'desc');
+                    },
+                    'inventory.item.item',
+                    'inventory.item.item.titleImage',
+                    'inventory.item.item.sound',
+                    'inventory.item.item.authorUser',
+                    'currentGames.user',
+                    'currentGames.game',
+                    'currentGames.comment',
+                    'currentGames.game.platform',
+                    'currentGames.game.addedBy',
+                    'currentGames.game.game',
+                    'currentGames.game.game.dates',
+                    'currentGames.game.game.titleImage',
+                    'currentGames.game.game.cover',
+                    'currentGames.game.game.genres',
+                ]);
+
+            if (!isset($request->sort)) {
+                $players->orderByRaw('sort IS NULL, sort ASC');
+            }
+
+            $playerTable = BoardGamePlayer::TABLE_NAME ?? 'board_game_players';
+            $positionTable = BoardGamePlayerPosition::TABLE_NAME ?? 'board_game_player_positions';
+
+            $posSubquery = "(SELECT position FROM {$positionTable}
+                WHERE {$positionTable}.board_game_id = {$playerTable}.board_game_id
+                AND {$positionTable}.user_id = {$playerTable}.user_id
+                ORDER BY {$positionTable}.updated_at DESC LIMIT 1)";
+
+            $fullPointsExpr = "({$playerTable}.points + COALESCE({$posSubquery}, 0))";
+
+            $players->selectRaw("
+                {$playerTable}.*,
+                CASE WHEN {$playerTable}.active = 1 THEN
+                    ROW_NUMBER() OVER (
+                        ORDER BY CASE WHEN {$playerTable}.active = 1 THEN {$fullPointsExpr} ELSE -1 END DESC
+                    )
+                ELSE NULL
+                END as place
+            ");
+
+            $result = $request->fullList ? $players->get() : $players->paginate($request->perPage ? $request->perPage : 10);
+
+            return BgPlayerListResource::collection($result);
 //        });
+    }
+
+    public function getListFilters(Request $request)
+    {
+        return $this->defaultEntityService->getListFilters(
+            $request,
+            BoardGamePlayer::class,
+            BoardGamePlayer::FILTER,
+            BoardGamePlayer::CACHE_SERVICE,
+        );
     }
 
     public function getListWithInventory(

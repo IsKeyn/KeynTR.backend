@@ -4,7 +4,7 @@ namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
 
-use App\Http\Resources\BoardGame\games\GameListShortResource;
+use App\Http\Resources\BoardGame\Games\GameListShortResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
 use Illuminate\Http\Request;

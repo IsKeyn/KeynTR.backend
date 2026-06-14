@@ -2,16 +2,14 @@
 
 namespace App\Http\Resources\BoardGame\PlayerGame;
 
-use App\Http\Resources\BoardGame\Games\BgGameListResource;
+use App\Http\Resources\BoardGame\Games\BgGameResource;
 use App\Http\Resources\CommentResource;
 use App\Http\Resources\User\UserPublicResource;
-use App\Services\BoardGame\GameService;
-use App\Services\BoardGame\PlayerGameService;
 use App\Services\BoardGame\TimerService;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BgPlayerGameFullResource extends JsonResource
+class BgPlayerGameShortResource extends JsonResource
 {
     use CommonResourceFields;
 
@@ -23,9 +21,6 @@ class BgPlayerGameFullResource extends JsonResource
      */
     public function toArray($request)
     {
-        $otherPlayersActions = PlayerGameService::actionsWithGame($this->board_game_game_list_id, $this->board_game_id);
-        $otherPlayersActionsInOtherEvents = PlayerGameService::actionsWithGameInOtherEvents($this->game, $this->board_game_id);
-
         return [
             ...$this->commonFields(),
             ...$this->commonLoadedFields(),
@@ -37,14 +32,11 @@ class BgPlayerGameFullResource extends JsonResource
             'status' => $this->status,
             'type' => $this->type,
             'user' => $this->whenLoaded('user', UserPublicResource::make($this->user)),
-            'game' => $this->whenLoaded('game', BgGameListResource::make($this->game)),
+            'game' => $this->whenLoaded('game', BgGameResource::make($this->game)),
             'comment_id' => $this->comment_id,
             'comment' => $this->whenLoaded('comment', CommentResource::make($this->comment)),
             'time' => $this->time,
             'timeSpend' => TimerService::timeInGame($this),
-            'rerollPenalty' => GameService::rerollPenalty($this->boardGame, $this),
-            'other_players_actions' => $otherPlayersActions ?? BgPlayerGameShortResource::collection($otherPlayersActions),
-            'other_players_actions_in_other_events' => $otherPlayersActionsInOtherEvents ?? BgPlayerGameShortResource::collection($otherPlayersActionsInOtherEvents),
         ];
     }
 }

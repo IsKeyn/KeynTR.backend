@@ -16,6 +16,7 @@ trait CommonResourceFields
             'model' => $this->model ?? null,
             'name' => $this->name ?? null,
             'slug' => $this->slug ?? null,
+            'description' => $this->description ?? null,
             'active' => $this->active ?? null,
             'sort' => $this->sort ?? null,
             'created_by' => $this->created_by ?? null,
@@ -28,12 +29,23 @@ trait CommonResourceFields
     protected function commonLoadedFields(): array
     {
         return [
-            'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
-            'seo' => $this->whenLoaded('seo', function() {
-                return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;
-            }),
-            'menu' => $this->whenLoaded('menu', MenuTypeResource::collection($this->menu)),
-            'blocks' => $this->whenLoaded('blocks', BlockResource::collection($this->blocks)),
+            'tags' => $this->when(
+                $this->relationLoaded('tags') && $this->tags,
+                fn() => TagResource::collection($this->tags)
+            ),
+            'seo' => $this->when(
+                $this->relationLoaded('seo') && $this->seo,
+                fn() => SeoResource::make($this->seo)
+            ),
+            'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
+            'menu' => $this->when(
+                $this->relationLoaded('menu') && $this->menu,
+                fn() => MenuTypeResource::collection($this->menu)
+            ),
+            'blocks' => $this->when(
+                $this->relationLoaded('blocks') && $this->blocks,
+                fn() => BlockResource::collection($this->blocks)
+            ),
         ];
     }
 }

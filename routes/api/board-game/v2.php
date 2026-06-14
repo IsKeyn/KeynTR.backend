@@ -16,8 +16,8 @@ use App\Http\Controllers\BoardGame\StatsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('board-game/v2/')->name('v2.')->group(function() {
+    Route::name('player')->group(base_path('routes/api/board-game/fragments/Player.php'));
     Route::name('timer')->group(base_path('routes/api/board-game/fragments/Timer.php'));
-
 
     Route::post('roll-dice', [DiceController::class, 'rollDice'])->name('roll-dice');
 
@@ -29,26 +29,6 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
 
     Route::prefix('board/')->controller(BoardController::class)->name('board.')->group(function() {
         Route::get('get/{slug}/', 'get')->name('get');
-    });
-
-    Route::prefix('player/')->controller(BoardGamePlayerController::class)->name('player.')->group(function() {
-        Route::post('add', 'add')->name('add');
-        Route::get('get/{slug}/{name}', 'getPlayer')->name('getPlayer');
-        Route::get('current/{slug}', 'getCurrent')->middleware('auth:sanctum')->name('getCurrent');
-        Route::get('list/{slug}', 'getList')->name('getList');
-        Route::get('listWithInventory/{slug}', 'getListWithInventory')->name('getListWithInventory');
-
-        Route::get('getEvents/{slug}/{name}', 'getEvents')->name('getEvents');
-
-        Route::get('getInventory/{slug}/{name}', 'getInventory')->name('getInventory');
-        Route::get('getGames/{slug}/{name}', 'getGames')->name('getGames');
-        Route::get('getCurrentGame/{slug}/{name}', 'getCurrentGame')->name('getCurrentGame');
-        Route::get('getStatusEffects/{slug}/{name}', 'getStatusEffects')->name('getStatusEffects');
-
-        Route::get('item/gamblingGame/{slug}', 'getDataForItemGamblingGame')->name('getDataForItemGamblingGame');
-        Route::post('rollItem/{slug}', 'rollItem')->name('rollItem');
-
-        Route::get('interactions/get/{slug}', 'getInteractions')->name('getInteractions');
     });
 
     Route::prefix('inventory/')->controller(BoardGameInventoryController::class)->name('inventory.')->group(function() {

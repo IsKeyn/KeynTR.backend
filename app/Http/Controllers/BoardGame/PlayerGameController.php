@@ -5,7 +5,7 @@ namespace App\Http\Controllers\BoardGame;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\GameListResource;
-use App\Http\Resources\BoardGame\games\GameRouletteListResource;
+use App\Http\Resources\BoardGame\Games\GameRouletteListResource;
 use App\Http\Resources\BoardGame\PlayerInteractionResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;

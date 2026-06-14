@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('player_status_effects', function (Blueprint $table) {
-            $table->foreignId('bg_player_id')->after('user_id');
+        Schema::table('timers', function (Blueprint $table) {
+            $table->unsignedInteger('elapsed_seconds')
+                ->default(0)
+                ->comment('Длительность в секундах')
+                ->after('limit');
         });
     }
 
@@ -21,8 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('player_status_effects', function (Blueprint $table) {
-            $table->dropColumn('bg_player_id');
+        Schema::table('timers', function (Blueprint $table) {
+            $table->dropColumn('elapsed_seconds');
         });
     }
 };

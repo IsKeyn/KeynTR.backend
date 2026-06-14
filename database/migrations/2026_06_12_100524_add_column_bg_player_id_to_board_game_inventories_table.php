@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('player_status_effects', function (Blueprint $table) {
+        Schema::table('board_game_inventories', function (Blueprint $table) {
             $table->foreignId('bg_player_id')->after('user_id');
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('player_status_effects', function (Blueprint $table) {
+        Schema::table('board_game_inventories', function (Blueprint $table) {
             $table->dropColumn('bg_player_id');
         });
     }

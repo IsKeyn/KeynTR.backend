@@ -18,7 +18,7 @@ class UserPublicResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'avatar' => $this->whenLoaded('avatar', ShortMediaResource::make($this->avatar()->first())),
+            'avatar' => $this->whenLoaded('avatar', ShortMediaResource::make($this->avatar->first())),
             'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
         ];
     }

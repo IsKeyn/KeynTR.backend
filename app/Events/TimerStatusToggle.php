@@ -13,17 +13,24 @@ class TimerStatusToggle implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $playerTimer;
+    public $timer;
     public $bgSlug;
     public $userId;
     public $timerSlug;
 
-    public function __construct($playerTimer)
+    public function __construct($timer, $type = 'timer')
     {
-        $this->playerTimer = $playerTimer;
-        $this->bgSlug = $this->playerTimer->boardGame->slug;
-        $this->userId = $this->playerTimer->user_id;
-        $this->timerSlug = $this->playerTimer->slug;
+        if ($type === 'timer') {
+            $this->timer = $timer;
+            $this->bgSlug = $this->timer->boardGame->slug;
+            $this->userId = $this->timer->user_id;
+            $this->timerSlug = $this->timer->slug;
+        } else if ($type === 'timer-logs') {
+            $this->timer = $timer->timer;
+            $this->bgSlug = $this->timer->boardGame->slug;
+            $this->userId = $this->timer->user_id;
+            $this->timerSlug = $this->timer->slug;
+        }
     }
 
     public function broadcastOn(): array
@@ -35,6 +42,6 @@ class TimerStatusToggle implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return TimerService::getTimerStatus($this->playerTimer);
+        return TimerService::getTimerStatus($this->timer);
     }
 }

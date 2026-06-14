@@ -15,7 +15,7 @@ class ItemResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
-    public function toArray($request)
+    public function toArray($request) // TODO Устаревший ресурс
     {
         $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
         $sound = $this->titleImage()->wherePivot('type', '=', Media::SOUND)->first();

@@ -20,14 +20,20 @@ class BoardGamePlayer extends Model
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgPlayerCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgPlayerFilter';
+    public const SERVICE = 'App\Services\BoardGame\BgPlayerService';
+
+    /* Resource for admin panel */
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\BgPlayerService';
+
+    /* Resource for public */
+    public const PUBLIC_RESOURCES = [];
 
     protected $fillable = [
         'user_id',
         'board_game_id',
         'points',
+        'points_per_hour',
         'item_roll_count',
         'step_count',
         'streak',
@@ -46,38 +52,55 @@ class BoardGamePlayer extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this
+            ->belongsTo(User::class, 'user_id');
     }
+
+//    public function inventory()
+//    {
+//        return $this
+//            ->hasMany(BoardGameInventory::class, 'user_id', 'user_id');
+//    }
 
     public function inventory()
     {
-        return $this
-            ->hasMany(BoardGameInventory::class, 'user_id', 'user_id');
+        return $this->hasMany(BoardGameInventory::class, 'bg_player_id');
     }
 
-    public function statusEffects() // TODO устаревший
-    {
-        return $this
-            ->hasMany(PlayerStatusEffect::class, 'user_id', 'user_id')
-            ->active();
-    }
+//    public function statusEffects() // TODO устаревший se_refactoring
+//    {
+//        return $this
+//            ->hasMany(PlayerStatusEffect::class, 'user_id', 'user_id')
+//            ->active();
+//    }
 
-    public function playerStatuses()
+    public function statusEffects()
     {
-        return $this->hasMany(PlayerStatusEffect::class);
+        return $this->hasMany(PlayerStatusEffect::class, 'bg_player_id');
     }
 
     public function positions()
     {
-        return $this
-            ->hasMany(BoardGamePlayerPosition::class, 'user_id', 'user_id');
+        return $this->hasMany(BoardGamePlayerPosition::class, 'user_id', 'user_id');
     }
+
+//    public function currentGames()
+//    {
+//        return $this
+//            ->hasMany(PlayerGame::class, 'user_id', 'user_id')
+//            ->where('status', PlayerGame::CURRENT);
+//    }
 
     public function currentGames()
     {
         return $this
-            ->hasMany(PlayerGame::class, 'user_id', 'user_id')
+            ->hasMany(PlayerGame::class, 'bg_player_id')
             ->where('status', PlayerGame::CURRENT);
+    }
+
+    public function games()
+    {
+        return $this->hasMany(PlayerGame::class, 'bg_player_id');
     }
 
     public function mainTimers()
@@ -90,7 +113,7 @@ class BoardGamePlayer extends Model
 
     public function getFinishBoardAttribute()
     {
-        $boardGame = \App\Models\BoardGame\BoardGame::where('id', $this->board_game_id)->first();
+        $boardGame = BoardGame::where('id', $this->board_game_id)->first();
 
         return BoardService::getMaxBoardPosition($boardGame) === $this->positions->sortByDesc('id')->first()->position;
     }

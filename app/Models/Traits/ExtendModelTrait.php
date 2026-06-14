@@ -52,6 +52,11 @@ trait ExtendModelTrait
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::TITLE_TYPE)->withTimestamps();
     }
 
+    public function sound()
+    {
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::SOUND)->withTimestamps();
+    }
+
     public function tags()
     {
         return $this->morphToMany(Tag::class, 'tag_binds')->withTimestamps();
@@ -70,6 +75,11 @@ trait ExtendModelTrait
     public function getTitleImageAttribute()
     {
         return $this->titleImage()->first();
+    }
+
+    public function getSoundAttribute()
+    {
+        return $this->sound()->first();
     }
 
     public function comments()

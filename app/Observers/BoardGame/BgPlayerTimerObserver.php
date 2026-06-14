@@ -29,7 +29,7 @@ class BgPlayerTimerObserver
         );
 
         $boardGamePlayerTimer->load(['timer.boardGame']);
-        TimerStatusToggle::dispatch($boardGamePlayerTimer);
+        TimerStatusToggle::dispatch($boardGamePlayerTimer, 'timer-logs');
     }
 
     public function updated(BoardGamePlayerTimer $boardGamePlayerTimer)
