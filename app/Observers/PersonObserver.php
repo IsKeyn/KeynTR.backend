@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Person\Person;
 use App\Models\Version;
+use App\Services\Cache\GameCacheService;
 use App\Services\Cache\PersonCacheService;
 use App\Services\PersonService;
 use App\Services\VersionService;
@@ -42,6 +43,15 @@ class PersonObserver
 
         $version = PersonService::getById($person->id, true, true)->toArray(request());
         VersionService::set($version, $person->model, $person->id, $person->name, Version::TYPE_UPDATE);
+
+        if ($person->games) {
+            $entityCacheService = app(GameCacheService::class);
+
+            foreach ($person->games as $item) {
+                $entityCacheService->clearDetailCacheBySlug($item->slug);
+                $entityCacheService->clearAdminDetailCacheById($item->id);
+            }
+        }
     }
 
     /**

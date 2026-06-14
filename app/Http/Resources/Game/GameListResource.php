@@ -26,7 +26,7 @@ class GameListResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
-            'covers' => $this->whenLoaded('media', ShortMediaResource::collection($this->media()->wherePivot('type', '=', Media::COVER_TYPE)->get())),
+            'covers' => $this->whenLoaded('media', ShortMediaResource::collection($this->media)),
             'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
             'release_dates' => $this->whenLoaded('dates', DateShortResource::collection($this->dates)),
             'groups' => $this->whenLoaded('groups', GroupResource::collection($this->groups)),
