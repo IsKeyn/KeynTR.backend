@@ -9,6 +9,7 @@ use App\Http\Resources\Game\GameListResource;
 use App\Http\Resources\Game\GameRollListResource;
 use App\Http\Resources\UserActions\UserActionsResource;
 use App\Models\Game;
+use App\Models\Media;
 use App\Services\Cache\GameCacheService;
 use App\Services\Filter\FilterService;
 use App\Services\ViewsLogService;
@@ -41,7 +42,14 @@ class GameController extends Controller
         return Cache::remember($cacheKey, $time, function () use ($request) {
             $filter = new GameFilter($request);
             $games = $filter->apply(Game::query())
-                ->with(['media', 'genres', 'dates'])
+                ->with([
+                    'media' => function ($query) {
+                        $query->wherePivot('type', '=', Media::COVER_TYPE);
+                    },
+                    'genres',
+                    'dates',
+                    'groups'
+                ])
                 ->where('show_in_list', true)
                 ->active();
 
@@ -159,7 +167,7 @@ class GameController extends Controller
     }
 
     public function getGame(Request $request, $slug) {
-        $game = Game::findBySlug($slug)
+        $gameWithDynamicData = Game::findBySlug($slug)
             ->with([
                 'views',
                 'likes',
@@ -167,14 +175,14 @@ class GameController extends Controller
             ]);
 
         if (!$request->preview) {
-            $game->active();
+            $gameWithDynamicData->active();
         }
 
-        $game = $game->first();
+        $gameWithDynamicDataResult = $gameWithDynamicData->first();
 
-        if ($game) {
+        if ($gameWithDynamicDataResult) {
             if (!$request->preview) {
-                ViewsLogService::set($request, get_class($game), $game->id);
+                ViewsLogService::set($request, get_class($gameWithDynamicDataResult), $gameWithDynamicDataResult->id);
             }
 
             $cacheKey = GameCacheService::DETAIL_PREFIX . '_' . $slug;
@@ -183,7 +191,9 @@ class GameController extends Controller
                 $game = Game::findBySlug($slug)
                     ->with([
                         'titleImage',
-                        'cover',
+                        'cover' => function ($query) {
+                            $query->orderByPivot('sort');
+                        },
                         'gamePlatform',
                         'dates',
                         'dates.gamePlatform',
@@ -194,6 +204,9 @@ class GameController extends Controller
                         'series.games.media',
                         'people',
                         'people.group',
+                        'people.group.cover' => function ($query) {
+                            $query->orderByPivot('sort');
+                        },
                         'groups',
                         'genres',
                         'company',
@@ -235,7 +248,7 @@ class GameController extends Controller
 
             return [
                 ...$data,
-                ...UserActionsResource::make($game)->toArray(request()),
+                ...UserActionsResource::make($gameWithDynamicDataResult)->toArray(request()),
             ];
         } else {
             return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);

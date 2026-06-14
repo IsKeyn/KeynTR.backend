@@ -5,10 +5,13 @@ namespace App\Http\Resources\Person;
 use App\Http\Resources\GroupResource;
 use App\Models\Game;
 use App\Http\Resources\Media\ShortMediaResource;
+use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class PersonListResource extends JsonResource
 {
+    use CommonResourceFields;
+
     /**
      * Transform the resource into an array.
      *
@@ -20,15 +23,12 @@ class PersonListResource extends JsonResource
         $group = $this->resolveGroup();
 
         return [
-            'id' => $this->id,
+            ...$this->commonFields(),
+            ...$this->commonLoadedFields(),
+
             'entity_type' => Game::class,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'description' => $this->description,
             'role' => $group ? GroupResource::make($group) : null,
-            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover()->orderByPivot('sort')->get())),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover)),
         ];
     }
 
