@@ -28,7 +28,7 @@ class BgStatusEffectResource extends JsonResource
             'actions' => $this->actions,
             'board_game_id' => $this->board_game_id,
             'debuff' => $this->debuff,
-            'image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage)),
+            'image' => $this->whenLoaded('titleImage', fn() => ShortMediaResource::make($this->titleImage)),
         ];
     }
 }

@@ -48,6 +48,7 @@ class PlayerGame extends Model
         'from_user_id',
         'comment_id',
         'time',
+        'points',
         'sort',
         'active',
         'created_by',

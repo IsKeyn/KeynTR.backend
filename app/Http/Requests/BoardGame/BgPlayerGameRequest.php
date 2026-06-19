@@ -23,6 +23,7 @@ class BgPlayerGameRequest extends FormRequest
             'from_user_id' => 'sometimes|integer|nullable',
             'comment_id' => 'sometimes|integer|nullable',
             'time' => 'sometimes|integer|nullable',
+            'points' => 'sometimes|integer|nullable',
             'sort' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean',
             'created_by' => 'sometimes|integer|nullable',

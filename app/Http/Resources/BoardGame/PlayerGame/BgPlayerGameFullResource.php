@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\BoardGame\PlayerGame;
 
-use App\Http\Resources\BoardGame\Games\BgGameListResource;
+use App\Http\Resources\BoardGame\Games\BgGameResource;
 use App\Http\Resources\CommentResource;
 use App\Http\Resources\User\UserPublicResource;
 use App\Services\BoardGame\GameService;
@@ -36,10 +36,10 @@ class BgPlayerGameFullResource extends JsonResource
             'board_game_game_list_id' => $this->board_game_game_list_id,
             'status' => $this->status,
             'type' => $this->type,
-            'user' => $this->whenLoaded('user', UserPublicResource::make($this->user)),
-            'game' => $this->whenLoaded('game', BgGameListResource::make($this->game)),
+            'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
+            'game' => $this->whenLoaded('game', fn() => BgGameResource::make($this->game)),
             'comment_id' => $this->comment_id,
-            'comment' => $this->whenLoaded('comment', CommentResource::make($this->comment)),
+            'comment' => $this->whenLoaded('comment', fn() => CommentResource::make($this->comment)),
             'time' => $this->time,
             'timeSpend' => TimerService::timeInGame($this),
             'rerollPenalty' => GameService::rerollPenalty($this->boardGame, $this),

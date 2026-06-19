@@ -40,6 +40,7 @@ class BoardGame extends Model
         'active',
         'sort',
         'is_close',
+        'is_test',
         'started_at',
         'ended_at',
         'created_by',
@@ -48,6 +49,7 @@ class BoardGame extends Model
     protected $casts = [
         'active' => 'boolean',
         'is_close' => 'boolean',
+        'is_test' => 'boolean',
         'deleted_at' => 'datetime',
     ];
 

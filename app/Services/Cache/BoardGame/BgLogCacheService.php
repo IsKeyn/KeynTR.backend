@@ -4,6 +4,7 @@ namespace App\Services\Cache\BoardGame;
 
 use App\Models\BoardGame\BoardGameLog;
 use App\Services\Cache\BaseCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class BgLogCacheService extends BaseCacheService
 {
@@ -22,4 +23,10 @@ class BgLogCacheService extends BaseCacheService
     public const LIST_TOKEN = self::NAME . '_list_token';
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
+
+    public function clearClientPlayerListCache($element)
+    {
+        $cacheKey = static::LIST_PREFIX . '_' . $element->boardGame->slug . '_' . $element->created_at;
+        Cache::forget($cacheKey);
+    }
 }

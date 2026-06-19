@@ -19,6 +19,7 @@ class UserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'public_name' => $this->public_name,
             'avatar' => $this->whenLoaded('avatar', MediaResource::make($this->avatar()->wherePivot('type', '=', Media::TITLE_TYPE)->first())),
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at,

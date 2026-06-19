@@ -24,6 +24,38 @@ class BgPlayerCacheService extends BaseCacheService
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
 
+    public const ARR_PER_PAGE_ADMIN = [15, 30, 60];
+    public const ARR_PER_PAGE = [15, 30, 45];
+
+    public function clearBgListCache($boardGame, $showMessage = false)
+    {
+        $modelClass = static::MODEL;
+
+        foreach (static::ARR_PER_PAGE as $perPage) {
+            $lastPage = $modelClass::query()
+                ->where('board_game_id', $boardGame->id)
+                ->active()
+                ->paginate($perPage)
+                ->lastPage();
+
+            for ($i = 1; $i <= $lastPage; $i++) {
+                $cacheKey = static::LIST_PREFIX . '_' . $boardGame->slug . '_' . $i . '_' . $perPage;
+
+                Cache::forget($cacheKey);
+
+                if ($showMessage) {
+                    echo $cacheKey . ' очищен' . PHP_EOL;
+                }
+            }
+        }
+
+        Cache::forget(static::LIST_PREFIX);
+        Cache::forget(static::LIST_PREFIX . '_' . $boardGame->slug);
+        Cache::forget(static::LIST_TOKEN);
+        Cache::forget(static::LIST_FILTER_TOKEN);
+        Cache::forget(static::ADMIN_LIST_TOKEN);
+    }
+
     public function clearAllDetailCache()
     {
         $data = static::MODEL::query()->get();
@@ -42,7 +74,10 @@ class BgPlayerCacheService extends BaseCacheService
 
     public function clearClientDetailCache($element)
     {
-        $cacheKey = static::DETAIL_PREFIX . '_' . $element->boardGame->slug . '_' . $element->user->id;
+        $cacheKey = static::DETAIL_PREFIX . '_' . $element->boardGame->slug . '_' . $element->user_id;
         Cache::forget($cacheKey);
+
+        $layoutCacheKey = static::DETAIL_PREFIX . '_' . $element->boardGame->slug . '_' . $element->user_id . '_layout';
+        Cache::forget($layoutCacheKey);
     }
 }

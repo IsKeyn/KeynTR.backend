@@ -254,6 +254,7 @@ class PlayerGameController extends Controller
                         }
 
                         /* Проверяем взаимодействия */
+                        // TODO при обмене игры, отзывать кооп
                         $interactionsService = new InteractionsService();
                         $interactionsService->checkInteractionAfterActionWithGame($request->type, $conditionData);
                     }
@@ -307,6 +308,10 @@ class PlayerGameController extends Controller
 
                         // Добавляем очки за стрик
                         $finalPoints = $conditionData['player']->streak > 0 ? $pointsForGame + ($pointsForGame / 100 * ($conditionData['player']->streak * 2)) : $pointsForGame;
+
+                        // Тихо обновляем очки игрока, чтобы не вызывать событие, оно уже было вызвано вверху метода
+                        $playerCurrentGame->points = $finalPoints;
+                        $playerCurrentGame->saveQuietly();
 
                         $conditionData['player']->points = $conditionData['player']->points + $finalPoints;
 

@@ -74,11 +74,18 @@ trait ExtendModelTrait
 
     public function getTitleImageAttribute()
     {
+        if ($this->relationLoaded('titleImage')) {
+            return $this->getRelationValue('titleImage')->first();
+        }
+
         return $this->titleImage()->first();
     }
 
     public function getSoundAttribute()
     {
+        if ($this->relationLoaded('sound')) {
+            return $this->getRelationValue('sound')->first();
+        }
         return $this->sound()->first();
     }
 

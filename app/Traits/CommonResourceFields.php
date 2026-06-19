@@ -37,7 +37,7 @@ trait CommonResourceFields
                 $this->relationLoaded('seo') && $this->seo,
                 fn() => SeoResource::make($this->seo)
             ),
-            'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
+            'additional_fields' => $this->whenLoaded('additionalFields', fn() => $this->additionalFields),
             'menu' => $this->when(
                 $this->relationLoaded('menu') && $this->menu,
                 fn() => MenuTypeResource::collection($this->menu)

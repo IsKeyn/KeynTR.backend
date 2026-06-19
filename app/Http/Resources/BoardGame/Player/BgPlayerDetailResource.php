@@ -6,7 +6,7 @@ use App\Http\Resources\User\UserPublicResource;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BgPlayerLayoutResource extends JsonResource
+class BgPlayerDetailResource extends JsonResource
 {
     use CommonResourceFields;
 
@@ -16,6 +16,7 @@ class BgPlayerLayoutResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
+
     public function toArray($request)
     {
         $position = $this->whenLoaded('positions', function() {
@@ -30,7 +31,7 @@ class BgPlayerLayoutResource extends JsonResource
             ...$this->commonLoadedFields(),
 
             'user_id' => $this->user_id,
-            'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
+            'user' => $this->whenLoaded('user', UserPublicResource::make($this->user)),
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
             'full_points' => $fullPoints,
@@ -38,11 +39,9 @@ class BgPlayerLayoutResource extends JsonResource
             'streak' => $this->streak,
             'item_roll_count' => $this->item_roll_count,
             'step_count' => $this->step_count,
-            'finishBoard' => $this->finishBoard,
-            'position' => $position ?? null,
+            'position' => $position ? $position->position : null,
             'place' => $this->place,
             'not_active_reason' => $this->not_active_reason,
-            'has_current_game' => $this->whenLoaded('currentGames', fn() => $this->currentGames->first() ?? false),
         ];
     }
 }

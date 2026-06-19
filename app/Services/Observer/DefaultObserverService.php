@@ -16,6 +16,7 @@ class DefaultObserverService
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
         $entityCacheService->clearDetailCacheAllTypes($entity);
+        $entityCacheService->clearDependentCache($entity);
 
         $version = $service::getById($entity->id, true)->toArray(request());
         VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_CREATE);
@@ -31,6 +32,7 @@ class DefaultObserverService
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
         $entityCacheService->clearDetailCacheAllTypes($entity);
+        $entityCacheService->clearDependentCache($entity);
 
         $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
         VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_UPDATE);
@@ -70,6 +72,7 @@ class DefaultObserverService
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
         $entityCacheService->clearDetailCacheAllTypes($entity);
+        $entityCacheService->clearDependentCache($entity);
     }
 
     public function restored(
@@ -82,6 +85,7 @@ class DefaultObserverService
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
         $entityCacheService->clearDetailCacheAllTypes($entity);
+        $entityCacheService->clearDependentCache($entity);
 
         $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
         VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_RECOVERY);
@@ -94,6 +98,7 @@ class DefaultObserverService
     {
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
+        $entityCacheService->clearDependentCache($entity);
 
         $this->detachRelation($entity);
     }

@@ -21,7 +21,7 @@ class PlayerData implements ShouldBroadcastNow
     {
         $this->player = $player;
         $this->bgSlug = $this->player->boardGame->slug;
-        $this->userId = $this->player->user->id;
+        $this->userId = $this->player->user_id;
     }
 
     public function broadcastOn(): array

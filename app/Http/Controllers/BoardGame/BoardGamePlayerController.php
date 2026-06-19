@@ -4,6 +4,7 @@ namespace App\Http\Controllers\BoardGame;
 
 use App\Filters\BoardGame\BgPlayerFilter;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BoardGame\BgShortResource;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
@@ -11,13 +12,14 @@ use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithInventoryResource;
-use App\Http\Resources\BoardGame\BoardGameShortResource;
 use App\Http\Resources\BoardGame\ItemBindResource;
+use App\Http\Resources\BoardGame\Items\BgInventoryResource;
 use App\Http\Resources\BoardGame\LogResource;
+use App\Http\Resources\BoardGame\Player\BgPlayerDetailResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerListResource;
-use App\Http\Resources\BoardGame\PlayerGameResource;
+use App\Http\Resources\BoardGame\PlayerGame\BgPlayerGameShortResource;
 use App\Http\Resources\BoardGame\PlayerInteractionResource;
-use App\Http\Resources\BoardGame\PlayerStatusEffectResource;
+use App\Http\Resources\BoardGame\StatusEffects\BgPlayerStatusEffectBindResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameLog;
@@ -32,12 +34,17 @@ use App\Services\BoardGame\ItemService;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
 use App\Services\BoardGame\UseItemService;
+use App\Services\Cache\BoardGame\BgInventoryCacheService;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
+use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
+use App\Services\Cache\BoardGame\BoardGameCacheService;
+use App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService;
 use App\Services\Entity\DefaultEntityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class BoardGamePlayerController extends Controller
 {
@@ -55,29 +62,41 @@ class BoardGamePlayerController extends Controller
         BoardGamePlayer $BoardGamePlayer
     )
     {
-        $user = User::findByName($name)->first();
+        if (!$slug || !$name) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        if ($user) {
-//            $cacheKey = 'board_game_' . $slug . '_player_' . $user->id . '_cache';
-//            $minutes = 60 * 24 * 30; // 30 дней
-//
-//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGamePlayer, $user, $slug) {
-                $id = $BoardGame->findBySlug($slug)->value('id');
+        $userId = User::findByName($name)->value('id');
 
-                $player = $BoardGamePlayer->where('user_id', $user->id)->where('board_game_id', $id)->first();
+        if (!$userId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-                if ($player) {
-                    return BoardGamePlayerShortResource::make($player);
-                } else {
-                    return false;
-                }
-//            });
-        } else {
-            return false;
-        }
+        $cacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $slug . '_' . $userId;
+
+        return Cache::remember(
+            $cacheKey,
+            BgPlayerCacheService::TIME,
+            function () use ($BoardGame, $slug, $BoardGamePlayer, $userId
+        ) {
+            $bgId = $BoardGame->findBySlug($slug)->value('id');
+
+            if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+
+            $player = $BoardGamePlayer
+                ->findByBoardGame($bgId)
+                ->findByUserId($userId)
+                ->with([
+                    'user',
+                    'user.avatar',
+                    'user.additionalFields',
+                    'positions',
+                ])
+                ->first();
+
+            if (!$player) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+
+            return BgPlayerDetailResource::make($player);
+        });
     }
 
-    public function getCurrent(
+    public function getCurrent( // TODO где используется?
         $slug,
         BoardGame $BoardGame,
         BoardGamePlayer $BoardGamePlayer
@@ -109,10 +128,10 @@ class BoardGamePlayerController extends Controller
 
     public function getList(BoardGame $boardGame, Request $request)
     {
-        if ($request->fullList) {
-            $cacheKey = BgPlayerCacheService::LIST_PREFIX;
-        } else {
-            $cacheKey = BgPlayerCacheService::LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        $cacheKey = BgPlayerCacheService::LIST_PREFIX . '_' . $boardGame->slug;
+
+        if (!$request->fullList) {
+            $cacheKey .= '_' . $request->page . '_' . $request->perPage;
         }
 
         $time = BgPlayerCacheService::TIME;
@@ -127,10 +146,12 @@ class BoardGamePlayerController extends Controller
             $time = BgPlayerCacheService::FILTER_TIME;
         }
 
-//        return Cache::remember($cacheKey, $time, function () use ($request, $boardGame) {
+        return Cache::remember($cacheKey, $time, function () use ($request, $boardGame) {
             $filter = new BgPlayerFilter($request);
-            $players = $filter->apply(BoardGamePlayer::where('board_game_id', $boardGame->id))
+            $players = $filter
+                ->apply(BoardGamePlayer::where('board_game_id', $boardGame->id))
                 ->with([
+                    'boardGame',
                     'positions',
                     'mainTimers' => function ($query) use ($boardGame) {
                         $query->where('board_game_id', $boardGame->id);
@@ -138,7 +159,16 @@ class BoardGamePlayerController extends Controller
                     'user',
                     'user.avatar',
                     'currentGames',
-                    'statusEffects',
+                    'currentGames.user',
+                    'currentGames.game',
+                    'currentGames.comment',
+                    'currentGames.game.platform',
+                    'currentGames.game.addedBy',
+                    'currentGames.game.game',
+                    'currentGames.game.game.dates',
+                    'currentGames.game.game.titleImage',
+                    'currentGames.game.game.cover',
+                    'currentGames.game.game.genres',
                     'statusEffects' => function ($query) {
                         $query->active()->orderBy('updated_at', 'desc');
                     },
@@ -150,46 +180,16 @@ class BoardGamePlayerController extends Controller
                     'inventory.item.item.titleImage',
                     'inventory.item.item.sound',
                     'inventory.item.item.authorUser',
-                    'currentGames.user',
-                    'currentGames.game',
-                    'currentGames.comment',
-                    'currentGames.game.platform',
-                    'currentGames.game.addedBy',
-                    'currentGames.game.game',
-                    'currentGames.game.game.dates',
-                    'currentGames.game.game.titleImage',
-                    'currentGames.game.game.cover',
-                    'currentGames.game.game.genres',
                 ]);
 
             if (!isset($request->sort)) {
                 $players->orderByRaw('sort IS NULL, sort ASC');
             }
 
-            $playerTable = BoardGamePlayer::TABLE_NAME ?? 'board_game_players';
-            $positionTable = BoardGamePlayerPosition::TABLE_NAME ?? 'board_game_player_positions';
-
-            $posSubquery = "(SELECT position FROM {$positionTable}
-                WHERE {$positionTable}.board_game_id = {$playerTable}.board_game_id
-                AND {$positionTable}.user_id = {$playerTable}.user_id
-                ORDER BY {$positionTable}.updated_at DESC LIMIT 1)";
-
-            $fullPointsExpr = "({$playerTable}.points + COALESCE({$posSubquery}, 0))";
-
-            $players->selectRaw("
-                {$playerTable}.*,
-                CASE WHEN {$playerTable}.active = 1 THEN
-                    ROW_NUMBER() OVER (
-                        ORDER BY CASE WHEN {$playerTable}.active = 1 THEN {$fullPointsExpr} ELSE -1 END DESC
-                    )
-                ELSE NULL
-                END as place
-            ");
-
             $result = $request->fullList ? $players->get() : $players->paginate($request->perPage ? $request->perPage : 10);
 
             return BgPlayerListResource::collection($result);
-//        });
+        });
     }
 
     public function getListFilters(Request $request)
@@ -245,6 +245,9 @@ class BoardGamePlayerController extends Controller
             }
     }
 
+    /*
+     * Ивенты игрока
+     */
     public function getEvents(
         $slug,
         $name,
@@ -253,21 +256,35 @@ class BoardGamePlayerController extends Controller
     )
     {
         $userId = User::findByName($name)->value('id');
+        if (!$userId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        if ($userId) {
-            $id = $BoardGame->findBySlug($slug)->value('id');
-            $playerInGames = $BoardGamePlayer->findByUserId($userId)->where('board_game_id', '!=', $id)->get();
+        $bgId = $BoardGame->findBySlug($slug)->value('id');
+        if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-            $BoardGames = collect([]);
+        $cacheKey = BoardGameCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId;
+
+        return Cache::remember($cacheKey, BoardGameCacheService::TIME, function () use ($BoardGamePlayer, $userId, $bgId) {
+            $playerInGames = $BoardGamePlayer
+                ->findByUserId($userId)
+                ->where('board_game_id', '!=', $bgId)
+                ->with(['boardGame', 'boardGame.media'])
+                ->get();
+
+            $boardGames = collect([]);
 
             foreach ($playerInGames as $player) {
-                $BoardGames->push($player->boardGame);
+                if ($player->boardGame && !$player->boardGame->is_close) {
+                    $boardGames->push($player->boardGame);
+                }
             }
 
-            return BoardGameShortResource::collection($BoardGames);
-        }
+            return BgShortResource::collection($boardGames);
+        });
     }
 
+    /*
+     * Инвентарь игрока
+     */
     public function getInventory(
         $slug,
         $name,
@@ -275,24 +292,33 @@ class BoardGamePlayerController extends Controller
         BoardGameInventory $BoardGameInventory
     )
     {
-        $user = User::findByName($name)->first();
+        $userId = User::findByName($name)->value('id');
+        if (!$userId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        if ($user) {
-//            $cacheKey = 'board_game_' . $slug . '_player_inventory_' . $user->id . '_cache';
-//            $minutes = 60 * 24 * 30; // 30 дней
-//
-//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGameInventory, $user, $slug) {
-                $id = $BoardGame->findBySlug($slug)->value('id');
+        $bgId = $BoardGame->findBySlug($slug)->value('id');
+        if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-                $inventory = $BoardGameInventory
-                    ->where('board_game_id', $id)
-                    ->where('user_id', $user->id)->get();
+        $cacheKey = BgInventoryCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId;
 
-                return BoardGameInventoryResource::collection($inventory);
-//            });
-        }
+        return Cache::remember($cacheKey, BgInventoryCacheService::TIME, function () use ($BoardGameInventory, $userId, $bgId) {
+            $inventory = $BoardGameInventory
+                ->where('board_game_id', $bgId)
+                ->where('user_id', $userId)
+                ->with([
+                    'item.item',
+                    'item.item.titleImage',
+                    'item.item.sound',
+                    'item.item.authorUser',
+                ])
+                ->get();
+
+            return BgInventoryResource::collection($inventory);
+        });
     }
 
+    /*
+     * Статус эффекты игрока
+     */
     public function getStatusEffects(
         $slug,
         $name,
@@ -300,48 +326,89 @@ class BoardGamePlayerController extends Controller
         PlayerStatusEffect $PlayerStatusEffect
     )
     {
-        $user = User::findByName($name)->first();
+        $userId = User::findByName($name)->value('id');
+        if (!$userId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        if ($user) {
-//            $cacheKey = 'board_game_' . $slug . '_player_inventory_' . $user->id . '_cache';
-//            $minutes = 60 * 24 * 30; // 30 дней
-//
-//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $BoardGameInventory, $user, $slug) {
-            $id = $BoardGame->findBySlug($slug)->value('id');
+        $bgId = $BoardGame->findBySlug($slug)->value('id');
+        if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
+        $cacheKey = BgPlayerStatusEffectCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId;
+
+        return Cache::remember($cacheKey, BgPlayerStatusEffectCacheService::TIME,
+            function () use ($BoardGame, $PlayerStatusEffect, $userId, $bgId) {
             $statusEffects = $PlayerStatusEffect
-                ->where('board_game_id', $id)
-                ->where('user_id', $user->id)->get();
+                ->where('board_game_id', $bgId)
+                ->where('user_id', $userId)
+                ->with([
+                    'statusEffect.titleImage',
+                ])
+                ->get();
 
-            return PlayerStatusEffectResource::collection($statusEffects);
-//            });
-        }
+            return BgPlayerStatusEffectBindResource::collection($statusEffects);
+        });
     }
 
-    /* Игры авторизованного игрока в настольной игре */
+    /*
+     * Список игр игрока
+     */
     public function getGames(
+        Request $request,
         $slug,
         $name,
         BoardGame $BoardGame
     )
     {
         $user = User::findByName($name)->first();
+        if (!$user) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        if ($user) {
-//            $cacheKey = 'board_game_' . $slug . '_player_games_' . $user->id . '_cache';
-//            $minutes = 60 * 24 * 30; // 30 дней
-//
-//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $PlayerGame, $user, $slug) {
-                $id = $BoardGame->findBySlug($slug)->value('id');
+        $bgId = $BoardGame->findBySlug($slug)->value('id');
+        if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-                $playerGames = PlayerGame::where('board_game_id', $id)
-                    ->where('user_id', $user->id)
-                    ->where('status', '!=', PlayerGame::CURRENT)
-                    ->orderByDesc('id')->get();
+        $cacheKey = BgPlayerGameCacheService::LIST_PREFIX . '_' . $slug . '_' . $user->id;
 
-                return PlayerGameResource::collection($playerGames);
-//            });
+        if (!$request->fullList) {
+            $cacheKey .= '_' . $request->page . '_' . $request->perPage;
         }
+
+        return Cache::remember($cacheKey, BgPlayerGameCacheService::TIME, function () use ($request, $BoardGame, $user, $bgId) {
+            $playerGames = PlayerGame::where('board_game_id', $bgId)
+                ->where('user_id', $user->id)
+                ->where('status', '!=', PlayerGame::CURRENT)
+                ->with([
+                    'user',
+                    'user.avatar',
+                    'game.platform',
+                    'game.addedBy',
+                    'game.game',
+                    'game.game.dates',
+                    'game.game.titleImage',
+                    'game.game.cover',
+                    'game.game.genres',
+                ])
+                ->orderByDesc('id');
+
+            $result = $request->fullList ? $playerGames->get() : $playerGames->paginate($request->perPage ? $request->perPage : 10);
+
+            $resourceCollection = BgPlayerGameShortResource::collection($result);
+            $standardResponse = $resourceCollection->response()->getData(true);
+
+            $playerGamesList = PlayerGame::where('board_game_id', $bgId)
+                ->where('user_id', $user->id)
+                ->where('status', '!=', PlayerGame::CURRENT)
+                ->select(['id', 'status'])
+                ->orderByDesc('id')
+                ->get();
+
+            $finalResponse = array_merge($standardResponse, [
+                'data_for_chart' => [
+                    $playerGamesList->where('status', PlayerGame::COMPLETED)->count(),
+                    $playerGamesList->where('status', PlayerGame::REROLLED)->count(),
+                    $playerGamesList->where('status', PlayerGame::GIVEN_AWAY)->count(),
+                ],
+            ]);
+
+            return response()->json($finalResponse);
+        });
     }
 
     public function getCurrentGame(
@@ -352,22 +419,35 @@ class BoardGamePlayerController extends Controller
     )
     {
         $user = User::findByName($name)->first();
+        if (!$user) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        if ($user) {
-//            $cacheKey = 'board_game_' . $slug . '_player_current_game_' . $user->id . '_cache';
-//            $minutes = 60 * 24 * 30; // 30 дней
-//
-//            return Cache::remember($cacheKey, $minutes, function () use ($BoardGame, $PlayerGame, $user, $slug) {
-                $id = $BoardGame->findBySlug($slug)->value('id');
+        $bgId = $BoardGame->findBySlug($slug)->value('id');
+        if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-                $playerGames = PlayerGame::where('board_game_id', $id)
-                    ->where('user_id', $user->id)
-                    ->where('status', '=', PlayerGame::CURRENT)
-                    ->orderByDesc('id')->get();
+        $cacheKey = BgPlayerGameCacheService::DETAIL_PREFIX . '_current_' . $slug . '_' . $user->id;
 
-                return PlayerGameResource::collection($playerGames);
-//            });
-        }
+        return Cache::remember($cacheKey, BgPlayerGameCacheService::TIME, function () use ($BoardGame, $PlayerGame, $user, $slug) {
+            $bgId = $BoardGame->findBySlug($slug)->value('id');
+
+            $playerGames = $PlayerGame::where('board_game_id', $bgId)
+                ->where('user_id', $user->id)
+                ->where('status', '=', PlayerGame::CURRENT)
+                ->with([
+                    'user',
+                    'user.avatar',
+                    'game.platform',
+                    'game.addedBy',
+                    'game.game',
+                    'game.game.dates',
+                    'game.game.titleImage',
+                    'game.game.cover',
+                    'game.game.genres',
+                ])
+                ->orderByDesc('id')
+                ->get();
+
+            return BgPlayerGameShortResource::collection($playerGames);
+        });
     }
 
     /* Устаревшие методы */

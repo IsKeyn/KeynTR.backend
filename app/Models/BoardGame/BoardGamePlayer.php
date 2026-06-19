@@ -34,6 +34,7 @@ class BoardGamePlayer extends Model
         'board_game_id',
         'points',
         'points_per_hour',
+        'place',
         'item_roll_count',
         'step_count',
         'streak',
@@ -113,7 +114,11 @@ class BoardGamePlayer extends Model
 
     public function getFinishBoardAttribute()
     {
-        $boardGame = BoardGame::where('id', $this->board_game_id)->first();
+        $boardGame = $this->relationLoaded('boardGame')
+            ? $this->boardGame
+            : BoardGame::find($this->board_game_id);
+
+        if (!$boardGame) return false;
 
         return BoardService::getMaxBoardPosition($boardGame) === $this->positions->sortByDesc('id')->first()->position;
     }

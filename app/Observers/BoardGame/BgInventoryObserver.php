@@ -19,6 +19,9 @@ class BgInventoryObserver
 
     public function created(BoardGameInventory $boardGameInventory)
     {
+        $boardGameInventory->load(['player', 'player.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameInventory->player);
+
         $this->defaultObserverService->created(
             $boardGameInventory,
             self::CACHE_SERVICE,
@@ -28,6 +31,9 @@ class BgInventoryObserver
 
     public function updated(BoardGameInventory $boardGameInventory)
     {
+        $boardGameInventory->load(['player', 'player.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameInventory->player);
+
         $this->defaultObserverService->updated(
             $boardGameInventory,
             self::CACHE_SERVICE,
@@ -37,6 +43,9 @@ class BgInventoryObserver
 
     public function deleted(BoardGameInventory $boardGameInventory)
     {
+        $boardGameInventory->load(['player', 'player.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameInventory->player);
+
         $this->defaultObserverService->deleted(
             $boardGameInventory,
             self::CACHE_SERVICE,
@@ -46,6 +55,9 @@ class BgInventoryObserver
 
     public function restored(BoardGameInventory $boardGameInventory)
     {
+        $boardGameInventory->load(['player', 'player.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameInventory->player);
+
         $this->defaultObserverService->restored(
             $boardGameInventory,
             self::CACHE_SERVICE,
@@ -55,6 +67,9 @@ class BgInventoryObserver
 
     public function forceDeleted(BoardGameInventory $boardGameInventory)
     {
+        $boardGameInventory->load(['player', 'player.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameInventory->player);
+
         $this->defaultObserverService->forceDeleted(
             $boardGameInventory,
             self::CACHE_SERVICE

@@ -18,6 +18,8 @@ class BgPlayerRequest extends FormRequest
             'user_id' => 'required|integer',
             'board_game_id' => 'required|integer',
             'points' => 'sometimes|integer|nullable',
+            'points_per_hour' => 'sometimes|integer|nullable',
+            'place' => 'sometimes|integer|nullable',
             'item_roll_count' => 'sometimes|integer|nullable',
             'step_count' => 'sometimes|integer|nullable',
             'streak' => 'sometimes|integer|nullable',

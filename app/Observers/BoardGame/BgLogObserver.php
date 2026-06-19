@@ -19,6 +19,9 @@ class BgLogObserver
 
     public function created(BoardGameLog $boardGameLog)
     {
+        $boardGameLog->load('boardGame');
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+
         $this->defaultObserverService->created(
             $boardGameLog,
             self::CACHE_SERVICE,
@@ -28,6 +31,9 @@ class BgLogObserver
 
     public function updated(BoardGameLog $boardGameLog)
     {
+        $boardGameLog->load('boardGame');
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+
         $this->defaultObserverService->updated(
             $boardGameLog,
             self::CACHE_SERVICE,
@@ -37,6 +43,9 @@ class BgLogObserver
 
     public function deleted(BoardGameLog $boardGameLog)
     {
+        $boardGameLog->load('boardGame');
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+
         $this->defaultObserverService->deleted(
             $boardGameLog,
             self::CACHE_SERVICE,
@@ -46,6 +55,9 @@ class BgLogObserver
 
     public function restored(BoardGameLog $boardGameLog)
     {
+        $boardGameLog->load('boardGame');
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+
         $this->defaultObserverService->restored(
             $boardGameLog,
             self::CACHE_SERVICE,
@@ -55,6 +67,9 @@ class BgLogObserver
 
     public function forceDeleted(BoardGameLog $boardGameLog)
     {
+        $boardGameLog->load('boardGame');
+        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+
         $this->defaultObserverService->forceDeleted(
             $boardGameLog,
             self::CACHE_SERVICE

@@ -33,7 +33,7 @@ class BgPlayerListResource extends JsonResource
             ...$this->commonLoadedFields(),
 
             'user_id' => $this->user_id,
-            'user' => $this->whenLoaded('user', UserPublicResource::make($this->user)),
+            'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
             'full_points' => $fullPoints,
@@ -44,17 +44,17 @@ class BgPlayerListResource extends JsonResource
             'finishBoard' => $this->finishBoard,
             'position' => $position ? $position->position : null,
             'place' => $this->place,
-            'timer' => $this->whenLoaded('mainTimers', $this->mainTimers->first()),
+            'timer' => $this->whenLoaded('mainTimers', fn() => $this->mainTimers->first()),
             'statusEffects' => $this->whenLoaded('statusEffects',
-                BgPlayerStatusEffectResource::collection($this->statusEffects)
+                fn() => BgPlayerStatusEffectResource::collection($this->statusEffects)
             ),
             'inventory' => $this->whenLoaded('inventory',
-                BgInventoryResource::collection($this->inventory)
+                fn() => BgInventoryResource::collection($this->inventory)
             ),
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
-            'current_game' => $this->whenLoaded('currentGames', BgPlayerGameShortResource::make($this->currentGames->first())),
-            'has_current_game' => $this->whenLoaded('currentGames', $this->currentGames->first() ?? false),
+            'current_game' => $this->whenLoaded('currentGames', fn() => BgPlayerGameShortResource::make($this->currentGames->first())),
+            'has_current_game' => $this->whenLoaded('currentGames', fn() => $this->currentGames->first() ?? false),
         ];
     }
 }

@@ -31,11 +31,12 @@ class BgPlayerGameShortResource extends JsonResource
             'board_game_game_list_id' => $this->board_game_game_list_id,
             'status' => $this->status,
             'type' => $this->type,
-            'user' => $this->whenLoaded('user', UserPublicResource::make($this->user)),
-            'game' => $this->whenLoaded('game', BgGameResource::make($this->game)),
+            'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
+            'game' => $this->whenLoaded('game', fn() => BgGameResource::make($this->game)),
             'comment_id' => $this->comment_id,
-            'comment' => $this->whenLoaded('comment', CommentResource::make($this->comment)),
+            'comment' => $this->whenLoaded('comment', fn() => CommentResource::make($this->comment)),
             'time' => $this->time,
+            'points' => $this->points,
             'timeSpend' => TimerService::timeInGame($this),
         ];
     }

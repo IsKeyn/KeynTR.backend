@@ -37,9 +37,9 @@ class BgGameResource extends JsonResource
             'description' => $this->description,
             'source' => $this->source,
             'added_by' => $this->added_by,
-            'game' => $this->whenLoaded('game', GameShortResource::make($this->game)),
-            'platform' => $this->whenLoaded('platform', GamingPlatformShortResource::make($this->platform)),
-            'added_by_user' => $this->whenLoaded('addedBy', UserPublicResource::make($this->addedBy)),
+            'game' => $this->whenLoaded('game', fn() => GameShortResource::make($this->game)),
+            'platform' => $this->whenLoaded('platform', fn() => GamingPlatformShortResource::make($this->platform)),
+            'added_by_user' => $this->whenLoaded('addedBy', fn() => UserPublicResource::make($this->addedBy)),
             'computed_points' => GameService::calcPoints($this),
             'rerollPenalty' => GameService::rerollPenalty($this->boardGame, $this),
         ];

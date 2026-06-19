@@ -24,6 +24,7 @@ class DetailResource extends JsonResource
             'from_user_id' => $this->from_user_id,
             'comment_id' => $this->comment_id,
             'time' => $this->time,
+            'points' => $this->points,
         ];
     }
 }

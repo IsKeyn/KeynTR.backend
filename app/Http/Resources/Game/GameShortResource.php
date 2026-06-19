@@ -24,10 +24,10 @@ class GameShortResource extends JsonResource
             ...$this->commonFields(),
             ...$this->commonLoadedFields(),
 
-            'release_dates' => $this->whenLoaded('dates', DateWithPlatformResource::collection($this->dates)),
-            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage)),
-            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover)),
-            'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
+            'release_dates' => $this->whenLoaded('dates', fn() => DateWithPlatformResource::collection($this->dates)),
+            'title_image' => $this->whenLoaded('titleImage', fn() => ShortMediaResource::make($this->titleImage)),
+            'covers' => $this->whenLoaded('cover', fn() => ShortMediaResource::collection($this->cover)),
+            'genres' => $this->whenLoaded('genres', fn() => GenreResource::collection($this->genres)),
         ];
     }
 }

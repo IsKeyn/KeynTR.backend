@@ -19,6 +19,13 @@ class BgPlayerGameObserver
 
     public function created(PlayerGame $playerGame)
     {
+        $playerGame->load(['boardGame', 'player', 'user']);
+
+        if ($playerGame->player) {
+            $service = app(self::SERVICE);
+            $service->clearPlayerGameHistoryCache($playerGame->player);
+        }
+
         $this->defaultObserverService->created(
             $playerGame,
             self::CACHE_SERVICE,
@@ -28,6 +35,13 @@ class BgPlayerGameObserver
 
     public function updated(PlayerGame $playerGame)
     {
+        $playerGame->load(['boardGame', 'player', 'user']);
+
+        if ($playerGame->player) {
+            $service = app(self::SERVICE);
+            $service->clearPlayerGameHistoryCache($playerGame->player);
+        }
+
         $this->defaultObserverService->updated(
             $playerGame,
             self::CACHE_SERVICE,
@@ -37,6 +51,13 @@ class BgPlayerGameObserver
 
     public function deleted(PlayerGame $playerGame)
     {
+        $playerGame->load(['boardGame', 'player', 'user']);
+
+        if ($playerGame->player) {
+            $service = app(self::SERVICE);
+            $service->clearPlayerGameHistoryCache($playerGame->player);
+        }
+
         $this->defaultObserverService->deleted(
             $playerGame,
             self::CACHE_SERVICE,
@@ -46,6 +67,13 @@ class BgPlayerGameObserver
 
     public function restored(PlayerGame $playerGame)
     {
+        $playerGame->load(['boardGame', 'player', 'user']);
+
+        if ($playerGame->player) {
+            $service = app(self::SERVICE);
+            $service->clearPlayerGameHistoryCache($playerGame->player);
+        }
+
         $this->defaultObserverService->restored(
             $playerGame,
             self::CACHE_SERVICE,
@@ -55,6 +83,13 @@ class BgPlayerGameObserver
 
     public function forceDeleted(PlayerGame $playerGame)
     {
+        $playerGame->load(['boardGame', 'player', 'user']);
+
+        if ($playerGame->player) {
+            $service = app(self::SERVICE);
+            $service->clearPlayerGameHistoryCache($playerGame->player);
+        }
+
         $this->defaultObserverService->forceDeleted(
             $playerGame,
             self::CACHE_SERVICE

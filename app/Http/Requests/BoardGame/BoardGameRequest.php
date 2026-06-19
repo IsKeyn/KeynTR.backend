@@ -28,6 +28,7 @@ class BoardGameRequest extends FormRequest
             ],
             'description' => 'sometimes|string|nullable',
             'is_close' => 'sometimes|boolean|nullable',
+            'is_test' => 'sometimes|boolean|nullable',
             'started_at' => 'sometimes|date|nullable',
             'ended_at' => 'sometimes|date|nullable',
 

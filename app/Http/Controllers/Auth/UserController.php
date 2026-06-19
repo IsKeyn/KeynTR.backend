@@ -37,6 +37,11 @@ class UserController extends Controller
 
         if ($user) {
             $this->setAdditionalFields($user, $validated);
+
+            if (isset($validated['public_name'])) {
+                $user->public_name = $validated['public_name'];
+                $user->save();
+            }
         }
 
         return $user;
@@ -45,6 +50,7 @@ class UserController extends Controller
     public function validateFields($request) {
         return $request->validate([
             'name' => 'sometimes|string',
+            'public_name' => 'sometimes|string',
             'additional_fields' => 'sometimes',
         ]);
     }

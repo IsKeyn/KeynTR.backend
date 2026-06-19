@@ -20,7 +20,7 @@ class BgItemBindResource extends JsonResource
         return [
             ...$this->commonFields(),
 
-            'item' => $this->whenLoaded('item', BgItemResource::make($this->item)),
+            'item' => $this->whenLoaded('item', fn() => BgItemResource::make($this->item)),
         ];
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Observers;
 
+use App\Events\PlayerData;
 use App\Models\User;
 use App\Services\Cache\AdminCacheService;
+use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class UserObserver
@@ -40,6 +42,14 @@ class UserObserver
      */
     public function updated(User $user)
     {
+        $user->load('bgPlayer', 'bgPlayer.boardGame');
+
+        $bgPlayerCacheService = app(BgPlayerCacheService::class);
+        foreach ($user->bgPlayer as $player) {
+            PlayerData::dispatch($player);
+            $bgPlayerCacheService->clearClientDetailCache($player);
+        }
+
         $this->defaultObserverService->updated(
             $user,
             'App\Services\Cache\UserCacheService',

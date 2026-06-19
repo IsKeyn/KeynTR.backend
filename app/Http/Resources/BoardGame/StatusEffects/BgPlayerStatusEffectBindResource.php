@@ -24,7 +24,7 @@ class BgPlayerStatusEffectBindResource extends JsonResource
             'status_effect_id' => $this->status_effect_id,
             'board_game_id' => $this->board_game_id,
             'statusEffect' => $this->whenLoaded('statusEffect',
-                BgStatusEffectResource::make($this->statusEffect)
+                fn() => BgStatusEffectResource::make($this->statusEffect)
             ),
         ];
     }

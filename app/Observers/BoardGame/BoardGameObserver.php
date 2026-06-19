@@ -19,6 +19,9 @@ class BoardGameObserver
 
     public function created(BoardGame $boardGame)
     {
+        $boardGame->load(['players', 'players.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+
         $this->defaultObserverService->created(
             $boardGame,
             self::CACHE_SERVICE,
@@ -28,6 +31,9 @@ class BoardGameObserver
 
     public function updated(BoardGame $boardGame)
     {
+        $boardGame->load(['players', 'players.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+
         $this->defaultObserverService->updated(
             $boardGame,
             self::CACHE_SERVICE,
@@ -37,6 +43,9 @@ class BoardGameObserver
 
     public function deleted(BoardGame $boardGame)
     {
+        $boardGame->load(['players', 'players.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+
         $this->defaultObserverService->deleted(
             $boardGame,
             self::CACHE_SERVICE,
@@ -46,6 +55,9 @@ class BoardGameObserver
 
     public function restored(BoardGame $boardGame)
     {
+        $boardGame->load(['players', 'players.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+
         $this->defaultObserverService->restored(
             $boardGame,
             self::CACHE_SERVICE,
@@ -55,6 +67,9 @@ class BoardGameObserver
 
     public function forceDeleted(BoardGame $boardGame)
     {
+        $boardGame->load(['players', 'players.boardGame']);
+        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+
         $this->defaultObserverService->forceDeleted(
             $boardGame,
             self::CACHE_SERVICE
