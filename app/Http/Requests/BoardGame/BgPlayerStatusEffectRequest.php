@@ -16,7 +16,7 @@ class BgPlayerStatusEffectRequest extends FormRequest
     {
         return [
             'user_id' => 'sometimes|integer|nullable',
-            'board_game_player_id' => 'required|integer|nullable',
+            'bg_player_id' => 'required|integer|nullable',
             'board_game_id' => 'sometimes|integer|nullable',
             'status_effect_id' => 'sometimes|integer|nullable',
             'status_effect_bind_id' => 'required|integer|nullable',

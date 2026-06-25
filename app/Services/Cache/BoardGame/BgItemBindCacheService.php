@@ -4,6 +4,7 @@ namespace App\Services\Cache\BoardGame;
 
 use App\Models\BoardGame\ItemBind;
 use App\Services\Cache\BaseCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class BgItemBindCacheService extends BaseCacheService
 {
@@ -22,4 +23,10 @@ class BgItemBindCacheService extends BaseCacheService
     public const LIST_TOKEN = self::NAME . '_list_token';
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
+
+    public function clearListCacheByBgId($bgId)
+    {
+        $cacheKey = self::LIST_PREFIX . '_' . $bgId;
+        Cache::forget($cacheKey);
+    }
 }

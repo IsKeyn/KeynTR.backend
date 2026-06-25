@@ -9,17 +9,16 @@ use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
-use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithInventoryResource;
-use App\Http\Resources\BoardGame\ItemBindResource;
 use App\Http\Resources\BoardGame\Items\BgInventoryResource;
+use App\Http\Resources\BoardGame\Items\BgItemBindResource;
 use App\Http\Resources\BoardGame\LogResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerDetailResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerListResource;
 use App\Http\Resources\BoardGame\PlayerGame\BgPlayerGameShortResource;
 use App\Http\Resources\BoardGame\PlayerInteractionResource;
-use App\Http\Resources\BoardGame\StatusEffects\BgPlayerStatusEffectBindResource;
+use App\Http\Resources\BoardGame\StatusEffects\BgPlayerStatusEffectResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameLog;
@@ -30,6 +29,7 @@ use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\User;
+use App\Services\BoardGame\BgPlayerService;
 use App\Services\BoardGame\ItemService;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
@@ -86,7 +86,9 @@ class BoardGamePlayerController extends Controller
                     'user',
                     'user.avatar',
                     'user.additionalFields',
-                    'positions',
+                    'positions' => function ($query) {
+                        $query->active()->orderBy('id', 'desc');
+                    },
                 ])
                 ->first();
 
@@ -152,9 +154,8 @@ class BoardGamePlayerController extends Controller
                 ->apply(BoardGamePlayer::where('board_game_id', $boardGame->id))
                 ->with([
                     'boardGame',
-                    'positions',
-                    'mainTimers' => function ($query) use ($boardGame) {
-                        $query->where('board_game_id', $boardGame->id);
+                    'positions' => function ($query) {
+                        $query->active()->orderBy('id', 'desc');
                     },
                     'user',
                     'user.avatar',
@@ -176,17 +177,25 @@ class BoardGamePlayerController extends Controller
                     'inventory' => function ($query) {
                         $query->active()->where('has_used', false)->orderBy('created_at', 'desc');
                     },
-                    'inventory.item.item',
-                    'inventory.item.item.titleImage',
-                    'inventory.item.item.sound',
-                    'inventory.item.item.authorUser',
+                    'inventory.itemBind.item',
+                    'inventory.itemBind.item.titleImage',
+                    'inventory.itemBind.item.sound',
+                    'inventory.itemBind.item.authorUser',
                 ]);
 
             if (!isset($request->sort)) {
                 $players->orderByRaw('sort IS NULL, sort ASC');
             }
 
-            $result = $request->fullList ? $players->get() : $players->paginate($request->perPage ? $request->perPage : 10);
+            $filters = json_decode($request->filters, true) ?? [];
+
+            if ($request->fullList) {
+                $result = $players->get();
+            } elseif ($request->filters && isset($filters['limit']) && $filters['limit']) {
+                $result = $players->paginate($filters['limit']);
+            } else {
+                $result = $players->paginate($request->perPage ? $request->perPage : 10);
+            }
 
             return BgPlayerListResource::collection($result);
         });
@@ -205,44 +214,51 @@ class BoardGamePlayerController extends Controller
     public function getListWithInventory(
         Request $request,
         $slug,
-        BoardGame $BoardGame,
-        BoardGamePlayer $BoardGamePlayer
+        BoardGame $BoardGame
     )
     {
-            $boardGameId = $BoardGame->findBySlug($slug)->value('id');
+        if (!in_array($request->type, ['battleForPoints', 'inviteToCoop'], true)) {
+            return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+        }
 
-            // TODO сделать жадную загрузку для внутренних связей
-            $players = $BoardGamePlayer->with(['user', 'positions', 'inventory', 'statusEffects', 'mainTimers'])->findByBoardGame($boardGameId)->active();
+        $user = Auth::user();
 
-            $user = Auth::user();
+        if (!$user) {
+            return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+        }
 
-            if ($user && ($request->type === 'battleForPoints' || $request->type === 'inviteToCoop'))
-            {
-                $boardGameInteractions = PlayerInteractions::query()
-                    ->findByBoardGame($boardGameId)
-                    ->where('created_by', $user->id)
-                    ->where('type', $request->type)
-                    ->whereIn('status', [PlayerInteractions::COOP_FINISH, PlayerInteractions::I_WIN, PlayerInteractions::I_LOSE])
-                    ->select('with_player')->get();
+        $boardGame = $BoardGame
+            ->findBySlug($slug)
+            ->with([
+                'players',
+                'players.positions',
+                'players.user',
+                'players.user.avatar',
+            ])
+            ->first();
 
-                $playerInteractionsIds = [];
+        if (!$boardGame) {
+            return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+        }
 
-                foreach ($boardGameInteractions as $interaction) {
-                    if (!array_search($interaction->with_player, $playerInteractionsIds)) {
-                        $playerInteractionsIds[] = $interaction->with_player;
-                    }
-                }
+        $players = $boardGame->players;
 
-                $players->whereNotIn('user_id', $playerInteractionsIds);
-            }
+        $playerInteractionsIds = PlayerInteractions::query()
+            ->findByBoardGame($boardGame->id)
+            ->where('created_by', $user->id)
+            ->where('type', $request->type)
+            ->whereIn('status', [
+                PlayerInteractions::COOP_FINISH,
+                PlayerInteractions::I_WIN,
+                PlayerInteractions::I_LOSE
+            ])
+            ->pluck('with_player')
+            ->unique()
+            ->toArray();
 
-            $players = $players->get();
+        $players = $players->whereNotIn('user_id', $playerInteractionsIds);
 
-            if ($request->type === 'battleForPoints' || $request->type === 'inviteToCoop') {
-                return BoardGamePlayerShortResource::collection($players);
-            } else {
-                return BoardGamePlayerWithInventoryResource::collection($players);
-            }
+        return BgPlayerDetailResource::collection($players);
     }
 
     /*
@@ -282,7 +298,7 @@ class BoardGamePlayerController extends Controller
         });
     }
 
-    /*
+    /**
      * Инвентарь игрока
      */
     public function getInventory(
@@ -305,10 +321,10 @@ class BoardGamePlayerController extends Controller
                 ->where('board_game_id', $bgId)
                 ->where('user_id', $userId)
                 ->with([
-                    'item.item',
-                    'item.item.titleImage',
-                    'item.item.sound',
-                    'item.item.authorUser',
+                    'itemBind.item',
+                    'itemBind.item.titleImage',
+                    'itemBind.item.sound',
+                    'itemBind.item.authorUser',
                 ])
                 ->get();
 
@@ -316,7 +332,7 @@ class BoardGamePlayerController extends Controller
         });
     }
 
-    /*
+    /**
      * Статус эффекты игрока
      */
     public function getStatusEffects(
@@ -340,15 +356,17 @@ class BoardGamePlayerController extends Controller
                 ->where('board_game_id', $bgId)
                 ->where('user_id', $userId)
                 ->with([
-                    'statusEffect.titleImage',
+                    'statusEffectBind',
+                    'statusEffectBind.statusEffect',
+                    'statusEffectBind.statusEffect.titleImage',
                 ])
                 ->get();
 
-            return BgPlayerStatusEffectBindResource::collection($statusEffects);
+            return BgPlayerStatusEffectResource::collection($statusEffects);
         });
     }
 
-    /*
+    /**
      * Список игр игрока
      */
     public function getGames(
@@ -450,8 +468,6 @@ class BoardGamePlayerController extends Controller
         });
     }
 
-    /* Устаревшие методы */
-
     public function get(
         $id,
         Request $request,
@@ -539,21 +555,18 @@ class BoardGamePlayerController extends Controller
         return false;
     }
 
-    public function getDataForItemGamblingGame ($slug)
+    public function getDataForItemGamblingGame($slug)
     {
         $conditionData = PlayerGameService::checkConditions($slug);
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
-        } else {
-            $items = ItemBind::active()->where('board_game_id', $conditionData['boardGame']->id)->get();
-
-            return [
-                'status' => 1,
-                'items' => ItemBindResource::collection($items),
-                'player' => BoardGamePlayerWithInventoryResource::make($conditionData['player']),
-            ];
         }
+
+        return [
+            'items' => ItemService::itemsInBoardGame($conditionData['boardGame']->id),
+            'player' => BgPlayerService::getPlayerWithInventory($conditionData['player']),
+        ];
     }
 
     public function rollItem($slug, $withDropChance = true)
@@ -563,112 +576,107 @@ class BoardGamePlayerController extends Controller
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
-        } else {
-            $items = ItemBind::active()->where('board_game_id', $conditionData['boardGame']->id)->get();
+        }
 
-            if ($withDropChance) {
-                /* Формируем массив, для учета шанса дропа, элемент добавляется в массив столько раз, каков его процент шанса дропа */
-                $arItemChance = [];
+        if ($conditionData['player']->item_roll_count <= 0) {
+            return [
+                'status' => 'error',
+                'status_message' => __('boardGame.player.dont_have_items_roll')
+            ];
+        }
 
-                foreach ($items as $item) {
-                    if ($item->item->drop_chance) {
-                        for ($i = 1; $i <= $item->item->drop_chance; $i++) {
-                            $arItemChance[] = $item;
-                        }
+        $items = ItemBind::query()
+            ->findByBoardGame($conditionData['boardGame']->id)
+            ->active()
+            ->with([
+                'item',
+                'item.titleImage',
+                'item.sound',
+                'item.authorUser',
+            ])
+            ->get();
+
+        if ($withDropChance) {
+            /* Формируем массив, для учета шанса дропа, элемент добавляется в массив столько раз, каков его процент шанса дропа */
+            $arItemChance = [];
+
+            foreach ($items as $item) {
+                if ($item->item->drop_chance) {
+                    for ($i = 1; $i <= $item->item->drop_chance; $i++) {
+                        $arItemChance[] = $item;
                     }
                 }
-
-                shuffle($arItemChance);
-                $randomKey = array_rand($arItemChance);
-
-                $randItem = $arItemChance[$randomKey];
-            } else {
-                /* Рандомим предмет из списка доступных */
-                $randItem = $items->random();
             }
 
-            /* Добавление в логи */
-            LogService::addLog(
+            shuffle($arItemChance);
+            $randomKey = array_rand($arItemChance);
+
+            $randItem = $arItemChance[$randomKey];
+        } else {
+            /* Рандомим предмет из списка доступных */
+            $randItem = $items->random();
+        }
+
+        /* Добавление в логи */
+        LogService::addLog(
+            $conditionData['user']->id,
+            $conditionData['boardGame']->id,
+            'крутанул рулетку предметов и ему выпало "' . $randItem->item->name . '"',
+            $conditionData['player']->id,
+        );
+
+        $dontAddToInventory = false;
+
+        if ($randItem->item->actions) {
+            $actions = $randItem->item->actions;
+
+            foreach ($actions as $action) {
+                $action = (object) $action; // Для корректной работы легаси кода
+
+                /*
+                * Если предмет авто-применяемый, то его эффект должен быть применен и в инвентарь не добаляется
+                */
+                if (
+                    $action
+                    && isset($action->type, $action->target, $action->value, $action->autoUse)
+                    && $action->autoUse === true
+                    && $action->value
+                ) {
+                    $inventoryItem = ItemService::addToInventory(
+                        $conditionData['user']->id,
+                        $conditionData['boardGame']->id,
+                        $randItem->id,
+                        $conditionData['player']->id,
+                    );
+
+                    /* Применяем статус эффект */
+                    $useItemService = new UseItemService($conditionData);
+
+                    $data = (object)['id' => $inventoryItem->id];
+
+                    $useItemService->useItem($data);
+
+                    $dontAddToInventory = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$dontAddToInventory) {
+            /* Добавление предмета в инвентарь */
+            ItemService::addToInventory(
                 $conditionData['user']->id,
                 $conditionData['boardGame']->id,
-                'крутанул рулетку предметов и ему выпало "' . $randItem->item->name . '"',
+                $randItem->id,
+                $conditionData['player']->id,
             );
-
-            $dontAddToInventory = false;
-
-            if ($randItem->item->actions) {
-                $actions = json_decode($randItem->item->actions);
-
-                foreach ($actions as $action) {
-                    /*
-                    * Если предмет авто-применяемый, то его эффект должен быть применен и в инвентарь не добаляется
-                    */
-                    if (
-                        $action
-                        && isset($action->type, $action->target, $action->value, $action->autoUse)
-                        && $action->autoUse === true
-                        && $action->value
-                    ) {
-                        $inventoryItem = ItemService::addToInventory(
-                            $conditionData['user']->id,
-                            $conditionData['boardGame']->id,
-                            $randItem->id,
-                        );
-
-                        /* Применяем статус эффект */
-                        $useItemService = new UseItemService($conditionData);
-
-                        $data = (object)['id' => $inventoryItem->id];
-
-                        $useItemResult = $useItemService->useItem($data);
-
-                        $dontAddToInventory = true;
-                        break;
-                    }
-
-                    /*
-                     * Если предмет накладывает статус эффект,
-                     * то на игрока необходимо наложить статус эффект,
-                     * а не класть предмет в инвентарь
-                     */
-//                    if (
-//                        $action
-//                        && isset($action->type, $action->target, $action->value)
-//                        && $action->type === 'applyStatusEffect'
-//                        && $action->target === 'current'
-//                        && $action->value
-//                    ) {
-//                        /* Применяем статус эффект */
-//                        $statusEffectObj = StatusEffect::where('slug', $action->value)->first();
-//
-//                        $PlayerStatusEffectFields = [
-//                            'user_id' => $conditionData['user']->id,
-//                            'board_game_id' => $conditionData['boardGame']->id,
-//                            'status_effect_id' => $statusEffectObj->id,
-//                            'created_by' => $conditionData['user']->id,
-//                        ];
-//
-//                        PlayerStatusEffect::create($PlayerStatusEffectFields);
-//                        $dontAddToInventory = true;
-//                    }
-                }
-            }
-
-            if (!$dontAddToInventory) {
-                /* Добавление предмета в инвентарь */
-                ItemService::addToInventory(
-                    $conditionData['user']->id,
-                    $conditionData['boardGame']->id,
-                    $randItem->id,
-                );
-            }
-
-            /* Уменьшаем доступное количество ролов */
-            $conditionData['player']->item_roll_count--;
-            $conditionData['player']->save();
-
-            return ItemBindResource::make($randItem);
         }
+
+        /* Уменьшаем доступное количество ролов */
+        $conditionData['player']->item_roll_count--;
+        $conditionData['player']->save();
+
+        return BgItemBindResource::make($randItem);
     }
 
     public function getInteractions($slug)

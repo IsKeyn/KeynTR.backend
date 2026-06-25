@@ -3,6 +3,7 @@
 namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\BoardGame;
+use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BoardGameObserver
@@ -19,8 +20,7 @@ class BoardGameObserver
 
     public function created(BoardGame $boardGame)
     {
-        $boardGame->load(['players', 'players.boardGame']);
-        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+        $this->clearRelatedCache($boardGame);
 
         $this->defaultObserverService->created(
             $boardGame,
@@ -31,8 +31,7 @@ class BoardGameObserver
 
     public function updated(BoardGame $boardGame)
     {
-        $boardGame->load(['players', 'players.boardGame']);
-        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+        $this->clearRelatedCache($boardGame);
 
         $this->defaultObserverService->updated(
             $boardGame,
@@ -43,8 +42,7 @@ class BoardGameObserver
 
     public function deleted(BoardGame $boardGame)
     {
-        $boardGame->load(['players', 'players.boardGame']);
-        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+        $this->clearRelatedCache($boardGame);
 
         $this->defaultObserverService->deleted(
             $boardGame,
@@ -55,8 +53,7 @@ class BoardGameObserver
 
     public function restored(BoardGame $boardGame)
     {
-        $boardGame->load(['players', 'players.boardGame']);
-        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+        $this->clearRelatedCache($boardGame);
 
         $this->defaultObserverService->restored(
             $boardGame,
@@ -67,12 +64,22 @@ class BoardGameObserver
 
     public function forceDeleted(BoardGame $boardGame)
     {
-        $boardGame->load(['players', 'players.boardGame']);
-        self::CACHE_SERVICE->clearClientPlayerListByBgCache($boardGame);
+        $this->clearRelatedCache($boardGame);
 
         $this->defaultObserverService->forceDeleted(
             $boardGame,
             self::CACHE_SERVICE
         );
+    }
+
+    private function clearRelatedCache($boardGame)
+    {
+        $boardGame->load(['players', 'players.boardGame']);
+
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearClientPlayerListByBgCache($boardGame);
+
+        $bgPlayerCacheService = app(BgPlayerCacheService::class);
+        $bgPlayerCacheService->clearClientPlayerListByBgCache($boardGame);
     }
 }

@@ -37,6 +37,11 @@ class RelatedDataService
             $additionalFieldsService->sync($model, $validated['additional_fields']);
         }
 
+        if (isset($validated['settings'])) {
+            $settingService = new SettingService();
+            $settingService->sync($model, $validated['settings']);
+        }
+
         if (isset($validated['series'])) {
             SeriesService::set($model, $validated['series']);
         }

@@ -9,7 +9,7 @@ use App\Http\Resources\User\UserPublicResource;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BgPlayerListResource extends JsonResource
+class BgPlayerWithInventoryResource extends JsonResource
 {
     use CommonResourceFields;
 
@@ -21,12 +21,12 @@ class BgPlayerListResource extends JsonResource
      */
     public function toArray($request)
     {
-        $position = $this->whenLoaded('positions', function() {
-            return $this->positions->first();
-        });
+        $position = 0;
+        if ($this->relationLoaded('positions') && $this->positions->isNotEmpty()) {
+            $position = $this->positions->first()->position;
+        }
 
-        $fullPoints = $this->points;
-        if ($position) $fullPoints += $position->position;
+        $fullPoints = $this->points + $position;
 
         return [
             ...$this->commonFields(),
@@ -42,8 +42,9 @@ class BgPlayerListResource extends JsonResource
             'step_count' => $this->step_count,
             'item_roll_count' => $this->item_roll_count,
             'finishBoard' => $this->finishBoard,
-            'position' => $position ? $position->position : null,
+            'position' => $position,
             'place' => $this->place,
+            'timer' => $this->whenLoaded('mainTimers', fn() => $this->mainTimers->first()),
             'statusEffects' => $this->whenLoaded('statusEffects',
                 fn() => BgPlayerStatusEffectResource::collection($this->statusEffects)
             ),

@@ -74,7 +74,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->conditionData['user']->id, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->conditionData['user']->id,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
             }
 
@@ -190,7 +195,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->conditionData['user']->id, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->conditionData['user']->id,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
             }
 
@@ -233,7 +243,12 @@ class InteractionsService
 
             // Устанавливаем логи
             if ($this->conditionData['boardGame']->id) {
-                LogService::addLog($this->conditionData['user']->id, $this->conditionData['boardGame']->id, $message);
+                LogService::addLog(
+                    $this->conditionData['user']->id,
+                    $this->conditionData['boardGame']->id,
+                    $message,
+                    $this->conditionData['player']->id,
+                );
             }
         }
 
@@ -279,7 +294,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->conditionData['user']->id, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->conditionData['user']->id,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
             }
 
@@ -333,7 +353,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->interaction->created_by, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->interaction->created_by,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
 
                 // Действия

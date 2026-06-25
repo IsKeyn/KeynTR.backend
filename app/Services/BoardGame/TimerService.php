@@ -77,7 +77,11 @@ class TimerService
 
             if ($lastTimer) {
                 $lastTimer->update(['time_stop' => $now]);
-                LogService::addLog(1, $timer->board_game_id, 'Таймер был остановлен, так как достиг лимита');
+                LogService::addLog(
+                    1,
+                    $timer->board_game_id,
+                    'Таймер был остановлен, так как достиг лимита',
+                );
             }
 
             // После остановки обновляем активность

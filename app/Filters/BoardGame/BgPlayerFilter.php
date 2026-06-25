@@ -2,6 +2,7 @@
 namespace App\Filters\BoardGame;
 
 use App\Filters\Concerns\HasFilters;
+use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
@@ -43,6 +44,13 @@ class BgPlayerFilter
         }
     }
 
+    protected function exceptPlayer($value): void
+    {
+        if ($value) {
+            $this->query->whereNotIn('id', $value);
+        }
+    }
+
     protected function twitchStreamOnline($value): void
     {
         if ($value) {
@@ -59,6 +67,145 @@ class BgPlayerFilter
             $result = $twitchService->streamersLive();
             $this->query->whereIn('user_id', array_column($result, 'site_user_id'));
         }
+    }
+
+    protected function distance($value): void
+    {
+        if (!$value) {
+            return;
+        }
+
+        $table = self::TABLE_NAME;
+        $currentUserId = is_array($value) ? ($value['user_id'] ?? null) : ($value->user_id ?? null);
+        $minDistance = is_array($value) ? ($value['min_distance'] ?? null) : ($value->min_distance ?? null);
+        $maxDistance = is_array($value) ? ($value['max_distance'] ?? null) : ($value->max_distance ?? null);
+
+        if (!$currentUserId || ($minDistance === null && $maxDistance === null)) {
+            return;
+        }
+
+        // Подзапрос для получения позиции текущего игрока
+        $currentPlayerPositionSubquery = BoardGamePlayerPosition::select('position')
+            ->where('user_id', $currentUserId)
+            ->whereColumn('board_game_id', $table . '.board_game_id')
+            ->orderByDesc('id')
+            ->limit(1);
+
+        $currentPositionSql = "COALESCE(({$currentPlayerPositionSubquery->toSql()}), 1)";
+        $currentPositionBindings = $currentPlayerPositionSubquery->getBindings();
+
+        // Подзапрос для получения позиции каждого игрока
+        $playerPositionSubquery = BoardGamePlayerPosition::select('position')
+            ->whereColumn('user_id', $table . '.user_id')
+            ->whereColumn('board_game_id', $table . '.board_game_id')
+            ->orderByDesc('id')
+            ->limit(1);
+
+        $playerPositionSql = "COALESCE(({$playerPositionSubquery->toSql()}), 1)";
+        $playerPositionBindings = $playerPositionSubquery->getBindings();
+
+        // Формируем условие расстояния
+        $distanceExpression = "ABS({$playerPositionSql} - {$currentPositionSql})";
+        $bindings = array_merge($playerPositionBindings, $currentPositionBindings);
+
+        $conditions = [];
+
+        if ($maxDistance !== null) {
+            $conditions[] = "{$distanceExpression} <= ?";
+            $bindings[] = $maxDistance;
+        }
+
+        if ($minDistance !== null) {
+            $conditions[] = "{$distanceExpression} >= ?";
+            $bindings[] = $minDistance;
+        }
+
+        if (!empty($conditions)) {
+            $this->query->whereRaw(implode(' AND ', $conditions), $bindings);
+        }
+    }
+
+    protected function nearestOnly($value): void
+    {
+        if (!$value) {
+            return;
+        }
+
+        $table = self::TABLE_NAME;
+        $currentUserId  = is_array($value) ? ($value['user_id'] ?? null)        : ($value->user_id ?? null);
+        $targetPosition = is_array($value) ? ($value['target_position'] ?? null): ($value->target_position ?? null);
+        $bgSlug         = is_array($value) ? ($value['bg_slug'] ?? null)        : ($value->bg_slug ?? null);
+
+        $boardGameId = BoardGame::query()->findBySlug($bgSlug)->value('id');
+
+        if ($targetPosition === null && !$currentUserId) {
+            return;
+        }
+
+        // 1. Определяем целевую позицию
+        if ($targetPosition !== null) {
+            $target = (int) $targetPosition;
+        } else {
+            $target = (int) (BoardGamePlayerPosition::where('user_id', $currentUserId)
+                    ->where('board_game_id', $boardGameId)
+                    ->orderByDesc('id')
+                    ->value('position') ?? 1);
+        }
+
+        // 2. Получаем ПОСЛЕДНИЕ позиции всех игроков этой настолки
+        // Ключевое исправление: MAX(id), а не MAX(position)!
+        // Это даёт запись с самым свежим id для каждого игрока.
+        $lastPositions = BoardGamePlayerPosition::query()
+            ->select('user_id', 'position')
+            ->where('board_game_id', $boardGameId)
+            ->whereIn('id', function ($q) use ($boardGameId) {
+                $q->selectRaw('MAX(id)')
+                    ->from('board_game_player_positions')
+                    ->where('board_game_id', $boardGameId)
+                    ->groupBy('user_id');
+            })
+            ->get()
+            ->pluck('position', 'user_id')
+            ->map(fn($p) => (int) $p)       // приводим к int для корректной математики
+            ->toArray();
+
+        // 3. Получаем ID всех активных игроков настолки
+        // (в т.ч. тех, у кого ещё нет записей в BoardGamePlayerPosition — они на позиции 1)
+        $allPlayerUserIds = BoardGamePlayer::where('board_game_id', $boardGameId)
+            ->where('active', true)
+            ->pluck('user_id')
+            ->toArray();
+
+        if (empty($allPlayerUserIds)) {
+            $this->query->whereRaw('1 = 0');
+            return;
+        }
+
+        // 4. Считаем расстояния
+        $distances = [];
+        foreach ($allPlayerUserIds as $userId) {
+            // Текущий игрок не может быть целью для самого себя
+            if ($userId == $currentUserId) {
+                continue;
+            }
+
+            $position = $lastPositions[$userId] ?? 1; // дефолтная позиция, если записей нет
+            $distances[$userId] = abs($position - $target);
+        }
+
+        if (empty($distances)) {
+            $this->query->whereRaw('1 = 0');
+            return;
+        }
+
+        // 5. Находим минимальное расстояние
+        $minDistance = min($distances);
+
+        // 6. Собираем ВСЕХ игроков с этим расстоянием (не одного!)
+        $nearestUserIds = array_keys(array_filter($distances, fn($d) => $d === $minDistance));
+
+        // 7. Фильтруем основной запрос
+        $this->query->whereIn($table . '.user_id', $nearestUserIds);
     }
 
     protected function sort($value): void
@@ -126,6 +273,25 @@ class BgPlayerFilter
                         $positionSubquery->getBindings()
                     );
                     break;
+
+               case 'position':
+                   $table = self::TABLE_NAME;
+
+                   $positionSubquery = BoardGamePlayerPosition::select('position')
+                       ->whereColumn('user_id', $table . '.user_id')
+                       ->whereColumn('board_game_id', $table . '.board_game_id')
+                       ->orderByDesc('id')
+                       ->limit(1);
+
+                   $subquerySql = $positionSubquery->toSql();
+
+                   $direction = (isset($value->sort) && strtolower($value->sort) === 'desc') ? 'DESC' : 'ASC';
+
+                   $this->query->orderByRaw(
+                       "COALESCE(({$subquerySql}), 1) {$direction}",
+                       $positionSubquery->getBindings()
+                   );
+                   break;
 
                default:
                    $this->query->orderBy($value->field, $value->sort);

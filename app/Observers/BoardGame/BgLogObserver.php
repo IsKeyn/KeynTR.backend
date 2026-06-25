@@ -20,7 +20,8 @@ class BgLogObserver
     public function created(BoardGameLog $boardGameLog)
     {
         $boardGameLog->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearClientPlayerListCache($boardGameLog);
 
         $this->defaultObserverService->created(
             $boardGameLog,
@@ -32,7 +33,8 @@ class BgLogObserver
     public function updated(BoardGameLog $boardGameLog)
     {
         $boardGameLog->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearClientPlayerListCache($boardGameLog);
 
         $this->defaultObserverService->updated(
             $boardGameLog,
@@ -44,7 +46,8 @@ class BgLogObserver
     public function deleted(BoardGameLog $boardGameLog)
     {
         $boardGameLog->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearClientPlayerListCache($boardGameLog);
 
         $this->defaultObserverService->deleted(
             $boardGameLog,
@@ -56,7 +59,8 @@ class BgLogObserver
     public function restored(BoardGameLog $boardGameLog)
     {
         $boardGameLog->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearClientPlayerListCache($boardGameLog);
 
         $this->defaultObserverService->restored(
             $boardGameLog,
@@ -68,7 +72,8 @@ class BgLogObserver
     public function forceDeleted(BoardGameLog $boardGameLog)
     {
         $boardGameLog->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($boardGameLog);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearClientPlayerListCache($boardGameLog);
 
         $this->defaultObserverService->forceDeleted(
             $boardGameLog,

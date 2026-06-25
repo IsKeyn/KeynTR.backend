@@ -3,6 +3,7 @@
 namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgPlayerPositionObserver
@@ -19,6 +20,8 @@ class BgPlayerPositionObserver
 
     public function created(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
+        $this->clearRelatedCache($boardGamePlayerPosition);
+
         $this->defaultObserverService->created(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE,
@@ -28,6 +31,8 @@ class BgPlayerPositionObserver
 
     public function updated(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
+        $this->clearRelatedCache($boardGamePlayerPosition);
+
         $this->defaultObserverService->updated(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE,
@@ -37,6 +42,8 @@ class BgPlayerPositionObserver
 
     public function deleted(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
+        $this->clearRelatedCache($boardGamePlayerPosition);
+
         $this->defaultObserverService->deleted(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE,
@@ -46,6 +53,8 @@ class BgPlayerPositionObserver
 
     public function restored(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
+        $this->clearRelatedCache($boardGamePlayerPosition);
+
         $this->defaultObserverService->restored(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE,
@@ -55,9 +64,20 @@ class BgPlayerPositionObserver
 
     public function forceDeleted(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
+        $this->clearRelatedCache($boardGamePlayerPosition);
+
         $this->defaultObserverService->forceDeleted(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE
         );
+    }
+
+    private function clearRelatedCache($boardGamePlayerPosition)
+    {
+        $boardGamePlayerPosition->load(['boardGame']);
+
+        $bgPlayerCacheService = app(BgPlayerCacheService::class);
+        $bgPlayerCacheService->clearBgListCache($boardGamePlayerPosition->boardGame);
+//        $bgPlayerCacheService->clearDetailCacheAllTypes($boardGamePlayerPosition->boardGame);
     }
 }

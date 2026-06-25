@@ -15,6 +15,7 @@ class BgLogRequest extends FormRequest
     public function rules()
     {
         return [
+            'bg_player_id' => 'sometimes|integer|nullable',
             'message' => 'required|string',
             'board_game_id' => 'required|integer',
             'sort' => 'sometimes|integer|nullable',

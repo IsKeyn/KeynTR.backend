@@ -24,7 +24,7 @@ class BgPlayerStatusEffectCacheService extends BaseCacheService
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
 
-    public function clearClientPlayerListCache($element)
+    public function clearClientListCache($element)
     {
         $cacheKey = static::LIST_PREFIX . '_' . $element->boardGame->slug . '_' . $element->user_id;
         Cache::forget($cacheKey);

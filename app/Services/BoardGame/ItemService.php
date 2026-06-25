@@ -2,13 +2,22 @@
 
 namespace App\Services\BoardGame;
 
+use App\Http\Resources\BoardGame\Items\BgItemBindResource;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\Item;
+use App\Models\BoardGame\ItemBind;
+use App\Services\Cache\BoardGame\BgItemBindCacheService;
 use App\Services\Entity\EntityService;
+use Illuminate\Support\Facades\Cache;
 
 class ItemService
 {
-    public static function addToInventory($userId, $boardGameId, $boardGameItemId)
+    public static function addToInventory(
+        $userId,
+        $boardGameId,
+        $boardGameItemId,
+        $playerId = null
+    )
     {
         $fields = [
             'user_id' => $userId,
@@ -16,6 +25,10 @@ class ItemService
             'board_game_id' => $boardGameId,
             'board_game_item_id' => $boardGameItemId,
         ];
+
+        if ($playerId) {
+            $fields['bg_player_id'] = $playerId;
+        }
 
         return BoardGameInventory::create($fields);
     }
@@ -41,5 +54,29 @@ class ItemService
             $forceRefresh,
             $withTrashed,
         );
+    }
+
+    public static function itemsInBoardGame($bgId)
+    {
+        $cacheKey = BgItemBindCacheService::LIST_PREFIX . '_' . $bgId;
+
+        return Cache::remember($cacheKey, BgItemBindCacheService::TIME, function () use ($bgId) {
+            $items = ItemBind::query()
+                ->active()
+                ->findByBoardGame($bgId)
+                ->with([
+                    'item',
+                    'item.titleImage',
+                    'item.sound',
+                    'item.authorUser',
+                ])
+                ->get()
+                ->sortByDesc(function ($itemBind) {
+                    return $itemBind->item?->drop_chance ?? 0;
+                })
+                ->values();
+
+            return BgItemBindResource::collection($items);
+        });
     }
 }

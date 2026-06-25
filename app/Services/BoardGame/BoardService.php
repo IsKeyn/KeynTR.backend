@@ -89,7 +89,8 @@ class BoardService
                         LogService::addLog(
                             $params['player']->user_id,
                             $conditionData['boardGame']->id,
-                            $logMessage
+                            $logMessage,
+                            $params['player']->id
                         );
                     }
 

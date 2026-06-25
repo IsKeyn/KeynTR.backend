@@ -50,21 +50,21 @@ class ItemBindController extends Controller
         );
     }
 
-    public function update(BgItemBindRequest $request, ItemBind $ItemBind)
+    public function update(BgItemBindRequest $request, ItemBind $itemBind)
     {
         return $this->defaultAdminEntityService->update(
             $request,
-            $ItemBind
+            $itemBind
         );
     }
 
-    public function destroy(ItemBind $ItemBind)
+    public function destroy(ItemBind $itemBind)
     {
-        return $this->defaultAdminEntityService->destroy($ItemBind);
+        return $this->defaultAdminEntityService->destroy($itemBind);
     }
 
-    public function list(ItemBind $ItemBind) {
-        return ItemBindResource::collection($ItemBind::all());
+    public function list(ItemBind $itemBind) {
+        return ItemBindResource::collection($itemBind::all());
     }
 
     public function validateFields($request) {
@@ -84,16 +84,16 @@ class ItemBindController extends Controller
 //
 //        $fields['created_by'] = $request->user()->id;
 //
-//        $ItemBind = ItemBind::create($fields);
-//        $this->clearCache($ItemBind);
-//        return $ItemBind;
+//        $itemBind = ItemBind::create($fields);
+//        $this->clearCache($itemBind);
+//        return $itemBind;
 //    }
 //
-//    public function update(Request $request, ItemBind $ItemBind) {
+//    public function update(Request $request, ItemBind $itemBind) {
 //        $fields = $this->validateFields($request);
 //
-//        $this->clearCache($ItemBind);
-//        return $ItemBind->update($fields);
+//        $this->clearCache($itemBind);
+//        return $itemBind->update($fields);
 //    }
 
     private function clearCache($item)

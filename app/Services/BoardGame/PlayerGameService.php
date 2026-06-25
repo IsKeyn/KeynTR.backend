@@ -74,7 +74,8 @@ class PlayerGameService
                     LogService::addLog(
                         $user->id,
                         $boardGame->id,
-                        $logMessage
+                        $logMessage,
+                        $player->id
                     );
 
                     return [
@@ -156,7 +157,7 @@ class PlayerGameService
 
         $player = BoardGamePlayer::where('user_id', $user->id)
             ->where('board_game_id', $boardGame->id)
-            ->with('mainTimers')
+            ->with('mainTimers') // TODO Зачем здесь with
             ->first();
 
         if (!$player) {

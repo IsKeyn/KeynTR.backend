@@ -55,7 +55,8 @@ class BoardGameInventoryController extends Controller
         return false;
     }
 
-    public function destroy(Request $request, BoardGameInventory $BoardGameInventory) {
+    public function destroy(Request $request, BoardGameInventory $BoardGameInventory)
+    {
         $user = $request->user();
 
         if ($user) {
@@ -66,12 +67,14 @@ class BoardGameInventoryController extends Controller
         }
     }
 
-    public function useItem(Request $request) {
+    public function useItem(Request $request)
+    {
         $useItemService = new UseItemService();
         return $useItemService->useItem($request);
     }
 
-    public function createNotification($player, $user, $request, $notification) {
+    public function createNotification($player, $user, $request, $notification)
+    {
         if (
             isset($player) && $player
             && isset($request->additionalParams['message'])

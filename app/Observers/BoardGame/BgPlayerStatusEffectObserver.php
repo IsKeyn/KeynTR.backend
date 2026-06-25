@@ -3,6 +3,7 @@
 namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\PlayerStatusEffect;
+use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgPlayerStatusEffectObserver
@@ -19,8 +20,7 @@ class BgPlayerStatusEffectObserver
 
     public function created(PlayerStatusEffect $playerStatusEffect)
     {
-        $playerStatusEffect->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($playerStatusEffect);
+        $this->clearRelatedCache($playerStatusEffect);
 
         $this->defaultObserverService->created(
             $playerStatusEffect,
@@ -31,8 +31,7 @@ class BgPlayerStatusEffectObserver
 
     public function updated(PlayerStatusEffect $playerStatusEffect)
     {
-        $playerStatusEffect->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($playerStatusEffect);
+        $this->clearRelatedCache($playerStatusEffect);
 
         $this->defaultObserverService->updated(
             $playerStatusEffect,
@@ -43,8 +42,7 @@ class BgPlayerStatusEffectObserver
 
     public function deleted(PlayerStatusEffect $playerStatusEffect)
     {
-        $playerStatusEffect->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($playerStatusEffect);
+        $this->clearRelatedCache($playerStatusEffect);
 
         $this->defaultObserverService->deleted(
             $playerStatusEffect,
@@ -55,8 +53,7 @@ class BgPlayerStatusEffectObserver
 
     public function restored(PlayerStatusEffect $playerStatusEffect)
     {
-        $playerStatusEffect->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($playerStatusEffect);
+        $this->clearRelatedCache($playerStatusEffect);
 
         $this->defaultObserverService->restored(
             $playerStatusEffect,
@@ -67,12 +64,24 @@ class BgPlayerStatusEffectObserver
 
     public function forceDeleted(PlayerStatusEffect $playerStatusEffect)
     {
-        $playerStatusEffect->load('boardGame');
-        self::CACHE_SERVICE->clearClientPlayerListCache($playerStatusEffect);
+        $this->clearRelatedCache($playerStatusEffect);
 
         $this->defaultObserverService->forceDeleted(
             $playerStatusEffect,
             self::CACHE_SERVICE
         );
+    }
+
+    private function clearRelatedCache($playerStatusEffect)
+    {
+        $playerStatusEffect->load('boardGame', 'player', 'player.boardGame');
+
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearClientListCache($playerStatusEffect);
+
+        $bgPlayerCacheService = app(BgPlayerCacheService::class);
+        $bgPlayerCacheService->clearListCache();
+        $bgPlayerCacheService->clearBgListCache($playerStatusEffect->boardGame);
+        $bgPlayerCacheService->clearDetailCacheAllTypes($playerStatusEffect->player);
     }
 }

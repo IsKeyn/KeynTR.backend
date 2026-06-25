@@ -3,6 +3,7 @@
 namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\StatusEffectBind;
+use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgStatusEffectBindObserver
@@ -19,6 +20,8 @@ class BgStatusEffectBindObserver
 
     public function created(StatusEffectBind $statusEffectBind)
     {
+        $this->clearRelatedCache($statusEffectBind);
+
         $this->defaultObserverService->created(
             $statusEffectBind,
             self::CACHE_SERVICE,
@@ -28,6 +31,8 @@ class BgStatusEffectBindObserver
 
     public function updated(StatusEffectBind $statusEffectBind)
     {
+        $this->clearRelatedCache($statusEffectBind);
+
         $this->defaultObserverService->updated(
             $statusEffectBind,
             self::CACHE_SERVICE,
@@ -37,6 +42,8 @@ class BgStatusEffectBindObserver
 
     public function deleted(StatusEffectBind $statusEffectBind)
     {
+        $this->clearRelatedCache($statusEffectBind);
+
         $this->defaultObserverService->deleted(
             $statusEffectBind,
             self::CACHE_SERVICE,
@@ -46,6 +53,8 @@ class BgStatusEffectBindObserver
 
     public function restored(StatusEffectBind $statusEffectBind)
     {
+        $this->clearRelatedCache($statusEffectBind);
+
         $this->defaultObserverService->restored(
             $statusEffectBind,
             self::CACHE_SERVICE,
@@ -55,9 +64,24 @@ class BgStatusEffectBindObserver
 
     public function forceDeleted(StatusEffectBind $statusEffectBind)
     {
+        $this->clearRelatedCache($statusEffectBind);
+
         $this->defaultObserverService->forceDeleted(
             $statusEffectBind,
             self::CACHE_SERVICE
         );
+    }
+
+    private function clearRelatedCache($statusEffectBind)
+    {
+        $statusEffectBind->load('playerStatusEffect', 'boardGame', 'playerStatusEffect.player', 'playerStatusEffect.player.boardGame');
+
+        $bgPlayerCacheService = app(BgPlayerCacheService::class);
+        $bgPlayerCacheService->clearListCache();
+        $bgPlayerCacheService->clearBgListCache($statusEffectBind->boardGame);
+
+        foreach ($statusEffectBind->playerStatusEffect as $playerStatusEffect) {
+            $bgPlayerCacheService->clearDetailCacheAllTypes($playerStatusEffect->player);
+        }
     }
 }

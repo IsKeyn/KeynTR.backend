@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardGameGameList extends Model
@@ -63,5 +64,10 @@ class BoardGameGameList extends Model
     public function addedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'added_by');
+    }
+
+    public function playerGames(): HasMany
+    {
+        return $this->hasMany(PlayerGame::class, 'board_game_game_list_id');
     }
 }

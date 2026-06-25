@@ -24,6 +24,7 @@ class BoardGame extends Model
      * board_type - тип доски, который используется в настольной игре
      * subtract_points - количество очков, которое отнимается при рероле
      * time_limit (в минутах, максимальное количество времени для челенджа, используется в таймере)
+     * game_over_type (тип окончания ивента для игрока null - лимит времени, board-last-cell - достижение последней клетки игры)
      */
 
     public const CACHE_NAME = 'board-game';

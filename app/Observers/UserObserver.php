@@ -25,6 +25,8 @@ class UserObserver
      */
     public function created(User $user)
     {
+        $this->clearRelatedCache($user);
+
         $this->defaultObserverService->created(
             $user,
             'App\Services\Cache\UserCacheService',
@@ -42,13 +44,7 @@ class UserObserver
      */
     public function updated(User $user)
     {
-        $user->load('bgPlayer', 'bgPlayer.boardGame');
-
-        $bgPlayerCacheService = app(BgPlayerCacheService::class);
-        foreach ($user->bgPlayer as $player) {
-            PlayerData::dispatch($player);
-            $bgPlayerCacheService->clearClientDetailCache($player);
-        }
+        $this->clearRelatedCache($user);
 
         $this->defaultObserverService->updated(
             $user,
@@ -67,6 +63,8 @@ class UserObserver
      */
     public function deleted(User $user)
     {
+        $this->clearRelatedCache($user);
+
         $this->defaultObserverService->deleted(
             $user,
             'App\Services\Cache\UserCacheService',
@@ -84,6 +82,8 @@ class UserObserver
      */
     public function restored(User $user)
     {
+        $this->clearRelatedCache($user);
+
         $this->defaultObserverService->restored(
             $user,
             'App\Services\Cache\UserCacheService',
@@ -101,11 +101,27 @@ class UserObserver
      */
     public function forceDeleted(User $user)
     {
+        $this->clearRelatedCache($user);
+
         $this->defaultObserverService->forceDeleted(
             $user,
             'App\Services\Cache\UserCacheService'
         );
 
         AdminCacheService::clearAdminAdditionalDataCache();
+    }
+
+    private function clearRelatedCache($user)
+    {
+        $user->load('bgPlayer', 'bgPlayer.boardGame');
+
+        $bgPlayerCacheService = app(BgPlayerCacheService::class);
+
+        foreach ($user->bgPlayer as $player) {
+            PlayerData::dispatch($player);
+            $bgPlayerCacheService->clearClientDetailCache($player);
+
+            $bgPlayerCacheService->clearBgListCache($player->boardGame);
+        }
     }
 }

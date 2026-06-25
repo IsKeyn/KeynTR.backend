@@ -63,7 +63,8 @@ class DiceController extends Controller
                 LogService::addLog(
                     $conditionData['user']->id,
                     $conditionData['boardGame']->id,
-                    $logMessage
+                    $logMessage,
+                    $conditionData['player']->id
                 );
 
                 /* Изменяем позицию игрока на поле */

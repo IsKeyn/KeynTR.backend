@@ -30,7 +30,10 @@ use Illuminate\Http\Request;
 
 class PlayerGameController extends Controller
 {
-    public function getPlayerList($slug, Request $request)
+    public function getPlayerList(
+        $slug,
+        Request $request
+    )
     {
         $conditionData = PlayerGameService::checkConditions($slug);
 
@@ -126,7 +129,12 @@ class PlayerGameController extends Controller
                         $message .= ' и оставил мнение об игре: "' . $request->comment . '"';
                     }
 
-                    LogService::addLog($conditionData['user']->id, $conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $conditionData['user']->id,
+                        $conditionData['boardGame']->id,
+                        $message,
+                        $conditionData['player']->id,
+                    );
                 }
             }
 
@@ -242,6 +250,7 @@ class PlayerGameController extends Controller
                                     $playerCurrentGame->from_user_id,
                                     $conditionData['boardGame']->id,
                                     'получил назад предмет ' . $entity->item->name . ', так как переданная им игра ' . $playerCurrentGame->game->game->name . ' была рерольнута',
+                                    $conditionData['player']->id,
                                 );
 
                                 NotificationService::set(
@@ -280,7 +289,8 @@ class PlayerGameController extends Controller
                                     LogService::addLog(
                                         $playerCurrentGame->from_user_id,
                                         $conditionData['boardGame']->id,
-                                        'получил ' . $pointsForGame . ' очков за отданную игру ' .  $playerCurrentGame->game->game->name
+                                        'получил ' . $pointsForGame . ' очков за отданную игру ' .  $playerCurrentGame->game->game->name,
+                                        $conditionData['player']->id
                                     );
                                 }
                             }
@@ -300,7 +310,8 @@ class PlayerGameController extends Controller
                                     LogService::addLog(
                                         $playerCurrentGame->from_user_id,
                                         $conditionData['boardGame']->id,
-                                        'получил ' . round($pointsForGame/2) . ' очков за переданную мошной игру ' .  $playerCurrentGame->game->game->name
+                                        'получил ' . round($pointsForGame/2) . ' очков за переданную мошной игру ' .  $playerCurrentGame->game->game->name,
+                                        $conditionData['player']->id,
                                     );
                                 }
                             }

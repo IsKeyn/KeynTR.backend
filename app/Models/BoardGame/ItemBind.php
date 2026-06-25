@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ItemBind extends Model
 {
@@ -43,5 +44,10 @@ class ItemBind extends Model
     public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(BoardGameInventory::class, 'board_game_item_id');
     }
 }

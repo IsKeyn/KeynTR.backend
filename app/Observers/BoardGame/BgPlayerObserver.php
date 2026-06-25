@@ -34,7 +34,8 @@ class BgPlayerObserver
             $service->recalculatePlaces($boardGamePlayer->boardGame->id);
         }
 
-        self::CACHE_SERVICE->clearBgListCache($boardGamePlayer->boardGame);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearBgListCache($boardGamePlayer->boardGame);
 
         $this->defaultObserverService->created(
             $boardGamePlayer,
@@ -54,7 +55,8 @@ class BgPlayerObserver
             $service->recalculatePlaces($boardGamePlayer->boardGame->id);
         }
 
-        self::CACHE_SERVICE->clearBgListCache($boardGamePlayer->boardGame);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearBgListCache($boardGamePlayer->boardGame);
 
         $this->defaultObserverService->updated(
             $boardGamePlayer,
@@ -74,7 +76,8 @@ class BgPlayerObserver
             $service->recalculatePlaces($boardGamePlayer->boardGame->id);
         }
 
-        self::CACHE_SERVICE->clearBgListCache($boardGamePlayer->boardGame);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearBgListCache($boardGamePlayer->boardGame);
 
         $this->defaultObserverService->deleted(
             $boardGamePlayer,
@@ -94,7 +97,8 @@ class BgPlayerObserver
             $service->recalculatePlaces($boardGamePlayer->boardGame->id);
         }
 
-        self::CACHE_SERVICE->clearBgListCache($boardGamePlayer->boardGame);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearBgListCache($boardGamePlayer->boardGame);
 
         $this->defaultObserverService->restored(
             $boardGamePlayer,
@@ -114,7 +118,8 @@ class BgPlayerObserver
             $service->recalculatePlaces($boardGamePlayer->boardGame->id);
         }
 
-        self::CACHE_SERVICE->clearBgListCache($boardGamePlayer->boardGame);
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheService->clearBgListCache($boardGamePlayer->boardGame);
 
         $this->defaultObserverService->forceDeleted(
             $boardGamePlayer,

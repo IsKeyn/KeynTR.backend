@@ -129,4 +129,9 @@ class BoardGamePlayer extends Model
             ->positions
             ->where('board_game_id', $this->board_game_id)->sortByDesc('id')->first()->position;
     }
+
+    public function playerInteraction()
+    {
+        return $this->hasMany(PlayerInteractions::class, 'created_by', 'user_id');
+    }
 }

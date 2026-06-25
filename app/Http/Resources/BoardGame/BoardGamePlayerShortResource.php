@@ -17,7 +17,7 @@ class BoardGamePlayerShortResource extends JsonResource
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
 
-    public function toArray($request)
+    public function toArray($request) // TODO Устаревший ресурс наиболее похож на него BgPlayerDetailResource
     {
         $position = BoardGamePlayerPosition::where('board_game_id', $this->board_game_id)
             ->where('user_id', $this->user_id)

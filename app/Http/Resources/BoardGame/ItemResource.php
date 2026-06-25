@@ -7,7 +7,7 @@ use App\Http\Resources\UserPublicResource;
 use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ItemResource extends JsonResource
+class ItemResource extends JsonResource // BgItemResource
 {
     /**
      * Transform the resource into an array.

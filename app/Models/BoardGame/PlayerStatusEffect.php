@@ -28,9 +28,9 @@ class PlayerStatusEffect extends Model
     public const PUBLIC_RESOURCES = [];
 
     protected $fillable = [
-        'user_id', // TODO se_refactoring устаревшее
-        'board_game_player_id',
-        'board_game_id', // TODO se_refactoring устаревшее
+        'user_id',
+        'bg_player_id',
+        'board_game_id',
         'status_effect_id', // TODO se_refactoring устаревшее
         'status_effect_bind_id',
         'active',

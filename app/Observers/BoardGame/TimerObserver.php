@@ -22,6 +22,8 @@ class TimerObserver
 
     public function created(Timer $timer)
     {
+        $this->clearRelatedCache($timer);
+
         $entityCacheService = app(self::CACHE_SERVICE);
         $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
         $entityCacheService->clearAdminDetailCacheById($timer->id);
@@ -34,6 +36,8 @@ class TimerObserver
 
     public function updated(Timer $timer)
     {
+        $this->clearRelatedCache($timer);
+
         $entityCacheService = app(self::CACHE_SERVICE);
         $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
         $entityCacheService->clearAdminDetailCacheById($timer->id);
@@ -48,6 +52,8 @@ class TimerObserver
 
     public function deleted(Timer $timer)
     {
+        $this->clearRelatedCache($timer);
+
         $hasSoftDeletes = in_array(
             \Illuminate\Database\Eloquent\SoftDeletes::class,
             class_uses_recursive($timer)
@@ -80,6 +86,8 @@ class TimerObserver
 
     public function restored(Timer $timer)
     {
+        $this->clearRelatedCache($timer);
+
         $entityCacheService = app(self::CACHE_SERVICE);
         $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
         $entityCacheService->clearAdminDetailCacheById($timer->id);
@@ -91,6 +99,8 @@ class TimerObserver
 
     public function forceDeleted(Timer $timer)
     {
+        $this->clearRelatedCache($timer);
+
         $entityCacheService = app(self::CACHE_SERVICE);
         $entityCacheService->clearListCache(false, ['userId' => $timer->user_id]);
 
@@ -100,5 +110,10 @@ class TimerObserver
     private function detachRelation($entity)
     {
         $entity->playerTimer->each->delete();
+    }
+
+    private function clearRelatedCache($timer)
+    {
+
     }
 }

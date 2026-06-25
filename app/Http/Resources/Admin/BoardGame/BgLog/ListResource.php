@@ -15,6 +15,7 @@ class ListResource extends JsonResource
             ...$this->commonFields(),
             ...$this->commonLoadedFields(),
 
+            'bg_player_id' => $this->bg_player_id,
             'message' => $this->message,
             'board_game_id' => $this->board_game_id,
         ];

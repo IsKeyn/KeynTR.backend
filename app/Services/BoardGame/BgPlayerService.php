@@ -3,6 +3,7 @@
 namespace App\Services\BoardGame;
 
 use App\Http\Resources\BoardGame\Player\BgPlayerLayoutResource;
+use App\Http\Resources\BoardGame\Player\BgPlayerWithInventoryResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
@@ -77,6 +78,94 @@ class BgPlayerService
             return Cache::remember($cacheKey, BgPlayerGameCacheService::TIME, function () use ($player) {
                 return BgPlayerLayoutResource::make($player);
             });
+        }
+    }
+
+    public static function getPlayerWithInventory($player)
+    {
+        $withInventoryCacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $player->id . '_with_inventory';
+
+        return Cache::remember($withInventoryCacheKey, BgPlayerCacheService::TIME, function () use ($player) {
+            $player->load([
+                'inventory' => function ($query) {
+                    $query->active()->orderBy('updated_at', 'desc');
+                },
+                'inventory.itemBind.item',
+                'inventory.itemBind.item.titleImage',
+                'inventory.itemBind.item.sound',
+                'inventory.itemBind.item.authorUser',
+                'statusEffects' => function ($query) {
+                    $query->active()->orderBy('updated_at', 'desc');
+                },
+                'statusEffects.statusEffectBind.statusEffect.titleImage',
+            ]);
+
+            return BgPlayerWithInventoryResource::make($player);
+        });
+    }
+
+    protected function distance($value): void
+    {
+        if (!$value) {
+            return;
+        }
+
+        $table = self::TABLE_NAME;
+
+        // Исправление: проверяем тип данных и получаем значения корректно
+        if (is_array($value)) {
+            $currentUserId = $value['user_id'] ?? null;
+            $minDistance = $value['min_distance'] ?? null;
+            $maxDistance = $value['max_distance'] ?? null;
+        } else {
+            // Если это объект (stdClass)
+            $currentUserId = $value->user_id ?? null;
+            $minDistance = $value->min_distance ?? null;
+            $maxDistance = $value->max_distance ?? null;
+        }
+
+        if (!$currentUserId || ($minDistance === null && $maxDistance === null)) {
+            return;
+        }
+
+        // Подзапрос для получения позиции текущего игрока
+        $currentPlayerPositionSubquery = BoardGamePlayerPosition::select('position')
+            ->where('user_id', $currentUserId)
+            ->whereColumn('board_game_id', $table . '.board_game_id')
+            ->orderByDesc('id')
+            ->limit(1);
+
+        $currentPositionSql = "COALESCE(({$currentPlayerPositionSubquery->toSql()}), 0)";
+        $currentPositionBindings = $currentPlayerPositionSubquery->getBindings();
+
+        // Подзапрос для получения позиции каждого игрока
+        $playerPositionSubquery = BoardGamePlayerPosition::select('position')
+            ->whereColumn('user_id', $table . '.user_id')
+            ->whereColumn('board_game_id', $table . '.board_game_id')
+            ->orderByDesc('id')
+            ->limit(1);
+
+        $playerPositionSql = "COALESCE(({$playerPositionSubquery->toSql()}), 0)";
+        $playerPositionBindings = $playerPositionSubquery->getBindings();
+
+        // Формируем условие расстояния
+        $distanceExpression = "ABS({$playerPositionSql} - {$currentPositionSql})";
+        $bindings = array_merge($playerPositionBindings, $currentPositionBindings);
+
+        $conditions = [];
+
+        if ($maxDistance !== null) {
+            $conditions[] = "{$distanceExpression} <= ?";
+            $bindings[] = (int)$maxDistance;
+        }
+
+        if ($minDistance !== null) {
+            $conditions[] = "{$distanceExpression} >= ?";
+            $bindings[] = (int)$minDistance;
+        }
+
+        if (!empty($conditions)) {
+            $this->query->whereRaw(implode(' AND ', $conditions), $bindings);
         }
     }
 

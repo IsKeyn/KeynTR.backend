@@ -24,6 +24,7 @@ class BoardGameLog extends Model
     public const SERVICE = 'App\Services\BoardGame\LogService';
 
     protected $fillable = [
+        'bg_player_id',
         'message',
         'board_game_id',
         'sort',

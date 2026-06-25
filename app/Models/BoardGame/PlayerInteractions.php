@@ -63,4 +63,9 @@ class PlayerInteractions extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function player()
+    {
+        return $this->belongsTo(BoardGamePlayer::class, 'created_by', 'user_id');
+    }
 }

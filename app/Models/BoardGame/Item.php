@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Item extends Model
@@ -55,5 +56,10 @@ class Item extends Model
     public function authorUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author');
+    }
+
+    public function itemBinds(): HasMany
+    {
+        return $this->hasMany(ItemBind::class);
     }
 }

@@ -30,14 +30,23 @@ class LogService
         );
     }
 
-    public static function addLog($userId, $boardGameId, $message)
+    public static function addLog(
+        $userId,
+        $boardGameId,
+        $message,
+        $playerId = null
+    )
     {
-        $newEntry = [
+        $fields = [
             'board_game_id' => $boardGameId,
             'message' => $message,
             'created_by' => $userId,
         ];
 
-        return BoardGameLog::create($newEntry);
+        if ($playerId) {
+            $fields['bg_player_id'] = $playerId;
+        }
+
+        return BoardGameLog::create($fields);
     }
 }

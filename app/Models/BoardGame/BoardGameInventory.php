@@ -42,7 +42,12 @@ class BoardGameInventory extends Model
         'has_used' => 'boolean',
     ];
 
-    public function item(): BelongsTo // TODO может стоит переименовать в ItemBind по аналогии со StatusEffectBind
+    public function item(): BelongsTo // TODO удалить, когда будет переведено на itemBind
+    {
+        return $this->belongsTo(ItemBind::class, 'board_game_item_id');
+    }
+
+    public function itemBind(): BelongsTo
     {
         return $this->belongsTo(ItemBind::class, 'board_game_item_id');
     }
