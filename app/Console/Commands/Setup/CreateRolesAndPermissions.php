@@ -568,6 +568,14 @@ class CreateRolesAndPermissions extends Command
                 'sort' => 430,
                 'active' => true,
             ],
+            [
+                'id' => 44,
+                'name' => 'Редактирование взаимодействий игроков',
+                'system_name' => 'bg.player-interaction.edit',
+                'entity_type' => null,
+                'sort' => 375,
+                'active' => true,
+            ],
         ];
 
         foreach ($elements as $element) {

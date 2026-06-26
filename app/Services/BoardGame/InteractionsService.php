@@ -6,6 +6,7 @@ use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardPositionEffectsBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
+use App\Services\Entity\EntityService;
 use App\Services\ErrorService;
 use App\Services\NotificationService;
 
@@ -558,5 +559,28 @@ class InteractionsService
                 }
             }
         }
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            PlayerInteractions::class,
+            PlayerInteractions::CACHE_SERVICE,
+            PlayerInteractions::DETAIL_RESOURCE,
+            $id,
+            [
+                'tags',
+                'additionalFields',
+                'media',
+                'seo',
+                'seo.entity',
+                'seo.entity.tags',
+                'menu',
+                'menu.elements',
+                'blocks',
+            ],
+            $forceRefresh,
+            $withTrashed,
+        );
     }
 }

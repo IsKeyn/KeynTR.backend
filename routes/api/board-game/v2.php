@@ -16,6 +16,7 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
     Route::name('inventory.')->group(base_path('routes/api/board-game/fragments/Inventory.php'));
     Route::name('item.')->group(base_path('routes/api/board-game/fragments/Item.php'));
     Route::name('status-effect.')->group(base_path('routes/api/board-game/fragments/StatusEffect.php'));
+    Route::name('board.')->group(base_path('routes/api/board-game/fragments/Board.php'));
     Route::name('timer.')->group(base_path('routes/api/board-game/fragments/Timer.php'));
 
     Route::post('roll-dice', [DiceController::class, 'rollDice'])->name('roll-dice');
@@ -24,10 +25,6 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
         Route::get('get/{slug}', 'getBySlug')->name('get-by-slug');
         Route::get('layout/get', 'getLayoutData')->name('get-layout-data');
         Route::get('list', 'getList')->name('list');
-    });
-
-    Route::prefix('board/')->controller(BoardController::class)->name('board.')->group(function() {
-        Route::get('get/{slug}/', 'get')->name('get');
     });
 
     Route::prefix('game-list/')->controller(GameListController::class)->name('game-list.')->group(function() {

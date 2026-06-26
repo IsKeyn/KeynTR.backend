@@ -36,4 +36,9 @@ class BoardPositionEffect extends Model
     protected $casts = [
         'active' => 'boolean',
     ];
+
+    public function boardPositionEffectBinds()
+    {
+        return $this->hasMany(BoardPositionEffectsBind::class, 'position_effect_id');
+    }
 }

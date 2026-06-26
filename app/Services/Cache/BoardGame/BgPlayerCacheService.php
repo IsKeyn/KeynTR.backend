@@ -82,5 +82,8 @@ class BgPlayerCacheService extends BaseCacheService
 
         $withInventoryCacheKey = static::DETAIL_PREFIX . '_' . $element->id . '_with_inventory';
         Cache::forget($withInventoryCacheKey);
+
+        $boardCacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $element->boardGame->slug . '_' . $element->user_id . '_board';
+        Cache::forget($boardCacheKey);
     }
 }

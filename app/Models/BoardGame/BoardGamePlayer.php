@@ -85,6 +85,11 @@ class BoardGamePlayer extends Model
         return $this->hasMany(BoardGamePlayerPosition::class, 'user_id', 'user_id');
     }
 
+    public function playerPositions()
+    {
+        return $this->hasMany(BoardGamePlayerPosition::class, 'bg_player_id');
+    }
+
 //    public function currentGames()
 //    {
 //        return $this
@@ -130,8 +135,13 @@ class BoardGamePlayer extends Model
             ->where('board_game_id', $this->board_game_id)->sortByDesc('id')->first()->position;
     }
 
-    public function playerInteraction()
+    public function userInteraction()
     {
         return $this->hasMany(PlayerInteractions::class, 'created_by', 'user_id');
+    }
+
+    public function playerInteractions()
+    {
+        return $this->hasMany(PlayerInteractions::class, 'bg_player_id');
     }
 }

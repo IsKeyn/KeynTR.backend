@@ -74,10 +74,13 @@ class BgPlayerPositionObserver
 
     private function clearRelatedCache($boardGamePlayerPosition)
     {
-        $boardGamePlayerPosition->load(['boardGame']);
+        $boardGamePlayerPosition->load(['boardGame', 'boardGame.players']);
 
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $bgPlayerCacheService->clearBgListCache($boardGamePlayerPosition->boardGame);
-//        $bgPlayerCacheService->clearDetailCacheAllTypes($boardGamePlayerPosition->boardGame);
+
+        foreach ($boardGamePlayerPosition->boardGame->players as $player) {
+            $bgPlayerCacheService->clearDetailCacheAllTypes($player);
+        }
     }
 }

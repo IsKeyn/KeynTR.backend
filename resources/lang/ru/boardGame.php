@@ -2,6 +2,10 @@
 
 return [
     'user_not_found' => 'Пользователь не найден',
+
+    'not_found' => 'Ивент не найден',
+    'board_type_not_found' => 'В ивенте отсуствует настройка board_type, указывающая на тип игрового поля',
+
     'timer_not_found' => 'Таймер не найден',
     'timer_settings_not_received' => 'Настройки не получены',
     'timer_settings_updated' => 'Настройки обновлены',
@@ -16,5 +20,9 @@ return [
             'denied' => 'отказался от статус эффекта :name',
             'successfully_applied' => 'Успешно применено',
         ],
+    ],
+
+    'board' => [
+        'not_found' => 'Игровое поле не найдено',
     ],
 ];

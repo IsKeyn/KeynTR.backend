@@ -6,6 +6,7 @@ use App\Events\PlayerData;
 use App\Models\User;
 use App\Services\Cache\AdminCacheService;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
+use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class UserObserver
@@ -116,12 +117,15 @@ class UserObserver
         $user->load('bgPlayer', 'bgPlayer.boardGame');
 
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
+        $boardGameCacheService = app(BoardGameCacheService::class);
 
         foreach ($user->bgPlayer as $player) {
             PlayerData::dispatch($player);
             $bgPlayerCacheService->clearClientDetailCache($player);
-
             $bgPlayerCacheService->clearBgListCache($player->boardGame);
+
+            $boardGameCacheService->clearDetailCacheAllTypes($player->boardGame);
+            $boardGameCacheService->clearClientPlayerListCacheFn($player->boardGame->slug, $player->user_id);
         }
     }
 }

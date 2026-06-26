@@ -41,4 +41,22 @@ class BoardGameCacheService extends BaseCacheService
         $cacheKey = static::LIST_PREFIX . '_' . $slug . '_' . $userID;
         Cache::forget($cacheKey);
     }
+
+    public function clearDetailCacheAllTypes($element)
+    {
+        $this->clearClientDetailCache($element);
+        $this->clearDetailCacheBySlug($element->slug);
+        $this->clearAdminDetailCacheById($element->id);
+    }
+
+    public function clearDetailCacheBySlug($slug, $showMessage = false)
+    {
+        $cacheKey = static::DETAIL_PREFIX . '_' . $slug;
+        Cache::forget($cacheKey);
+
+        $cacheKey = static::DETAIL_PREFIX . '_' . $slug . '_board';
+        Cache::forget($cacheKey);
+
+        if ($showMessage) echo $cacheKey . PHP_EOL;
+    }
 }

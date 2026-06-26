@@ -2,14 +2,23 @@
 
 namespace App\Observers;
 
+use App\Models\BoardGame\BoardGame;
 use App\Models\Setting;
-use App\Models\Version;
-use App\Services\Cache\SettingCacheService;
-use App\Services\SettingService;
-use App\Services\VersionService;
+use App\Services\Cache\BoardGame\BoardGameCacheService;
+use App\Services\Observer\DefaultObserverService;
 
 class SettingObserver
 {
+    private const CACHE_SERVICE = Setting::CACHE_SERVICE;
+    private const SERVICE = Setting::SERVICE;
+
+    protected DefaultObserverService $defaultObserverService;
+
+    public function __construct(DefaultObserverService $defaultObserverService)
+    {
+        $this->defaultObserverService = $defaultObserverService;
+    }
+
     /**
      * Handle the Setting "created" event.
      *
@@ -18,11 +27,13 @@ class SettingObserver
      */
     public function created(Setting $setting)
     {
-        $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
+        $this->clearRelatedCache($setting);
 
-        $version = SettingService::getById($setting->id, true)->toArray(request());
-        VersionService::set($version, $setting->model, $setting->id, $setting->name, Version::TYPE_CREATE);
+        $this->defaultObserverService->created(
+            $setting,
+            self::CACHE_SERVICE,
+            self::SERVICE
+        );
     }
 
     /**
@@ -33,11 +44,13 @@ class SettingObserver
      */
     public function updated(Setting $setting)
     {
-        $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
+        $this->clearRelatedCache($setting);
 
-        $version = SettingService::getById($setting->id, true)->toArray(request());
-        VersionService::set($version, $setting->model, $setting->id, $setting->name, Version::TYPE_CREATE);
+        $this->defaultObserverService->updated(
+            $setting,
+            self::CACHE_SERVICE,
+            self::SERVICE
+        );
     }
 
     /**
@@ -48,24 +61,13 @@ class SettingObserver
      */
     public function deleted(Setting $setting)
     {
-        $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
+        $this->clearRelatedCache($setting);
 
-        if (!$setting->isForceDeleting()) {
-            $version = SettingService::getById($setting->id, true, true)->toArray(request());
-            VersionService::set($version, $setting->model, $setting->id, $setting->name, Version::TYPE_SOFT_DELETE);
-        } else {
-            $lastVersion = Version::query()
-                ->where('entity_type', $setting->model)
-                ->where('entity_id', $setting->id)
-                ->latest()
-                ->first();
-
-            if ($lastVersion) {
-                VersionService::set($lastVersion->data, $setting->model, $setting->id, $setting->name, Version::TYPE_DELETE);
-            }
-            return;
-        }
+        $this->defaultObserverService->deleted(
+            $setting,
+            self::CACHE_SERVICE,
+            self::SERVICE
+        );
     }
 
     /**
@@ -76,11 +78,13 @@ class SettingObserver
      */
     public function restored(Setting $setting)
     {
-        $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
+        $this->clearRelatedCache($setting);
 
-        $version = SettingService::getById($setting->id, true, true)->toArray(request());
-        VersionService::set($version, $setting->model, $setting->id, $setting->name, Version::TYPE_RECOVERY);
+        $this->defaultObserverService->restored(
+            $setting,
+            self::CACHE_SERVICE,
+            self::SERVICE
+        );
     }
 
     /**
@@ -91,7 +95,21 @@ class SettingObserver
      */
     public function forceDeleted(Setting $setting)
     {
-        $versionCacheService = app(SettingCacheService::class);
-        $versionCacheService->clearListCache(false, $setting->site_id, $setting->entity_type, $setting->entity_id);
+        $this->clearRelatedCache($setting);
+
+        $this->defaultObserverService->forceDeleted(
+            $setting,
+            self::CACHE_SERVICE
+        );
+    }
+
+    private function clearRelatedCache($setting)
+    {
+        $setting->load['entity'];
+
+        if ($setting->entity_id !== null && $setting->entity_type === BoardGame::class) {
+            $boardGameCacheService = app(BoardGameCacheService::class);
+            $boardGameCacheService->clearDetailCacheAllTypes($setting->entity);
+        }
     }
 }

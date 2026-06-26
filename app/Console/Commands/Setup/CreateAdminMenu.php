@@ -220,6 +220,16 @@ class CreateAdminMenu extends Command
                 'sort' => 45,
                 'active' => true,
             ],
+            [
+                'name' => 'Взаимодействия игроков',
+                'url' => '/admin/board-game-player-interaction',
+                'target' => null,
+                'menu_type_id' => 34,
+                'link_type' => 'route',
+                'icon' => null,
+                'sort' => 65,
+                'active' => true,
+            ],
         ];
 
         foreach ($elements as $element) {
@@ -392,6 +402,10 @@ class CreateAdminMenu extends Command
             [
                 'url' => '/admin/board-game-player-position',
                 'permissions' => ['bg.player-position.edit'],
+            ],
+            [
+                'url' => '/admin/board-game-player-interaction',
+                'permissions' => ['bg.player-interaction.edit'],
             ],
             [
                 'url' => '/admin/board-game-game-list',

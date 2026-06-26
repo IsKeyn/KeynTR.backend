@@ -4,7 +4,7 @@ namespace App\Http\Resources\BoardGame;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardGamePlayerPositionsResource extends JsonResource
+class BoardGamePlayerPositionsResource extends JsonResource // TODO устаревший ресурс, новый BgPlayerPositionsResource
 {
     /**
      * Transform the resource into an array.

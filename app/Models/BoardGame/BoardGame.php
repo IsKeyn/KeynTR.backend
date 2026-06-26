@@ -14,7 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardGame extends Model
 {
-    use HasFactory, ExtendModelTrait, SoftDeletes;
+    use HasFactory,
+        ExtendModelTrait,
+        SoftDeletes;
 
     /*
      * Настройки BoardGame
@@ -33,6 +35,8 @@ class BoardGame extends Model
     const CLOSE_STATUS = 0;
     const OPEN_STATUS = 1;
     const COMING_SOON = 2;
+
+    public const PUBLIC_CONTROLLER = 'App\Http\Controllers\BoardGame\BoardController';
 
     protected $fillable = [
         'name',
@@ -59,11 +63,6 @@ class BoardGame extends Model
         return $query->where('is_close', false);
     }
 
-    public function players()
-    {
-        return $this->hasMany(BoardGamePlayer::class, 'board_game_id');
-    }
-
     public function getStatusAttribute()
     {
         $status = self::OPEN_STATUS;
@@ -84,9 +83,19 @@ class BoardGame extends Model
         return $this->morphMany(Setting::class, 'entity');
     }
 
+    public function players()
+    {
+        return $this->hasMany(BoardGamePlayer::class, 'board_game_id');
+    }
+
     public function statusEffectBinds(): HasMany
     {
         return $this->hasMany(StatusEffectBind::class, 'board_game_id');
+    }
+
+    public function boardPositionEffectsBinds(): HasMany
+    {
+        return $this->hasMany(BoardPositionEffectsBind::class, 'board_game_id');
     }
 
     public function statusEffects(): BelongsToMany

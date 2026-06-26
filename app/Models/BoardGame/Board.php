@@ -10,7 +10,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Board extends Model
 {
-    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait, SoftDeletes;
+    use HasFactory,
+        ExtendModelTrait,
+        ExtendModelForBoardGameTrait,
+        SoftDeletes;
 
     protected $table = 'bg_boards';
 
@@ -19,9 +22,11 @@ class Board extends Model
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgBoardCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgBoardFilter';
+    public const SERVICE = 'App\Services\BoardGame\BoardService';
+
+    /* Admin resource */
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgBoard\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgBoard\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\BoardService';
 
     protected $fillable = [
         'name',
