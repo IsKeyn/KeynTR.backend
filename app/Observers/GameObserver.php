@@ -6,6 +6,7 @@ use App\Models\BoardGame\BoardGameGameList;
 use App\Models\Game;
 use App\Models\Version;
 use App\Services\Cache\AdminCacheService;
+use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Cache\CompanyCacheService;
 use App\Services\Cache\GameCacheService;
 use App\Services\Cache\GenreCacheService;
@@ -23,6 +24,8 @@ class GameObserver
      */
     public function created(Game $game)
     {
+        $this->clearRelatedCache($game);
+
         $gameCacheService = app(GameCacheService::class);
         $gameCacheService->clearGameListCache();
         $gameCacheService->clearAdminDetailCacheById($game->id);
@@ -42,6 +45,8 @@ class GameObserver
      */
     public function updated(Game $game)
     {
+        $this->clearRelatedCache($game);
+
         $gameCacheService = app(GameCacheService::class);
         $gameCacheService->clearGameListCache();
         $gameCacheService->clearAdminDetailCacheById($game->id);
@@ -89,6 +94,8 @@ class GameObserver
      */
     public function deleted(Game $game)
     {
+        $this->clearRelatedCache($game);
+
         AdminCacheService::clearAdminAdditionalDataCache();
 
         if (!$game->isForceDeleting()) {
@@ -121,6 +128,8 @@ class GameObserver
      */
     public function restored(Game $game)
     {
+        $this->clearRelatedCache($game);
+
         AdminCacheService::clearAdminAdditionalDataCache();
 
         $gameCacheService = app(GameCacheService::class);
@@ -140,6 +149,8 @@ class GameObserver
      */
     public function forceDeleted(Game $game)
     {
+        $this->clearRelatedCache($game);
+
         AdminCacheService::clearAdminAdditionalDataCache();
 
         $gameCacheService = app(GameCacheService::class);
@@ -168,5 +179,17 @@ class GameObserver
         $game->link()->detach();
 
         BoardGameGameList::where('game_id', $game->id)->delete();
+    }
+
+    private function clearRelatedCache($game)
+    {
+        $game->load('bgGamesList', 'bgGamesList.boardGame', 'bgGamesList.game');
+
+        $bgPlayerCacheService = app(BgPlayerGameCacheService::class);
+
+        foreach ($game->bgGamesList as $bgGamesList) {
+            $bgPlayerCacheService->clearClientDetailCache($bgGamesList);
+            $bgPlayerCacheService->clearActionsWithGameList($bgGamesList);
+        }
     }
 }

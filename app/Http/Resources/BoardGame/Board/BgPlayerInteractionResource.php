@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\BoardGame\Board;
 
-
 use App\Http\Resources\User\UserPublicResource;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;

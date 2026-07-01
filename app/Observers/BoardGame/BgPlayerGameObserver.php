@@ -3,6 +3,7 @@
 namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\PlayerGame;
+use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgPlayerGameObserver
@@ -75,10 +76,19 @@ class BgPlayerGameObserver
     {
         $playerGame->load(['boardGame', 'player', 'user']);
 
+        $service = app(self::CACHE_SERVICE);
+        $service->clearClientDetailCache($playerGame);
+        $service->clearActionsWithGameList($playerGame);
+
         if ($playerGame->player) {
-            $service = app(self::SERVICE);
             $service->clearPlayerGameHistoryCache($playerGame->player);
-            $service->clearBgListCache($playerGame->boardGame);
+
+        }
+
+        $bgPlayerCacheService = app(BgPlayerCacheService::class);
+
+        if ($playerGame->boardGame) {
+            $bgPlayerCacheService->clearBgListCache($playerGame->boardGame);
         }
     }
 }

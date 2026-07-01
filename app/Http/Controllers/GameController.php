@@ -101,13 +101,25 @@ class GameController extends Controller
 
         $time = GameCacheService::TIME;
 
-        if ($request->filters) {
-            $cacheToken = Cache::rememberForever(
-                GameCacheService::LIST_FILTER_TOKEN,
-                fn() => Str::random(10)
-            );
+        if ($request->defaultFilters || $request->filters) {
+            if ($request->defaultFilters) {
+                $cacheToken = Cache::rememberForever(
+                    GameCacheService::LIST_FILTER_TOKEN,
+                    fn() => Str::random(10)
+                );
 
-            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+                $cacheKey .= '_' . md5(json_encode($request->defaultFilters, 16)) . '_' . $cacheToken;
+            }
+
+            if ($request->filters) {
+                $cacheToken = Cache::rememberForever(
+                    GameCacheService::LIST_FILTER_TOKEN,
+                    fn() => Str::random(10)
+                );
+
+                $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            }
+
             $time = GameCacheService::FILTER_TIME;
         }
 
@@ -131,7 +143,8 @@ class GameController extends Controller
                 }
 
                 // Получаем список всех игр
-                $games = Game::query()
+                $filter = new GameFilter($request, 'defaultFilters');
+                $games = $filter->apply(Game::query())
                     ->with($with)
                     ->where('show_in_list', true);
 

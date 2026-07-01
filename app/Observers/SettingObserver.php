@@ -105,7 +105,7 @@ class SettingObserver
 
     private function clearRelatedCache($setting)
     {
-        $setting->load['entity'];
+        $setting->load(['entity']);
 
         if ($setting->entity_id !== null && $setting->entity_type === BoardGame::class) {
             $boardGameCacheService = app(BoardGameCacheService::class);

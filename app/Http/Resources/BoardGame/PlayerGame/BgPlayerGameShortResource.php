@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\BoardGame\PlayerGame;
 
+use App\Http\Resources\BoardGame\BgShortResource;
 use App\Http\Resources\BoardGame\Games\BgGameResource;
 use App\Http\Resources\CommentResource;
 use App\Http\Resources\User\UserPublicResource;
@@ -33,6 +34,7 @@ class BgPlayerGameShortResource extends JsonResource
             'type' => $this->type,
             'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
             'game' => $this->whenLoaded('game', fn() => BgGameResource::make($this->game)),
+            'board_game' => $this->whenLoaded('boardGame', fn() => BgShortResource::make($this->boardGame)),
             'comment_id' => $this->comment_id,
             'comment' => $this->whenLoaded('comment', fn() => CommentResource::make($this->comment)),
             'time' => $this->time,

@@ -80,6 +80,6 @@ class BoardGameObserver
         $cacheService->clearClientPlayerListByBgCache($boardGame);
 
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
-        $bgPlayerCacheService->clearClientPlayerListByBgCache($boardGame);
+        $bgPlayerCacheService->clearBgListCache($boardGame);
     }
 }

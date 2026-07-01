@@ -31,10 +31,7 @@ class BoardController extends Controller
      * @param BoardGame $BoardGame
      * @return array|JsonResponse
      */
-    public function get(
-        $slug,
-        BoardGame $BoardGame
-    )
+    public function get($slug, BoardGame $BoardGame) : array|JsonResponse
     {
         if (!$slug) {
             return response()
@@ -106,9 +103,12 @@ class BoardController extends Controller
         if ($user) {
             $cacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $slug . '_' . $user->id . '_board';
 
-            $returnData2 = Cache::remember($cacheKey, BgPlayerCacheService::TIME, function () use ($user) {
+            $returnData2 = Cache::remember($cacheKey, BgPlayerCacheService::TIME, function () use ($user, $BoardGame, $slug) {
+                $bgId = $BoardGame::query()->findBySlug($slug)->value('id');
+
                 $player = BoardGamePlayer::query()
                     ->where('user_id', $user->id)
+                    ->findByBoardGame($bgId)
                     ->with([
                         'user',
                         'user.avatar',
@@ -143,30 +143,35 @@ class BoardController extends Controller
         ];
     }
 
+    /**
+     * @param Request $request
+     * @return array|bool|mixed|string|null
+     */
     public function usePositionEffect(Request $request)
     {
         $conditionData = PlayerGameService::checkConditions($request->slug);
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
-        } else {
-            $result = null;
-
-            if ($request->id) {
-                /* Получаем информацию о эффекте позиции */
-                $boardPositionEffectBind = BoardPositionEffectsBind::query()
-                    ->where('id', $request->id)->first();
-
-                $position = BoardGamePlayerPosition::query()
-                    ->findByBoardGame($conditionData['boardGame']->id)
-                    ->findByUserId($conditionData['user']->id)
-                    ->where('position', $boardPositionEffectBind->position)
-                    ->first();
-
-                 return BoardService::activateCellEffect($boardPositionEffectBind, $position, $conditionData, $request);
-            } else {
-                return ErrorService::message('Не получен ID предмета инвентаря');
-            }
         }
+
+        $result = null;
+
+        if (!$request->id) {
+            return ErrorService::message('Не получен ID предмета инвентаря');
+        }
+
+        /* Получаем информацию о эффекте позиции */
+        $boardPositionEffectBind = BoardPositionEffectsBind::query()
+            ->where('id', $request->id)
+            ->first();
+
+        $position = BoardGamePlayerPosition::query()
+            ->findByBoardGame($conditionData['boardGame']->id)
+            ->findByUserId($conditionData['user']->id)
+            ->where('position', $boardPositionEffectBind->position)
+            ->first();
+
+         return BoardService::activateCellEffect($boardPositionEffectBind, $position, $conditionData, $request);
     }
 }

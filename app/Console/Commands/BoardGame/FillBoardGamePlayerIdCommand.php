@@ -12,6 +12,8 @@ use Illuminate\Console\Command;
 
 class FillBoardGamePlayerIdCommand extends Command
 {
+    /* TODO После выполнения команды, проверить, что updated_at не изменились как минимум в таблице player_games */
+
     /**
      * The name and signature of the console command.
      *
@@ -41,7 +43,11 @@ class FillBoardGamePlayerIdCommand extends Command
                     ->value('id');
 
                 $playerStatusEffect->bg_player_id = $player;
-                $playerStatusEffect->save();
+                $playerStatusEffect->save(['timestamps' => false]);
+
+                PlayerStatusEffect::withoutTimestamps(function () use ($playerStatusEffect) {
+                    $playerStatusEffect->save();
+                });
             }
         }
 
@@ -55,7 +61,9 @@ class FillBoardGamePlayerIdCommand extends Command
                     ->value('id');
 
                 $playerStatusEffect->bg_player_id = $player;
-                $playerStatusEffect->save();
+                BoardGameInventory::withoutTimestamps(function () use ($playerStatusEffect) {
+                    $playerStatusEffect->save();
+                });
             }
         }
 
@@ -68,8 +76,11 @@ class FillBoardGamePlayerIdCommand extends Command
                     ->where('board_game_id', $playerStatusEffect->board_game_id)
                     ->value('id');
 
+                $this->line('bg_player_id ID игрока: ' . $player);
                 $playerStatusEffect->bg_player_id = $player;
-                $playerStatusEffect->save();
+                PlayerGame::withoutTimestamps(function () use ($playerStatusEffect) {
+                    $playerStatusEffect->save();
+                });
             }
         }
 
@@ -84,7 +95,9 @@ class FillBoardGamePlayerIdCommand extends Command
 
                 $this->line('PlayerInteractions ID игрока: ' . $player);
                 $playerInteraction->bg_player_id = $player;
-                $playerInteraction->save();
+                PlayerInteractions::withoutTimestamps(function () use ($playerStatusEffect) {
+                    $playerStatusEffect->save();
+                });
             }
         }
 
@@ -99,7 +112,9 @@ class FillBoardGamePlayerIdCommand extends Command
 
                 $this->line('BoardGamePlayerPosition ID игрока: ' . $player);
                 $boardGamePlayerPosition->bg_player_id = $player;
-                $boardGamePlayerPosition->save();
+                BoardGamePlayerPosition::withoutTimestamps(function () use ($playerStatusEffect) {
+                    $playerStatusEffect->save();
+                });
             }
         }
     }

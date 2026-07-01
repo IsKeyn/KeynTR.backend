@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
+use App\Http\Resources\BoardGame\Board\BgPlayerInteractionResource;
 use App\Http\Resources\BoardGame\GameListResource;
-use App\Http\Resources\BoardGame\Games\GameRouletteListResource;
-use App\Http\Resources\BoardGame\PlayerInteractionResource;
+use App\Http\Resources\BoardGame\Games\BgGameRouletteListResource;
+use App\Http\Resources\BoardGame\Player\BgPlayerWithCurrentGameResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGamePlayer;
@@ -30,66 +30,103 @@ use Illuminate\Http\Request;
 
 class PlayerGameController extends Controller
 {
+    /**
+     * @param Request $request
+     * @param $slug
+     * @return array|string[]
+     */
     public function getPlayerList(
-        $slug,
-        Request $request
+        Request $request,
+        $slug
     )
     {
         $conditionData = PlayerGameService::checkConditions($slug);
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
-        } else {
-            $coopInteractions = PlayerInteractions::findByBoardGame($conditionData['boardGame']->id)->active()
-                ->where('type', 'inviteToCoop')
-                ->whereIn('status', [PlayerInteractions::STATUS_ACTIVE, PlayerInteractions::STATUS_ACCEPTED])
-                ->where('created_by', $conditionData['user']->id)->get();
+        }
 
-            if ($conditionData['player']->currentGames->where('board_game_id', $conditionData['boardGame']->id)->first()) {
-                return [
-                    'status' => 1,
-                    'coopInteraction' => PlayerInteractionResource::collection($coopInteractions),
-                    'player' => BoardGamePlayerWithCurrentGameResource::make($conditionData['player']),
-                ];
-            } else {
-                // Проверяем статус эффекты и при необходимости устанавливаем платформу фильтрации
-                $playerStatusEffects = PlayerStatusEffect::query()
-                    ->findByUserId($conditionData['user']->id)
-                    ->findByBoardGame($conditionData['boardGame']->id)
-                    ->active()
-                    ->get();
+        $coopInteractions = PlayerInteractions::query()
+            ->findByBoardGame($conditionData['boardGame']->id)
+            ->where('created_by', $conditionData['user']->id)
+            ->where('type', 'inviteToCoop')
+            ->whereIn('status', [PlayerInteractions::STATUS_ACTIVE, PlayerInteractions::STATUS_ACCEPTED])
+            ->with([
+                'withPlayerData',
+                'withPlayerData.avatar',
+                'createdByData',
+                'createdByData.avatar',
+            ])
+            ->active()
+            ->get();
 
-                $platformSlug = null;
+        $conditionData['player']
+            ->load([
+                'positions',
+                'currentGames',
+                'currentGames.game',
+                'currentGames.game.platform',
+                'currentGames.game.addedBy',
+                'currentGames.game.game',
+                'currentGames.game.game.dates',
+                'currentGames.game.game.titleImage',
+                'currentGames.game.game.cover',
+                'currentGames.game.game.genres',
+                'user',
+                'user.avatar',
+                'mainTimers' => function ($query) use ($conditionData) {
+                    $query->where('board_game_id', $conditionData['boardGame']->id)->orderBy('id', 'desc');
+                },
+            ]);
 
-                foreach ($playerStatusEffects as $statusEffect) {
-                    if ((int)$statusEffect->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
-                        foreach (json_decode($statusEffect->statusEffect->actions) as $action) {
-                            if (isset($action->type) && $action->type === 'platform' && $action->value) {
-                                $platformSlug = $action->value;
-                            }
-                        }
+        // Если есть текущая игра, то возвращаем её
+        if ($conditionData['player']->currentGames->first()) {
+            return [
+                'status' => 1,
+                'coopInteraction' => BgPlayerInteractionResource::collection($coopInteractions),
+                'player' => BgPlayerWithCurrentGameResource::make($conditionData['player']),
+            ];
+        }
 
-                        if ($platformSlug) break;
+        // Проверяем статус эффекты и при необходимости устанавливаем платформу фильтрации
+        $playerStatusEffects = PlayerStatusEffect::query()
+            ->findByUserId($conditionData['user']->id)
+            ->findByBoardGame($conditionData['boardGame']->id)
+            ->with([
+                'statusEffectBind.statusEffect'
+            ])
+            ->active()
+            ->get();
+
+        $platformSlug = null;
+
+        foreach ($playerStatusEffects as $statusEffect) {
+            if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
+                foreach (json_decode($statusEffect->statusEffectBind->statusEffect->actions) as $action) {
+                    if (isset($action->type) && $action->type === 'platform' && $action->value) {
+                        $platformSlug = $action->value;
                     }
                 }
 
-                if ($platformSlug) {
-                    $platformId = GamingPlatform::findBySlug($platformSlug)->value('id');
-                } else {
-                    $platformId = $request->platform_id ? $request->platform_id : null;
-                }
-
-                $games = $this->getFilteredGameList($platformId, $conditionData);
-
-                return [
-                    'status' => 1,
-                    'coopInteraction' => PlayerInteractionResource::collection($coopInteractions),
-                    'games' => isset($games['gameList']) ? GameRouletteListResource::collection($games['gameList']) : null,
-                    'listType' => isset($games['listType']) ? $games['listType'] : null,
-                    'player' => BoardGamePlayerWithCurrentGameResource::make($conditionData['player']),
-                ];
+                if ($platformSlug) break;
             }
         }
+
+        if ($platformSlug) {
+            $platformId = GamingPlatform::findBySlug($platformSlug)->value('id');
+        } else {
+            $platformId = $request->platform_id ? $request->platform_id : null;
+        }
+
+        $games = $this->getFilteredGameList($platformId, $conditionData);
+
+        return [
+            'status' => 1,
+            'coopInteraction' => BgPlayerInteractionResource::collection($coopInteractions),
+            'games' => isset($games['gameList']) ? BgGameRouletteListResource::collection($games['gameList']) : null,
+            'listType' => isset($games['listType']) ? $games['listType'] : null,
+            'player' => BgPlayerWithCurrentGameResource::make($conditionData['player']),
+        ];
     }
 
     public function add(Request $request)
@@ -490,142 +527,158 @@ class PlayerGameController extends Controller
         return $fields;
     }
 
-    public function roll($slug, Request $request, PlayerGame $playerGame) {
+    /**
+     * Функция отвечает за выбор игры, при крутке рулетки
+     * @param $slug
+     * @param Request $request
+     * @param PlayerGame $playerGame
+     * @return GameListResource|array|string[]
+     */
+    public function roll(
+        $slug,
+        Request $request,
+        PlayerGame $playerGame
+    ) {
         $conditionData = PlayerGameService::checkConditions($slug);
 
         // Проверяем, что игрок может крутить рулетку игр
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
-        } else {
-            // Проверяем, не превысил ли игрок таймер
-            $timer = Timer::query()
-                ->where('user_id', $conditionData['user']->id)
-                ->where('board_game_id', $conditionData['boardGame']->id)
-                ->where('slug','main')
-                ->where('active', true)
-                ->orderBy('id', 'desc')->first();
+        }
 
-            $status = TimerService::getTimerStatus($timer);
+        $conditionData['player']
+            ->load([
+                'mainTimers' => function ($query) use ($conditionData) {
+                    $query->where('board_game_id', $conditionData['boardGame']->id)->orderBy('id', 'desc');
+                },
+                'statusEffects' => function($query) {
+                    $query->active();
+                },
+                'statusEffects.statusEffectBind',
+                'statusEffects.statusEffectBind.statusEffect',
+                'currentGames',
+            ]);
 
-            if ($status && ($status['reached_the_limit'] ?? null)) {
-                return [
-                    'status' => 'error',
-                    'status_message' => 'Вы не можете крутить игру, так как исчерпали время таймера',
-                ];
-            }
+        $status = TimerService::getTimerStatus($conditionData['player']->mainTimers->first());
 
-            // Проверяем использовал ли игрок доступные крутки предметов и доступные ходы
-            if (
-                (
-                    !$conditionData['player']->finishBoard
-                    && $conditionData['player']->step_count > 0
-                )
-                || $conditionData['player']->item_roll_count > 0) {
-                return [
-                    'status' => 'error',
-                    'status_message' => 'Перед круткой рулетки игр вы должны использовать доступные крутки рулетки предметов, а такж использовать доступные ходы на игровом поле',
-                ];
-            }
+        // Проверяем, не превысил ли игрок таймер
+        if ($status && ($status['reached_the_limit'] ?? null)) {
+            return [
+                'status' => 'error',
+                'status_message' => 'Вы не можете крутить игру, так как исчерпали время таймера',
+            ];
+        }
 
-            // Проверяем статус эффекты и при необходимости устанавливаем платформу фильтрации
-            $playerStatusEffects = PlayerStatusEffect::query()
-                ->findByUserId($conditionData['user']->id)
-                ->findByBoardGame($conditionData['boardGame']->id)
-                ->active()
-                ->get();
+        // Проверяем использовал ли игрок доступные крутки предметов и доступные ходы
+        if ((!$conditionData['player']->finishBoard && $conditionData['player']->step_count > 0)
+            || $conditionData['player']->item_roll_count > 0) {
+            return [
+                'status' => 'error',
+                'status_message' => 'Перед круткой рулетки игр вы должны использовать доступные крутки рулетки предметов, а такж использовать доступные ходы на игровом поле',
+            ];
+        }
 
-            $platformSlug = null;
+        // Проверяем статус эффекты и при необходимости устанавливаем платформу фильтрации
+        $playerStatusEffects = $conditionData['player']->statusEffects;
 
-            foreach ($playerStatusEffects as $statusEffect) {
-                if ((int)$statusEffect->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
-                    foreach (json_decode($statusEffect->statusEffect->actions) as $action) {
-                        if (isset($action->type) && $action->type === 'platform' && $action->value) {
-                            $platformSlug = $action->value;
-                        }
-                    }
+        $platformSlug = null;
 
-                    if ($platformSlug) {
-                        $statusEffect->update(['active' => false]);
-                        break;
+        foreach ($playerStatusEffects as $statusEffect) {
+            if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
+                foreach (json_decode($statusEffect->statusEffectBind->statusEffect->actions) as $action) {
+                    if (isset($action->type) && $action->type === 'platform' && $action->value) {
+                        $platformSlug = $action->value;
                     }
                 }
-            }
 
-            if ($platformSlug) {
-                $platformId = GamingPlatform::findBySlug($platformSlug)->value('id');
-            } else {
-                $platformId = $request->platform_id ? $request->platform_id : null;
-            }
-
-            $gameListFiltered = $this->getFilteredGameList(
-                $platformId,
-                $conditionData
-            );
-
-            if (isset($gameListFiltered['gameList']) && $gameListFiltered['gameList']->count() > 0) {
-                $randomGame = $gameListFiltered['gameList']->random();
-
-                if ($randomGame) {
-                    // Если у игрока есть текущая игра, отмечаем её как рерольнутую
-                    $currentGame = PlayerGame::query()
-                        ->where('user_id', $conditionData['user']->id)
-                        ->where('board_game_id', $conditionData['boardGame']->id)
-                        ->where('status', PlayerGame::CURRENT)
-                        ->first();
-
-                    if ($currentGame) {
-                        $currentGame->update(['status' => PlayerGame::REROLLED]);
-                    }
-
-                    // Создаем новую текущую игру
-                    $fields = [
-                        'user_id' => $conditionData['user']->id,
-                        'status' => PlayerGame::CURRENT,
-                        'board_game_game_list_id' => $randomGame->id,
-                        'board_game_id' => $conditionData['boardGame']->id,
-                        'created_by' => $conditionData['user']->id,
-                    ];
-
-                    if ($playerGame::create($fields)) {
-                        // Если игра была из списка рерольнутых, то сбрасывает счетчик собственных рерольнутых игр
-                        if ($gameListFiltered['listType'] === 'rerolled' && $conditionData['player']->rerolled_own_game_count >= 2) {
-                            $conditionData['player']->rerolled_own_game_count = 0;
-                            $conditionData['player']->save();
-                        }
-
-                        LogService::addLog(
-                            $conditionData['user']->id,
-                            $conditionData['boardGame']->id,
-                            'Крутанул рулетку и выбил игру ' . $randomGame->game->name
-                        );
-
-                        return GameListResource::make($randomGame);
-                    } else {
-                        return ErrorService::message('Ошибка создания новой текущей игры');
-                    }
-                } else {
-                    return ErrorService::message('Ошибка выбора игры');
+                if ($platformSlug) {
+                    $statusEffect->update(['active' => false]);
+                    break;
                 }
-            } else {
-                return ErrorService::message('У вас не осталось игр, для рулетки');
             }
         }
+
+        if ($platformSlug) {
+            $platformId = GamingPlatform::findBySlug($platformSlug)->value('id');
+        } else {
+            $platformId = $request->platform_id ? $request->platform_id : null;
+        }
+
+        $gameListFiltered = $this->getFilteredGameList($platformId, $conditionData);
+
+        if (isset($gameListFiltered['gameList']) && $gameListFiltered['gameList']->count() === 0) {
+            return ErrorService::message('У вас не осталось игр, для рулетки');
+        }
+
+        $randomGame = $gameListFiltered['gameList']->random();
+
+        if (!$randomGame) {
+            return ErrorService::message('Ошибка выбора игры');
+        }
+
+        // Если у игрока есть текущая игра, отмечаем её как рерольнутую
+        $currentGame = $conditionData['player']->currentGames->first();
+
+        if ($currentGame) {
+            $currentGame->update(['status' => PlayerGame::REROLLED]);
+        }
+
+        // Создаем новую текущую игру
+        $fields = [
+            'bg_player_id' => $conditionData['player']->id,
+            'user_id' => $conditionData['user']->id,
+            'status' => PlayerGame::CURRENT,
+            'board_game_game_list_id' => $randomGame->id,
+            'board_game_id' => $conditionData['boardGame']->id,
+            'created_by' => $conditionData['user']->id,
+        ];
+
+        if (!$playerGame::create($fields)) {
+            return ErrorService::message('Ошибка создания новой текущей игры');
+        }
+
+        // Если игра была из списка рерольнутых, то сбрасывает счетчик собственных рерольнутых игр
+        if ($gameListFiltered['listType'] === 'rerolled' && $conditionData['player']->rerolled_own_game_count >= 2) {
+            $conditionData['player']->rerolled_own_game_count = 0;
+            $conditionData['player']->save();
+        }
+
+        LogService::addLog(
+            $conditionData['user']->id,
+            $conditionData['boardGame']->id,
+            'Крутанул рулетку и выбил игру ' . $randomGame->game->name,
+            $conditionData['player']->id
+        );
+
+        return GameListResource::make($randomGame);
     }
 
-    private function getFilteredGameList($platformId, $conditionData)
+    /**
+     * @param $platformId
+     * @param $conditionData
+     * @return array
+     */
+    private function getFilteredGameList(
+        $platformId,
+        $conditionData
+    )
     {
         $listType = 'default';
         $boardGameGameQuery = BoardGameGameList::query()->where('board_game_id', $conditionData['boardGame']->id);
 
+        // Фильтрация по платформе если она есть
         if ($platformId) {
             $boardGameGameQuery->where('gaming_platform_id', $platformId);
         }
 
         // Рулетка рерольнутых игр
         if ($conditionData['player']->rerolled_own_game_count >= 2) {
-            $rerolledGames = PlayerGame::query()->findByBoardGame($conditionData['boardGame']->id)
+            $rerolledGames = PlayerGame::query()
+                ->findByBoardGame($conditionData['boardGame']->id)
                 ->where('status', PlayerGame::REROLLED)
-                ->select('board_game_game_list_id')->get()->unique('board_game_game_list_id');
+                ->select('board_game_game_list_id')
+                ->get()
+                ->unique('board_game_game_list_id');
 
             $rerolledIds = [];
 
@@ -635,6 +688,7 @@ class PlayerGameController extends Controller
 
             $boardGameGameQuery->whereIn('id', $rerolledIds);
             $boardGameGameQuery->where('list_type', null);
+
             $listType = 'rerolled';
         }
 
@@ -642,7 +696,9 @@ class PlayerGameController extends Controller
             // Рулетка "Золотая коллекция"
             $currentPlayerGames = PlayerGame::query()
                 ->findByBoardGame($conditionData['boardGame']->id)
-                ->findByUserId($conditionData['user']->id)->orderBy('id', 'desc')->get();
+                ->findByUserId($conditionData['user']->id)
+                ->orderBy('id', 'desc')
+                ->get();
 
             $goldenList = false;
             $rerolledGameInaRow = 0;
@@ -662,6 +718,7 @@ class PlayerGameController extends Controller
 
             if ($goldenList) {
                 $boardGameGameQuery->where('list_type', BoardGameGameList::GOLDEN_LIST);
+
                 $listType = 'golden';
             }
         }
@@ -670,12 +727,13 @@ class PlayerGameController extends Controller
             $boardGameGameQuery->where('list_type', null);
         }
 
-//        $boardGameGameList = $boardGameGameQuery->active()->get();
-
-        $boardGameGameList = $boardGameGameQuery->with([
-            'game',
-            'game.titleImage',
-        ])->active()->get();
+        $boardGameGameList = $boardGameGameQuery
+            ->with([
+                'game',
+                'game.titleImage',
+            ])
+            ->active()
+            ->get();
 
         // Убираем из списка игры, выпадали игроку
         $playerGameListQuery = PlayerGame::query()

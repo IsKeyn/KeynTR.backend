@@ -25,6 +25,21 @@ class GameFilter
         }
     }
 
+    protected function eventGamePlatforms($value): void
+    {
+        if ($value) {
+            if (is_string($value)) {
+                $value = json_decode($value, true);
+            }
+
+            $this->query
+                ->with('bgGamesList')
+                ->whereHas('bgGamesList', function($query) use ($value) {
+                    $query->whereIn('board_game_game_lists.gaming_platform_id', $value);
+                });
+        }
+    }
+
     protected function genres($value): void
     {
         if ($value && $genresIds = $value) {

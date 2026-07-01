@@ -109,4 +109,9 @@ class BoardGame extends Model
             ->withPivot('active', 'created_by')
             ->withTimestamps();
     }
+
+    public function games(): HasMany
+    {
+        return $this->hasMany(BoardGameGameList::class, 'board_game_id');
+    }
 }

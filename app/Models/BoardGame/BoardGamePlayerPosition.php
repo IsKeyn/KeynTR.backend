@@ -49,4 +49,9 @@ class BoardGamePlayerPosition extends Model
     {
         return $this->belongsTo(BoardGamePlayer::class, 'bg_player_id');
     }
+
+    public function boardPositionEffectsBind()
+    {
+        return $this->hasMany(BoardPositionEffectsBind::class, 'position', 'position');
+    }
 }

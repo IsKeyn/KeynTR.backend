@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\BoardGame\BoardGameGameList;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -40,5 +41,10 @@ class GamingPlatform extends Model
     public function games()
     {
         return $this->morphedByMany(Game::class, 'gaming_platform_bind');
+    }
+
+    public function bgGamesList()
+    {
+        return $this->hasMany(BoardGameGameList::class, 'gaming_platform_id');
     }
 }

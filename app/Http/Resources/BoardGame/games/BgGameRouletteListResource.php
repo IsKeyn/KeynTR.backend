@@ -3,10 +3,13 @@
 namespace App\Http\Resources\BoardGame\Games;
 
 use App\Http\Resources\Game\GameShortestResource;
+use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameRouletteListResource extends JsonResource
+class BgGameRouletteListResource extends JsonResource
 {
+    use CommonResourceFields;
+
     /**
      * Transform the resource into an array.
      *
@@ -16,12 +19,10 @@ class GameRouletteListResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
+            ...$this->commonFields(),
+
             'game_id' => $this->game_id,
-            'game' => $this->whenLoaded('game', GameShortestResource::make($this->game)),
-            'created_by' => $this->created_by,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'game' => $this->whenLoaded('game', fn() => GameShortestResource::make($this->game)),
         ];
     }
 }

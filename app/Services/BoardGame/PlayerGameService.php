@@ -92,6 +92,7 @@ class PlayerGameService
         }
     }
 
+    /* TODO устаревший метод, удалить когда не будет более использоваться, новый метод BgPlayerGameService::actionsWithGame */
     public static function actionsWithGame($gameListGameId, $boardGameId)
     {
         $playerGame = PlayerGame::query()

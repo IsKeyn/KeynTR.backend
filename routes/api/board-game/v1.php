@@ -4,7 +4,7 @@ use App\Http\Controllers\BoardGame\BoardGameController;
 use App\Http\Controllers\BoardGame\BoardGameInventoryController;
 use App\Http\Controllers\BoardGame\BoardGamePlayerController;
 use App\Http\Controllers\BoardGame\DiceController;
-use App\Http\Controllers\BoardGame\GameListController;
+//use App\Http\Controllers\BoardGame\GameListController;
 use App\Http\Controllers\BoardGame\LogController;
 use App\Http\Controllers\BoardGame\PlayerGameController;
 use App\Http\Controllers\BoardGame\PositionController;
@@ -53,9 +53,9 @@ Route::prefix('board-game/')->name('v1.')->group(function() {
         Route::post('use', 'useItem')->name('use-item');
     });
 
-    Route::prefix('game-list/')->controller(GameListController::class)->name('game-list.')->group(function() {
-        Route::get('list', 'list')->name('list');
-    });
+//    Route::prefix('game-list/')->controller(GameListController::class)->name('game-list.')->group(function() {
+//        Route::get('list', 'list')->name('list');
+//    });
 
     Route::prefix('player-game/')->controller(PlayerGameController::class)->name('player-game.')->group(function () {
         Route::get('get-player-list', 'getPlayerList')->name('get-player-list');

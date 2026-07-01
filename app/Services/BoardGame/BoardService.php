@@ -33,11 +33,18 @@ class BoardService
         );
     }
 
+    /**
+     * @param $params
+     * @param $conditionData
+     * @param bool $setLogs
+     * @param bool $useStepCount Учитывать количество доступных ходов
+     * @return array
+     */
     public static function setPosition(
         $params,
         $conditionData,
         $setLogs = true,
-        $useStepCount = true // Boolean: Учитывать количество доступных ходов
+        $useStepCount = true
     )
     {
         if (
@@ -78,18 +85,17 @@ class BoardService
                     'position' => $position,
                     'board_game_id' => $conditionData['boardGame']->id,
                     'user_id' => $params['player']->user_id,
+                    'bg_player_id' => $params['player']->id,
                     'created_by' => $conditionData['user']->id,
                 ];
 
                 if ($entry = BoardGamePlayerPosition::create($newPosition)) {
                     // Записываем логи
                     if ($setLogs) {
-                        $logMessage = "перешел с $oldPosition->position ячейки на ячейку $entry->position";
-
                         LogService::addLog(
                             $params['player']->user_id,
                             $conditionData['boardGame']->id,
-                            $logMessage,
+                            "перешел с $oldPosition->position ячейки на ячейку $entry->position",
                             $params['player']->id
                         );
                     }

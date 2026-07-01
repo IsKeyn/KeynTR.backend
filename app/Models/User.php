@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\Traits\ExtendModelTrait;
 use App\Models\User\Message;
@@ -169,5 +170,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function bgPlayer(): hasMany
     {
         return $this->hasMany(BoardGamePlayer::class, 'user_id');
+    }
+
+    public function bgGamesList(): hasMany
+    {
+        return $this->hasMany(BoardGameGameList::class, 'added_by');
     }
 }

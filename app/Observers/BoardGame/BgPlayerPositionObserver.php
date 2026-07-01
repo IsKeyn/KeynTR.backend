@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\MovePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
@@ -27,6 +28,21 @@ class BgPlayerPositionObserver
             self::CACHE_SERVICE,
             self::SERVICE
         );
+
+        /* Отправляем данные для движения игрока */
+        $moveData = [
+            'playerId' => $boardGamePlayerPosition->bg_player_id,
+            'positionData' => [
+                'firstPosition' => [
+                    'position' => $boardGamePlayerPosition->position,
+                ],
+                'finalPosition' => [
+                    'position' => $boardGamePlayerPosition->position,
+                ],
+            ],
+        ];
+
+        MovePlayer::dispatch($moveData);
     }
 
     public function updated(BoardGamePlayerPosition $boardGamePlayerPosition)

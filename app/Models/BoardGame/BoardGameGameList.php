@@ -26,6 +26,8 @@ class BoardGameGameList extends Model
     public const FILTER = 'App\Filters\BoardGame\BgGameListFilter';
     public const SERVICE = 'App\Services\BoardGame\BgGameListService';
 
+    public const OBSERVER = 'App\Observers\BoardGame\BgGameListObserver';
+
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgGameList\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgGameList\ListResource';
 

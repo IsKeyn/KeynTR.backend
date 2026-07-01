@@ -6,6 +6,7 @@ use App\Events\PlayerData;
 use App\Models\User;
 use App\Services\Cache\AdminCacheService;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
+use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Observer\DefaultObserverService;
 
@@ -114,7 +115,7 @@ class UserObserver
 
     private function clearRelatedCache($user)
     {
-        $user->load('bgPlayer', 'bgPlayer.boardGame');
+        $user->load(['bgPlayer', 'bgPlayer.boardGame', 'bgGamesList', 'bgGamesList.boardGame', 'bgGamesList.game']);
 
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $boardGameCacheService = app(BoardGameCacheService::class);
@@ -126,6 +127,12 @@ class UserObserver
 
             $boardGameCacheService->clearDetailCacheAllTypes($player->boardGame);
             $boardGameCacheService->clearClientPlayerListCacheFn($player->boardGame->slug, $player->user_id);
+        }
+
+        $bgPlayerCacheService = app(BgPlayerGameCacheService::class);
+
+        foreach ($user->bgGamesList as $bgGamesList) {
+            $bgPlayerCacheService->clearActionsWithGameList($bgGamesList);
         }
     }
 }

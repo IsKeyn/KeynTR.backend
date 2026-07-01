@@ -24,7 +24,7 @@ class GameShortestResource extends JsonResource
 
             'entity_type' => Game::class,
             'show_in_list' => $this->show_in_list,
-            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage)),
+            'title_image' => $this->whenLoaded('titleImage', fn() => ShortMediaResource::make($this->titleImage)),
         ];
     }
 }

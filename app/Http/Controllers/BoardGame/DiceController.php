@@ -13,6 +13,11 @@ use Illuminate\Http\Request;
 
 class DiceController extends Controller
 {
+    /**
+     * @param Request $request
+     * @param PlayerStatusEffect $playerStatusEffect
+     * @return array|\Illuminate\Http\JsonResponse|string[]
+     */
     public function rollDice(
         Request $request,
         PlayerStatusEffect $playerStatusEffect
@@ -21,76 +26,72 @@ class DiceController extends Controller
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
-        } else {
-            if ($conditionData['user']) {
-                $dice = 6;
+        }
 
-                if ($request->dice) {
-                    $dice = $request->dice;
-                }
+        if (!$conditionData['user']) {
+            return response()->json(['error' => 'Требуется авторизация'])->setStatusCode(Response::HTTP_BAD_REQUEST);
+        }
 
-                $rollResult = null;
+        $dice = $request->dice ? $request->dice : 6;
 
-                $playerStatusEffects = $playerStatusEffect
-                    ->findByUserId($conditionData['user']->id)
-                    ->findByBoardGame($conditionData['boardGame']->id)
-                    ->active()
-                    ->get();
+        $rollResult = null;
 
-                $updateData = false;
+        $playerStatusEffects = $playerStatusEffect
+            ->findByUserId($conditionData['user']->id)
+            ->findByBoardGame($conditionData['boardGame']->id)
+            ->with(['statusEffectBind', 'statusEffectBind.statusEffect'])
+            ->active()
+            ->get();
 
-                foreach ($playerStatusEffects as $statusEffect) {
-                    if ((int)$statusEffect->statusEffect->type === StatusEffect::DICE_TYPE) {
-                        foreach (json_decode($statusEffect->statusEffect->actions) as $action) {
-                            if (isset($action->value) && $action->value) {
-                                $rollResult = $action->value;
-                            }
-                        }
+        $updateData = false;
 
-                        $statusEffect->update(['active' => false]);
-                        $updateData = true;
-                        break;
+        foreach ($playerStatusEffects as $statusEffect) {
+            if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::DICE_TYPE) {
+                foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
+                    if (isset($action->value) && $action->value) {
+                        $rollResult = $action->value;
                     }
                 }
 
-                if (!$rollResult) {
-                    $rollResult = rand(1, $dice);
-                }
-
-                /* Устанавливаем логи */
-                $logMessage = "бросил кубик D$dice, выпало $rollResult";
-
-                LogService::addLog(
-                    $conditionData['user']->id,
-                    $conditionData['boardGame']->id,
-                    $logMessage,
-                    $conditionData['player']->id
-                );
-
-                /* Изменяем позицию игрока на поле */
-                if ($request->useStep) {
-                    $positionParams = [
-                        'type' => 'forward',
-                        'count' => $rollResult,
-                        'player' => $conditionData['player'],
-                    ];
-
-                    $positionData = BoardService::setPosition($positionParams, $conditionData);
-                }
-
-                $returnData = [
-                    'rollResult' => $rollResult,
-                    'updateData' => $updateData
-                ];
-
-                if (isset($positionData)) {
-                    $returnData['positionData'] = $positionData;
-                }
-
-                return response()->json($returnData)->setStatusCode(Response::HTTP_OK);
-            } else {
-                return response()->json(['error' => 'Требуется авторизация'])->setStatusCode(Response::HTTP_BAD_REQUEST);
+                $statusEffect->update(['active' => false]);
+                $updateData = true;
+                break;
             }
         }
+
+        if (!$rollResult) {
+            $rollResult = rand(1, $dice);
+        }
+
+        /* Устанавливаем логи */
+        LogService::addLog(
+            $conditionData['user']->id,
+            $conditionData['boardGame']->id,
+            "бросил кубик D$dice, выпало $rollResult",
+            $conditionData['player']->id
+        );
+
+        /* Изменяем позицию игрока на поле */
+        if ($request->useStep) {
+            $positionParams = [
+                'type' => 'forward',
+                'count' => $rollResult,
+                'player' => $conditionData['player'],
+            ];
+
+            $positionData = BoardService::setPosition($positionParams, $conditionData);
+        }
+
+        $returnData = [
+            'playerId' => $conditionData['player']->id,
+            'rollResult' => $rollResult,
+            'updateData' => $updateData
+        ];
+
+        if (isset($positionData)) {
+            $returnData['positionData'] = $positionData;
+        }
+
+        return response()->json($returnData)->setStatusCode(Response::HTTP_OK);
     }
 }
