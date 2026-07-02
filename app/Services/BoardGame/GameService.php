@@ -2,13 +2,17 @@
 
 namespace App\Services\BoardGame;
 
-use App\Http\Resources\BoardGame\StatusEffectResource;
+use App\Http\Resources\BoardGame\StatusEffects\BgStatusEffectResource;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
 
 class GameService
 {
+    /**
+     * @param $playerCurrentGame
+     * @return float|int
+     */
     public static function calcPoints($playerCurrentGame)
     {
         $finalPoints = 0;
@@ -26,7 +30,15 @@ class GameService
         return $finalPoints;
     }
 
-    public static function rerollPenalty($boardGame, $game = null)
+    /**
+     * @param $boardGame
+     * @param null $game
+     * @return array
+     */
+    public static function rerollPenalty(
+        $boardGame,
+        $game = null
+    )
     {
         $penaltyDefence = false;
         $pointsForReroll = 0;
@@ -35,15 +47,19 @@ class GameService
         $playerStatusEffects = PlayerStatusEffect::query()
             ->findByUserId($game->user_id)
             ->findByBoardGame($game->board_game_id)
+            ->with([
+                'statusEffectBind.statusEffect',
+                'statusEffectBind.statusEffect.titleImage',
+            ])
             ->active()
             ->get();
 
         foreach ($playerStatusEffects as $statusEffect) {
-            if ((int)$statusEffect->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
-                foreach (json_decode($statusEffect->statusEffect->actions) as $action) {
+            if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
+                foreach (json_decode($statusEffect->statusEffectBind->statusEffect->actions) as $action) {
                     if ($action->value && $action->value === 'free-reroll') {
                         $penaltyDefence = true;
-                        $data = StatusEffectResource::make($statusEffect->statusEffect);
+                        $data = BgStatusEffectResource::make($statusEffect->statusEffect);
                         break;
                     }
                 }
@@ -57,6 +73,8 @@ class GameService
                 $points = GameService::calcPoints($game->game);
                 $pointsForReroll = round(($points / 100) * 75);
             } else {
+                $boardGame->load(['settings']);
+
                 $subtractPointsSetting = $boardGame->settings->where('code', '=', 'subtract_points')->first();
                 $pointsForReroll = $subtractPointsSetting ? $subtractPointsSetting->value : 25;
             }

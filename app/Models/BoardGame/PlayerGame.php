@@ -21,6 +21,10 @@ class PlayerGame extends Model
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgPlayerGameCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgPlayerGameFilter';
     public const SERVICE = 'App\Services\BoardGame\BgPlayerGameService';
+    public const OBSERVER = 'App\Observers\BoardGame\BgPlayerGameObserver';
+
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\BgPlayerGameController';
+    public const REQUEST = 'App\Http\Requests\BoardGame\BgPlayerGameRequest';
 
     /* Resource for admin panel */
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerGame\DetailResource';
@@ -51,12 +55,18 @@ class PlayerGame extends Model
         'points',
         'sort',
         'active',
+        'finished_at',
         'created_by',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function fromUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'from_user_id');
     }
 
     public function player()

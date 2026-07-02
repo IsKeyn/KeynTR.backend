@@ -40,6 +40,7 @@ class BgPlayerGameShortResource extends JsonResource
             'time' => $this->time,
             'points' => $this->points,
             'timeSpend' => TimerService::timeInGame($this),
+            'finished_at' => $this->finished_at,
         ];
     }
 }

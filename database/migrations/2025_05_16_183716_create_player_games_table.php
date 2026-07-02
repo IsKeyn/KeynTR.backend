@@ -27,6 +27,7 @@ class CreatePlayerGamesTable extends Migration
             $table->integer('points')->nullable();
             $table->integer('sort')->nullable();
             $table->boolean('active')->default(true);
+            $table->timestamp('finished_at')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();

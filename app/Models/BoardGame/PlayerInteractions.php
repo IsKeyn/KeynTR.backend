@@ -89,4 +89,9 @@ class PlayerInteractions extends Model
     {
         return $this->belongsTo(BoardGamePlayer::class, 'bg_player_id');
     }
+
+    public function entity()
+    {
+        return $this->morphTo();
+    }
 }

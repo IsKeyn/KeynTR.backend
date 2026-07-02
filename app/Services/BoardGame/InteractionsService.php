@@ -124,6 +124,7 @@ class InteractionsService
                 ];
 
                 PlayerGame::create($newGameFieldsForSecondPlayer);
+                $this->checkInteractionAfterActionWithGame($this->interaction->type, $this->conditionData);
             }
 
             if ($this->interaction->type === 'battleForPoints' || $this->interaction->type === 'inviteToCoop') {
@@ -530,11 +531,19 @@ class InteractionsService
     {
         $this->conditionData = $conditionData;
 
-        if ($type === PlayerGame::REROLLED || $type === PlayerGame::COMPLETED) {
+        if (
+            $type === PlayerGame::REROLLED
+            || $type === PlayerGame::COMPLETED
+            || $type === 'switchGame'
+        ) {
             $playerInteractions = PlayerInteractions::where('board_game_id', $conditionData['boardGame']->id)
                 ->where(function($query) use ($conditionData) {
-                    $query->where('created_by', '=', $conditionData['user']->id)->orWhere('with_player', '=', $conditionData['user']->id);
-                })->active()->orderByDesc('id')
+                    $query
+                        ->where('created_by', '=', $conditionData['user']->id)
+                        ->orWhere('with_player', '=', $conditionData['user']->id);
+                })
+                ->active()
+                ->orderByDesc('id')
                 ->get();
 
             foreach ($playerInteractions as $interaction) {

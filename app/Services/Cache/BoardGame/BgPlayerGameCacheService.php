@@ -25,6 +25,8 @@ class BgPlayerGameCacheService extends BaseCacheService
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
 
+    public const ARR_PER_PAGE = [10, 20, 40];
+
     public function clearClientDetailCache($element)
     {
         $currentGameCacheKey = BgPlayerGameCacheService::DETAIL_PREFIX . '_current_' . $element->boardGame->slug . '_' . $element->user->id;

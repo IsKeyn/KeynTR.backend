@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\BoardGame\Player;
 
-use App\Http\Resources\BoardGame\PlayerGame\BgPlayerGameShortResource;
+use App\Http\Resources\BoardGame\PlayerGame\BgPlayerGameWithPointsShortResource;
 use App\Http\Resources\User\UserPublicResource;
 use App\Services\BoardGame\TimerService;
 use App\Traits\CommonResourceFields;
@@ -52,7 +52,7 @@ class BgPlayerWithCurrentGameResource extends JsonResource
             'position' => $position ? $position->position : null,
             'place' => $this->place,
             'not_active_reason' => $this->not_active_reason,
-            'current_game' => $this->whenLoaded('currentGames', fn() => BgPlayerGameShortResource::make($this->currentGames->first())),
+            'current_game' => $this->whenLoaded('currentGames', fn() => BgPlayerGameWithPointsShortResource::make($this->currentGames->first())),
             'has_current_game' => $this->whenLoaded('currentGames', fn() => $this->currentGames->isNotEmpty()),
         ];
     }

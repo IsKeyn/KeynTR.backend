@@ -402,6 +402,7 @@ class BoardGamePlayerController extends Controller
                     'game.game.titleImage',
                     'game.game.cover',
                     'game.game.genres',
+                    'comment',
                 ])
                 ->orderByDesc('id');
 

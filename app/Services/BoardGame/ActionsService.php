@@ -681,104 +681,116 @@ class ActionsService
 
     private function actionsWithPlayerInteractions($request, $action)
     {
-        if ($action->value) {
-            $players = $this->target($request, $action);
-
-            foreach ($players as $player) {
-                switch ($action->value) {
-                    case 'switchGame':
-                        // 1. Проверяем игру текущего игрока и может ли он её передать
-                        $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
-                            ->where('user_id', $this->conditionData['user']->id)
-                            ->where('status', PlayerGame::CURRENT)->first();
-
-                        if ($currentUserCurrentGame) {
-                            // Проверяем, что текущая игра не ультра мошна и не переданная игра
-                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
-                                return ErrorService::message('Вы не можете это сделать, так как текущую игру, вы получили от другого игрока');
-                            }
-
-                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
-                                return ErrorService::message('Вы не можете это сделать, так как текуая игра - это ультра мошна');
-                            }
-                        } else if (!$currentUserCurrentGame) {
-                            return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
-                        }
-
-                        // 2. Проверяем, что у игрока обмена есть текущая игра
-                        $playerCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
-                            ->where('user_id', $player->user_id)
-                            ->where('status', PlayerGame::CURRENT)->first();
-
-                        if ($playerCurrentGame) {
-                            // Проверяем, что текущая игра не ультра мошна и не переданная игра
-                            if ($playerCurrentGame->type === PlayerGame::TYPE_TAKEN) {
-                                return ErrorService::message('Текущая игра участника, которого вы выбрали является переданной игрой');
-                            }
-
-                            if ($playerCurrentGame->type === PlayerGame::TYPE_PURSE) {
-                                return ErrorService::message('Текущая игра участника, которого вы выбрали является ультра мошной');
-                            }
-                        } else if (!$playerCurrentGame) {
-                            return ErrorService::message('У данного игрока отсуствует текущая игра');
-                        }
-
-                        // 3. Проверяем, что у игрока этой игры не было
-                        $playerGameCheck = PlayerGame::query()->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
-                            ->findByBoardGame($this->conditionData['boardGame']->id)->findByUserId($player->user_id)->first();
-
-                        if ($playerGameCheck) {
-                            return ErrorService::message('У данного игрока уже была игра, которой вы хотите обменяться');
-                        }
-
-                        // 4. Проверяем, что у  вас не было игры, на которую вы хотите обмениваетесь
-                        $userGameCheck = PlayerGame::query()->where('board_game_game_list_id', $playerCurrentGame->board_game_game_list_id)
-                            ->findByBoardGame($this->conditionData['boardGame']->id)->findByUserId($this->conditionData['user']->id)->first();
-
-                        if ($userGameCheck) {
-                            return ErrorService::message('У вас уже была игра, на которую вы хотите обменяться');
-                        }
-
-                        return $this->createInteraction($request, $action, $player);
-                    case 'playForMe':
-                        $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
-                            ->where('user_id', $this->conditionData['user']->id)
-                            ->where('status', PlayerGame::CURRENT)->first();
-
-                        if ($currentUserCurrentGame) {
-                            // Проверяем, что текущая игра не ультра мошна и не переданная игра
-                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
-                                return ErrorService::message('Вы не можете это сделать, так текущую игру, вы получили от другого игрока');
-                            }
-
-                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
-                                return ErrorService::message('Вы не можете это сделать, так как текущая игра - это ультра мошна');
-                            }
-                        } else if (!$currentUserCurrentGame) {
-                            return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
-                        }
-
-                        // 3. Проверяем, что у игрока этой игры не было
-                        $playerGame = PlayerGame::query()->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
-                            ->findByBoardGame($this->conditionData['boardGame']->id)->findByUserId($player->user_id)->first();
-
-                        if ($playerGame) {
-                            return ErrorService::message('У данного игрока уже была игра, которую вы предлагаете');
-                        }
-
-                        if ($action->description) {
-                            $action->description = str_replace('*name*', $currentUserCurrentGame->game->game->name, $action->description);
-                        }
-
-                        return $this->createInteraction($request, $action, $player);
-
-                    case 'battleForPoints':
-                    case 'inviteToCoop':
-                        return $this->createInteraction($request, $action, $player);
-                }
-            }
-        } else {
+        if (!$action->value) {
             return ErrorService::message('Отсутствует тип взаимодействия $action->value');
+        }
+
+        $players = $this->target($request, $action);
+
+        $this->conditionData['player']->load([
+            'currentGames',
+        ]);
+
+        foreach ($players as $player) {
+            $player->load([
+                'currentGames',
+            ]);
+
+            switch ($action->value) {
+                case 'switchGame':
+
+                    // 1. Проверяем игру текущего игрока и может ли он её передать
+                    $currentUserCurrentGame = $this->conditionData['player']->currentGames->first();
+
+                    if (!$currentUserCurrentGame) {
+                        return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
+                    }
+
+                    // Проверяем, что текущая игра не ультра мошна и не переданная игра
+                    if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
+                        return ErrorService::message('Вы не можете это сделать, так как текущую игру, вы получили от другого игрока');
+                    }
+
+                    if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
+                        return ErrorService::message('Вы не можете это сделать, так как текуая игра - это ультра мошна');
+                    }
+
+                    // 2. Проверяем, что у игрока обмена есть текущая игра
+                    $playerCurrentGame = $player->currentGames->first();
+
+                    if (!$playerCurrentGame) {
+                        return ErrorService::message('У данного игрока отсуствует текущая игра');
+                    }
+
+                    // Проверяем, что текущая игра не ультра мошна и не переданная игра
+                    if ($playerCurrentGame->type === PlayerGame::TYPE_TAKEN) {
+                        return ErrorService::message('Текущая игра участника, которого вы выбрали является переданной игрой');
+                    }
+
+                    if ($playerCurrentGame->type === PlayerGame::TYPE_PURSE) {
+                        return ErrorService::message('Текущая игра участника, которого вы выбрали является ультра мошной');
+                    }
+
+                    // 3. Проверяем, что у игрока этой игры не было
+                    $playerGameCheck = PlayerGame::query()
+                        ->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
+                        ->findByBoardGame($this->conditionData['boardGame']->id)
+                        ->findByUserId($player->user_id)
+                        ->first();
+
+                    if ($playerGameCheck) {
+                        return ErrorService::message('У данного игрока уже была игра, которой вы хотите обменяться');
+                    }
+
+                    // 4. Проверяем, что у вас не было игры, на которую вы хотите обмениваетесь
+                    $userGameCheck = PlayerGame::query()
+                        ->where('board_game_game_list_id', $playerCurrentGame->board_game_game_list_id)
+                        ->findByBoardGame($this->conditionData['boardGame']->id)
+                        ->findByUserId($this->conditionData['user']->id)
+                        ->first();
+
+                    if ($userGameCheck) {
+                        return ErrorService::message('У вас уже была игра, на которую вы хотите обменяться');
+                    }
+
+                    return $this->createInteraction($request, $action, $player);
+                case 'playForMe':
+                    $currentUserCurrentGame = $this->conditionData['player']->currentGames->first();
+
+                    if (!$currentUserCurrentGame) {
+                        return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
+                    }
+
+                    // Проверяем, что текущая игра не ультра мошна и не переданная игра
+                    if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
+                        return ErrorService::message('Вы не можете это сделать, так текущую игру, вы получили от другого игрока');
+                    }
+
+                    if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
+                        return ErrorService::message('Вы не можете это сделать, так как текущая игра - это ультра мошна');
+                    }
+
+                    // 3. Проверяем, что у игрока этой игры не было
+                    $playerGame = PlayerGame::query()
+                        ->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
+                        ->findByBoardGame($this->conditionData['boardGame']->id)
+                        ->findByUserId($player->user_id)
+                        ->first();
+
+                    if ($playerGame) {
+                        return ErrorService::message('У данного игрока уже была игра, которую вы предлагаете');
+                    }
+
+                    if ($action->description) {
+                        $action->description = str_replace('*name*', $currentUserCurrentGame->game->game->name, $action->description);
+                    }
+
+                    return $this->createInteraction($request, $action, $player);
+
+                case 'battleForPoints':
+                case 'inviteToCoop':
+                    return $this->createInteraction($request, $action, $player);
+            }
         }
     }
 
