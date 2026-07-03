@@ -211,6 +211,16 @@ class CreateAdminMenu extends Command
                 'active' => true,
             ],
             [
+                'name' => 'Предметы магазина',
+                'url' => '/admin/board-game-shop-item/',
+                'target' => null,
+                'menu_type_id' => 34,
+                'link_type' => 'route',
+                'icon' => null,
+                'sort' => 55,
+                'active' => true,
+            ],
+            [
                 'name' => 'Привязка статус эффектов',
                 'url' => '/admin/board-game-status-effect-bind/',
                 'target' => null,
@@ -398,6 +408,10 @@ class CreateAdminMenu extends Command
             [
                 'url' => '/admin/board-position-effects-bind/',
                 'permissions' => ['bg.board-position-effects-bind.edit'],
+            ],
+            [
+                'url' => '/admin/board-game-shop-item/',
+                'permissions' => ['bg.shop-item.edit'],
             ],
             [
                 'url' => '/admin/board-game-player-position',

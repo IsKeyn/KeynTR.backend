@@ -576,6 +576,14 @@ class CreateRolesAndPermissions extends Command
                 'sort' => 375,
                 'active' => true,
             ],
+            [
+                'id' => 45,
+                'name' => 'Редактирование предметов в магазине',
+                'system_name' => 'bg.shop-item.edit',
+                'entity_type' => null,
+                'sort' => 335,
+                'active' => true,
+            ],
         ];
 
         foreach ($elements as $element) {
