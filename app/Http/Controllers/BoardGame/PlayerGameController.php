@@ -76,6 +76,8 @@ class PlayerGameController extends Controller
                 'currentGames.game.game.cover',
                 'currentGames.game.game.genres',
                 'currentGames.boardGame',
+                'currentGames.boardGame.settings',
+                'currentGames.player',
                 'user',
                 'user.avatar',
                 'mainTimers' => function ($query) use ($conditionData) {
@@ -345,10 +347,10 @@ class PlayerGameController extends Controller
                     /* Игра пройдена */
                     if ($request->type === PlayerGame::COMPLETED) {
                         /* Рассчитываем количество очков за игру */
-                        $pointsForGame = GameService::calcPoints($playerCurrentGame->game);
+                        $defaultPointsForGame = GameService::calcPoints($playerCurrentGame->game);
 
                         if ($playerCurrentGame->type === PlayerGame::TYPE_TAKEN) {
-                            $pointsForGame = round($pointsForGame / 2);
+                            $pointsForGameToOtherPlayer = round($defaultPointsForGame / 2);
 
                             // Даем очки, игроку, который передал игру
                             if ($playerCurrentGame->from_user_id) {
@@ -361,13 +363,13 @@ class PlayerGameController extends Controller
 
                                 // Добавляем очки
                                 if ($playerFrom) {
-                                    $playerFrom->points = $playerFrom->points + $pointsForGame;
+                                    $playerFrom->points = $playerFrom->points + $pointsForGameToOtherPlayer;
                                     $playerFrom->save();
 
                                     LogService::addLog(
                                         $playerCurrentGame->from_user_id,
                                         $conditionData['boardGame']->id,
-                                        'получил ' . $pointsForGame . ' очков за отданную игру ' . $playerCurrentGame->game->game->name,
+                                        'получил ' . $pointsForGameToOtherPlayer . ' очков за отданную игру ' . $playerCurrentGame->game->game->name,
                                         $conditionData['player']->id
                                     );
                                 }
@@ -386,13 +388,13 @@ class PlayerGameController extends Controller
 
                                 // Добавляем очки
                                 if ($playerFrom) {
-                                    $playerFrom->points = $playerFrom->points + round($pointsForGame / 2);
+                                    $playerFrom->points = $playerFrom->points + round($defaultPointsForGame / 2);
                                     $playerFrom->save();
 
                                     LogService::addLog(
                                         $playerCurrentGame->from_user_id,
                                         $conditionData['boardGame']->id,
-                                        'получил ' . round($pointsForGame / 2) . ' очков за переданную мошной игру ' . $playerCurrentGame->game->game->name,
+                                        'получил ' . round($defaultPointsForGame / 2) . ' очков за переданную мошной игру ' . $playerCurrentGame->game->game->name,
                                         $conditionData['player']->id,
                                     );
                                 }
@@ -400,13 +402,13 @@ class PlayerGameController extends Controller
                         }
 
                         // Добавляем очки за стрик
-                        $finalPoints = $conditionData['player']->streak > 0 ? $pointsForGame + ($pointsForGame / 100 * ($conditionData['player']->streak * 2)) : $pointsForGame;
+                        $pointsForGame = GameService::finishPoints($conditionData['player'], $playerCurrentGame);
 
                         // Тихо обновляем очки игрока, чтобы не вызывать событие, оно уже было вызвано вверху метода
-                        $playerCurrentGame->points = $finalPoints;
+                        $playerCurrentGame->points = $pointsForGame;
                         $playerCurrentGame->saveQuietly();
 
-                        $conditionData['player']->points = $conditionData['player']->points + $finalPoints;
+                        $conditionData['player']->points = $conditionData['player']->points + $pointsForGame;
 
                         /* Добавляем стрик, если он не достиг максимального */
                         $maxStreakSetting = $conditionData['boardGame']->settings->where('code', '=',
@@ -463,7 +465,7 @@ class PlayerGameController extends Controller
                             $player = $coopInteraction->withPlayerData->first();
 
                             if ($player) {
-                                $player->points = $player->points + round($pointsForGame / 2);
+                                $player->points = $player->points + round($defaultPointsForGame / 2);
                                 $player->save();
 
                                 $coopInteraction->active = false;
@@ -473,14 +475,14 @@ class PlayerGameController extends Controller
                                 NotificationService::set(
                                     [
                                         'user_id' => $player->user->id,
-                                        'message' => 'За помощь в прохождении игры ' . $playerCurrentGame->game->game->name . ' вы получаете ' . round($pointsForGame / 2) . ' очков'
+                                        'message' => 'За помощь в прохождении игры ' . $playerCurrentGame->game->game->name . ' вы получаете ' . round($defaultPointsForGame / 2) . ' очков'
                                     ]
                                 );
 
                                 LogService::addLog(
                                     $player->user_id,
                                     $conditionData['boardGame']->id,
-                                    'получил ' . round($pointsForGame / 2) . ' за помощь в прохождении игры ' . $playerCurrentGame->game->game->name,
+                                    'получил ' . round($defaultPointsForGame / 2) . ' за помощь в прохождении игры ' . $playerCurrentGame->game->game->name,
                                     $player->id,
                                 );
                             }
@@ -744,12 +746,22 @@ class PlayerGameController extends Controller
         $conditionData
     )
     {
+        $conditionData['boardGame']->load(['settings']);
+
         $listType = 'default';
         $boardGameGameQuery = BoardGameGameList::query()->where('board_game_id', $conditionData['boardGame']->id);
 
         // Фильтрация по платформе если она есть
         if ($platformId) {
             $boardGameGameQuery->where('gaming_platform_id', $platformId);
+        } else if ((bool) $conditionData['boardGame']->settings->where('code', 'hasExceptionPlatforms')->value('value')) {
+            if ($conditionData['player']->settings
+                && isset($conditionData['player']->settings['exceptionPlatforms'])
+                && $conditionData['player']->settings['exceptionPlatforms']
+            ) {
+                $boardGameGameQuery->whereNotIn('gaming_platform_id', $conditionData['player']->settings['exceptionPlatforms']);
+            }
+
         }
 
         // Рулетка рерольнутых игр

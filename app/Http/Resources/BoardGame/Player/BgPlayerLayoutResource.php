@@ -42,6 +42,7 @@ class BgPlayerLayoutResource extends JsonResource
             'position' => $position ?? null,
             'place' => $this->place,
             'not_active_reason' => $this->not_active_reason,
+            'settings' => $this->settings,
             'has_current_game' => $this->whenLoaded('currentGames', fn() => $this->currentGames->first() ?? false),
         ];
     }

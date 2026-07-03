@@ -21,6 +21,7 @@ class ListResource extends JsonResource
             'streak' => $this->streak,
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
+            'settings' => $this->settings,
             'premium' => $this->premium,
             'sort' => $this->sort,
             'created_by' => $this->created_by,

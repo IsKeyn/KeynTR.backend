@@ -27,6 +27,11 @@ class BoardGame extends Model
      * subtract_points - количество очков, которое отнимается при рероле
      * time_limit (в минутах, максимальное количество времени для челенджа, используется в таймере)
      * game_over_type (тип окончания ивента для игрока null - лимит времени, board-last-cell - достижение последней клетки игры)
+     * eventGamePlatforms Json Игровые платформы в ивенте
+     * Пример eventGamePlatforms: [{"id":25,"name":"Nintendo Entertainment System (NES)","active":true,difficult:80}]
+     * hasExceptionPlatforms Boolean Могут ли игроки исключать платформы из пула рулетки
+     * factorHours Int Количество часов, после которого дается 1 очков за еденицу сложности (в остальных случаях 0.5)
+     * usePlatformDifficultInCalc Int Использовать сложность платформы в расчете очков за игру
      */
 
     public const CACHE_NAME = 'board-game';

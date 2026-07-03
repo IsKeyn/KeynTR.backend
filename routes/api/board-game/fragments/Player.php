@@ -24,5 +24,6 @@ Route::prefix('player/')->controller(BoardGamePlayerController::class)->group(fu
     Route::middleware('auth:sanctum')->group(function() {
         Route::get('getInventory/{slug}/{name}', 'getInventory')->name('getInventory');
         Route::post('rollItem/{slug}', 'rollItem')->name('rollItem');
+        Route::post('setSetting/{slug}', 'setSetting')->name('set-setting');
     });
 });

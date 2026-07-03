@@ -700,4 +700,42 @@ class BoardGamePlayerController extends Controller
             ];
         }
     }
+
+    /**
+     * Функция сохраняет настройку пользователя по паре settingName, settingValue
+     * которые берутся из $request
+     *
+     * @param Request $request
+     * @param $slug String Slug настольной игры
+     * @return array|\Illuminate\Http\JsonResponse|string[]
+     */
+    public function setSetting(Request $request, $slug)
+    {
+        $conditionData = PlayerGameService::checkConditions($slug);
+
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        }
+
+        if (!$request->settingName) {
+            return response()
+                ->json(['error' => __('boardGame.player.settings.dont_received_setting_name')])
+                ->setStatusCode(Response::HTTP_BAD_REQUEST);
+        }
+
+        $player = $conditionData['player'];
+        $settings = $player->settings ?? [];
+        $settings[$request->settingName] = $request->settingValue ?? null;
+        $player->settings = $settings;
+
+        if ($player->save()) {
+            return response()
+                ->json(['message' => __('actions.success_save')])
+                ->setStatusCode(Response::HTTP_OK);
+        }
+
+        return response()
+            ->json(['error' => __('actions.failed_save')])
+            ->setStatusCode(Response::HTTP_BAD_REQUEST);
+    }
 }

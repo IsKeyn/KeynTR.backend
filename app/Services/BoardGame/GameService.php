@@ -15,14 +15,44 @@ class GameService
      */
     public static function calcPoints($playerCurrentGame)
     {
+        $playerCurrentGame->load('boardGame.settings');
+
         $finalPoints = 0;
 
         if ($playerCurrentGame->game_completion_time && $playerCurrentGame->difficult) {
             $hours = round($playerCurrentGame->game_completion_time / 60);
-            $factor = $hours >= 10 ? 1 : 0.5;
+
+            $factor = 1;
+
+            if ($factorHours = (Int) $playerCurrentGame->boardGame->settings->where('code', 'factorHours')->value('value')) {
+                $factor = $hours >= $factorHours ? 1 : 0.5;
+            }
+
             $pointsForHour = 10;
+            $platformDifficult = 0;
+
+            if ((bool) $playerCurrentGame->boardGame->settings->where('code', 'usePlatformDifficultInCalc')->value('value')) {
+                $platforms = $playerCurrentGame->boardGame->settings->where('code',
+                    'eventGamePlatforms')->value('value');
+
+                if ($platforms) {
+                    $foundPlatform = array_filter(json_decode($platforms), function ($item) use ($playerCurrentGame) {
+                        return $item->id == $playerCurrentGame->gaming_platform_id;
+                    });
+
+                    $result = reset($foundPlatform);
+
+                    if ($result->difficult) {
+                        $platformDifficult = $result->difficult;
+                    }
+                }
+            }
 
             $finalPoints = round(($playerCurrentGame->difficult * $factor) + ($pointsForHour * $hours));
+
+            if ($platformDifficult) {
+                $finalPoints = round($platformDifficult * $factor) + $finalPoints;
+            }
         } elseif ($playerCurrentGame->points) {
             $finalPoints = $playerCurrentGame->points;
         }
@@ -85,5 +115,46 @@ class GameService
             'pointForReroll' => $pointsForReroll,
             'data' => $data ?? null,
         ];
+    }
+
+    /**
+     * @param $player
+     * @param $currentGame
+     * @return float|int
+     */
+    public static function finishPoints(
+        $player,
+        $currentGame
+    )
+    {
+        if (!$player || !$currentGame) return;
+
+        /* Рассчитываем количество очков за игру */
+        $pointsForGame = self::calcPoints($currentGame->game);
+
+        if ($currentGame->type === PlayerGame::TYPE_TAKEN) {
+            $pointsForGame = round($pointsForGame / 2);
+        }
+
+        // Отнимаем очки, за исключенные платформы
+        if ((bool) $currentGame->boardGame->settings->where('code', 'hasExceptionPlatforms')->value('value')) {
+            if ($player->settings
+                && isset($player->settings['exceptionPlatforms'])
+                && $player->settings['exceptionPlatforms']
+            ) {
+                if ($exceptionPlatformsCount = count($player->settings['exceptionPlatforms']) > 1) {
+                    $percentForEp = ($exceptionPlatformsCount - 1) * 10;
+
+                    if ($percentForEp) {
+                        $pointsForGame = $pointsForGame * (1 - $percentForEp / 100);
+                    }
+                }
+            }
+        }
+
+        // Добавляем очки за стрик
+        $pointsForGame = round($player->streak > 0 ? $pointsForGame + ($pointsForGame / 100 * ($player->streak * 2)) : $pointsForGame);
+
+        return $pointsForGame;
     }
 }

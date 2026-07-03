@@ -21,6 +21,10 @@ class BoardGamePlayer extends Model
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgPlayerCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgPlayerFilter';
     public const SERVICE = 'App\Services\BoardGame\BgPlayerService';
+    public const OBSERVER = 'App\Observers\BoardGame\BgPlayerObserver';
+
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\BgPlayerController';
+    public const REQUEST = 'App\Http\Requests\BoardGame\BgPlayerRequest';
 
     /* Resource for admin panel */
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\DetailResource';
@@ -41,6 +45,7 @@ class BoardGamePlayer extends Model
         'rerolled_own_game_count',
         'active',
         'not_active_reason',
+        'settings',
         'premium',
         'sort',
         'created_by',
@@ -49,6 +54,7 @@ class BoardGamePlayer extends Model
     protected $casts = [
         'active' => 'boolean',
         'premium' => 'boolean',
+        'settings' => 'array',
     ];
 
     public function user(): BelongsTo
