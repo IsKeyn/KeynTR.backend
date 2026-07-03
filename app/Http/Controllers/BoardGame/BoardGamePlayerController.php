@@ -723,6 +723,12 @@ class BoardGamePlayerController extends Controller
                 ->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
 
+        if ($request->settingName === 'exceptionPlatforms' && count($request->settingValue) > 3) {
+            return response()
+                ->json(['error' => __('boardGame.player.settings.to_many_exception_platforms')])
+                ->setStatusCode(Response::HTTP_BAD_REQUEST);
+        }
+
         $player = $conditionData['player'];
         $settings = $player->settings ?? [];
         $settings[$request->settingName] = $request->settingValue ?? null;

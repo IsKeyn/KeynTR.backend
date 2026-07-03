@@ -14,6 +14,7 @@ return [
         'settings' => [
             'dont_received_setting_name' => 'Не получено название опции',
             'dont_received_setting_value' => 'Не получено значение опции',
+            'to_many_exception_platforms' => 'Выбрано слишком много платформ',
         ],
         'dont_have_items_roll' => 'Нет ни одной доступной крутки рулетки',
         'status_effect' => [
