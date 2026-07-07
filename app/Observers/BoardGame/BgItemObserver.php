@@ -3,10 +3,13 @@
 namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\Item;
+use App\Models\BoardGame\ItemBind;
 use App\Services\Cache\BoardGame\BgInventoryCacheService;
 use App\Services\Cache\BoardGame\BgItemBindCacheService;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
+use App\Services\Cache\BoardGame\BgShopItemCacheService;
 use App\Services\Observer\DefaultObserverService;
+use Illuminate\Support\Facades\Cache;
 
 class BgItemObserver
 {
@@ -81,10 +84,14 @@ class BgItemObserver
         $bgItemBindCacheService = app(BgItemBindCacheService::class);
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $bgInventoryCacheService = app(BgInventoryCacheService::class);
+        $bgShopItemCacheService = app(BgShopItemCacheService::class);
 
         foreach ($item->itemBinds as $itemBinds) {
             if ($itemBinds->boardGame->id) {
                 $bgItemBindCacheService->clearListCacheByBgId($itemBinds->boardGame->id);
+
+                $cacheKey = $bgShopItemCacheService::LIST_PREFIX . '_' . $itemBinds->boardGame->slug . '_' . ItemBind::class;
+                Cache::forget($cacheKey);
             }
 
             foreach ($itemBinds->inventories as $inventory) {

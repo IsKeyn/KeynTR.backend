@@ -3,12 +3,15 @@
 namespace App\Observers;
 
 use App\Events\PlayerData;
+use App\Models\BoardGame\ItemBind;
 use App\Models\User;
 use App\Services\Cache\AdminCacheService;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
+use App\Services\Cache\BoardGame\BgShopItemCacheService;
 use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Observer\DefaultObserverService;
+use Illuminate\Support\Facades\Cache;
 
 class UserObserver
 {
@@ -119,6 +122,7 @@ class UserObserver
 
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $boardGameCacheService = app(BoardGameCacheService::class);
+        $bgShopItemCacheService = app(BgShopItemCacheService::class);
 
         foreach ($user->bgPlayer as $player) {
             PlayerData::dispatch($player);
@@ -127,6 +131,12 @@ class UserObserver
 
             $boardGameCacheService->clearDetailCacheAllTypes($player->boardGame);
             $boardGameCacheService->clearClientPlayerListCacheFn($player->boardGame->slug, $player->user_id);
+
+            // Очищаем кеш магазина ивента
+            if ($user->wasChanged('public_name')) {
+                $cacheKey = $bgShopItemCacheService::LIST_PREFIX . '_' . $player->boardGame->slug . '_' . ItemBind::class;
+                Cache::forget($cacheKey);
+            }
         }
 
         $bgPlayerCacheService = app(BgPlayerGameCacheService::class);

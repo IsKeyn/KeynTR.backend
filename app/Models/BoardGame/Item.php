@@ -23,6 +23,11 @@ class Item extends Model
     public const FILTER = 'App\Filters\BoardGame\BgItemFilter';
     public const SERVICE = 'App\Services\BoardGame\ItemService';
 
+    public const OBSERVER = 'App\Observers\BoardGame\BgItemObserver';
+
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\ItemController';
+    public const REQUEST = 'App\Http\Requests\BoardGame\BgItemRequest';
+
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgItem\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgItem\ListResource';
 
@@ -39,6 +44,7 @@ class Item extends Model
         'actions',
         'type',
         'drop_chance',
+        'price',
         'board_game_id',
         'active',
         'sort',

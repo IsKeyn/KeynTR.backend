@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('bg_shop_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bg_player_id');
+            $table->foreignId('bg_player_id')->nullable();
             $table->foreignId('user_id')->nullable();
             $table->foreignId('board_game_id')->nullable();
-            $table->foreignId('bg_item_bind_id')->nullable();
             $table->integer('status')->nullable();
-            $table->integer('bought_by_player_id')->nullable();
+            $table->foreignId('bought_by_player_id')->nullable();
+            $table->string('entity_type')->nullable();
+            $table->integer('entity_id')->nullable();
             $table->integer('sort')->nullable();
             $table->boolean('active')->default(true);
             $table->timestamps();

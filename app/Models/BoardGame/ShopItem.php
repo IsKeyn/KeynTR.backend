@@ -37,7 +37,8 @@ class ShopItem extends Model
         'bg_player_id',
         'user_id',
         'board_game_id',
-        'bg_item_bind_id',
+        'entity_type',
+        'entity_id',
         'status',
         'bought_by_player_id',
         'sort',
@@ -47,4 +48,19 @@ class ShopItem extends Model
     protected $casts = [
         'active' => 'boolean',
     ];
+
+    public function entity()
+    {
+        return $this->morphTo();
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(BoardGamePlayer::class, 'bg_player_id');
+    }
+
+    public function buyer()
+    {
+        return $this->belongsTo(BoardGamePlayer::class, 'bought_by_player_id');
+    }
 }

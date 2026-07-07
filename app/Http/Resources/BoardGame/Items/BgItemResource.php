@@ -28,6 +28,7 @@ class BgItemResource extends JsonResource
             'actions' => $this->actions,
             'type' => $this->type,
             'drop_chance' => $this->drop_chance,
+            'price' => $this->price,
             'board_game_id' => $this->board_game_id,
             'image' => $this->when(
                 $this->relationLoaded('titleImage') && $this->titleImage,

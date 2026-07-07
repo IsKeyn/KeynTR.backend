@@ -5,17 +5,11 @@ namespace App\Http\Controllers\BoardGame;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\ItemBind;
-use App\Models\BoardGame\BoardGamePlayer;
-use App\Models\BoardGame\BoardGamePlayerPosition;
-use App\Models\BoardGame\PlayerStatusEffect;
-use App\Models\BoardGame\StatusEffect;
 use App\Models\Media;
-use App\Models\User\Notification;
+use App\Services\BoardGame\ShopItemService;
 use App\Services\BoardGame\UseItemService;
 use App\Services\TagService;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class BoardGameInventoryController extends Controller
 {
@@ -71,6 +65,12 @@ class BoardGameInventoryController extends Controller
     {
         $useItemService = new UseItemService();
         return $useItemService->useItem($request);
+    }
+
+    public function sellItem(Request $request)
+    {
+        $shopItemService = new ShopItemService();
+        return $shopItemService->toStore($request);
     }
 
     public function createNotification($player, $user, $request, $notification)

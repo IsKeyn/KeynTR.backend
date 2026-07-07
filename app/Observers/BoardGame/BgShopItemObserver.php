@@ -4,6 +4,7 @@ namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\ShopItem;
 use App\Services\Observer\DefaultObserverService;
+use Illuminate\Support\Facades\Cache;
 
 class BgShopItemObserver
 {
@@ -19,6 +20,9 @@ class BgShopItemObserver
 
     public function created(ShopItem $shopItem)
     {
+        $shopItem->load(['boardGame']);
+
+        $this->additionalActions($shopItem);
         $this->clearRelatedCache($shopItem);
 
         $this->defaultObserverService->created(
@@ -30,6 +34,9 @@ class BgShopItemObserver
 
     public function updated(ShopItem $shopItem)
     {
+        $shopItem->load(['boardGame']);
+
+        $this->additionalActions($shopItem);
         $this->clearRelatedCache($shopItem);
 
         $this->defaultObserverService->updated(
@@ -41,6 +48,9 @@ class BgShopItemObserver
 
     public function deleted(ShopItem $shopItem)
     {
+        $shopItem->load(['boardGame']);
+
+        $this->additionalActions($shopItem);
         $this->clearRelatedCache($shopItem);
 
         $this->defaultObserverService->deleted(
@@ -52,6 +62,9 @@ class BgShopItemObserver
 
     public function restored(ShopItem $shopItem)
     {
+        $shopItem->load(['boardGame']);
+
+        $this->additionalActions($shopItem);
         $this->clearRelatedCache($shopItem);
 
         $this->defaultObserverService->restored(
@@ -63,6 +76,9 @@ class BgShopItemObserver
 
     public function forceDeleted(ShopItem $shopItem)
     {
+        $shopItem->load(['boardGame']);
+
+        $this->additionalActions($shopItem);
         $this->clearRelatedCache($shopItem);
 
         $this->defaultObserverService->forceDeleted(
@@ -74,5 +90,12 @@ class BgShopItemObserver
     private function clearRelatedCache($shopItem)
     {
         $shopItem->load([]);
+    }
+
+    private function additionalActions($shopItem)
+    {
+        $cacheService = app(self::CACHE_SERVICE);
+        $cacheKey = $cacheService::LIST_PREFIX . '_' . $shopItem->boardGame->slug . '_' . $shopItem->entity_type;
+        Cache::forget($cacheKey);
     }
 }

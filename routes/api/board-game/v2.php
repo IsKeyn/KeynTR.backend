@@ -13,6 +13,7 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
     Route::name('player.')->group(base_path('routes/api/board-game/fragments/Player.php'));
     Route::name('inventory.')->group(base_path('routes/api/board-game/fragments/Inventory.php'));
     Route::name('item.')->group(base_path('routes/api/board-game/fragments/Item.php'));
+    Route::name('shop.')->group(base_path('routes/api/board-game/fragments/Shop.php'));
     Route::name('status-effect.')->group(base_path('routes/api/board-game/fragments/StatusEffect.php'));
     Route::name('board-status-effect.')->group(base_path('routes/api/board-game/fragments/BoardStatusEffect.php'));
     Route::name('board.')->group(base_path('routes/api/board-game/fragments/Board.php'));

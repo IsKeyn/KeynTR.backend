@@ -32,6 +32,7 @@ class BgItemRequest extends FormRequest
             'type' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean|nullable',
             'drop_chance' => 'sometimes|integer|nullable',
+            'price' => 'nullable|integer',
             'author' => 'nullable|integer|exists:users,id',
             'image'  => 'nullable|integer|exists:media,id',
             'sound' => 'sometimes|integer|nullable',

@@ -4,6 +4,8 @@ namespace App\Models\Traits;
 
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 trait ExtendModelForBoardGameTrait
 {
@@ -22,13 +24,18 @@ trait ExtendModelForBoardGameTrait
         return $query->where('user_id', $userId);
     }
 
-    public function boardGame()
+    public function boardGame(): BelongsTo
     {
         return $this->belongsTo(BoardGame::class, 'board_game_id');
     }
 
-    public function player()
+    public function player(): BelongsTo
     {
         return $this->belongsTo(BoardGamePlayer::class, 'bg_player_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

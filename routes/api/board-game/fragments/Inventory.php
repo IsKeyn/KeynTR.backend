@@ -8,4 +8,5 @@ Route::prefix('inventory/')
     ->middleware('auth:sanctum')
     ->group(function() {
         Route::post('useItem', 'useItem')->name('use-item');
+        Route::post('sellItem', 'sellItem')->name('sell-item');
 });

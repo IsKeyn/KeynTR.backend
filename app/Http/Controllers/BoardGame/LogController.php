@@ -46,6 +46,10 @@ class LogController extends Controller
         if ($id) {
             $query = BoardGameLog::query()
                 ->where('board_game_id', $id)
+                ->with([
+                    'user',
+                    'user.avatar',
+                ])
                 ->orderByDesc('created_at')
                 ->orderByDesc('id');
 

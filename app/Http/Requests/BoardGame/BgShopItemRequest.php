@@ -15,10 +15,11 @@ class BgShopItemRequest extends FormRequest
     public function rules()
     {
         return [
-            'bg_player_id' => 'required|integer|exists:board_game_players,id',
-            'user_id' => 'required|integer|exists:users,id',
+            'bg_player_id' => 'nullable|integer|exists:board_game_players,id',
+            'user_id' => 'nullable|integer|exists:users,id',
             'board_game_id' => 'required|integer|exists:board_games,id',
-            'bg_item_bind_id' => 'required|integer|exists:board_game_game_lists,id',
+            'entity_type' => 'required|string',
+            'entity_id' => 'required|integer',
             'status' => 'required|integer',
             'bought_by_player_id' => 'nullable|integer|exists:board_game_players,id',
             'sort' => 'nullable|integer',
@@ -29,8 +30,6 @@ class BgShopItemRequest extends FormRequest
     public function messages()
     {
         return [
-            'bg_player_id.required' => 'bg_player_id обязателен для заполнения.',
-            'user_id.required' => 'user_id обязателен для заполнения.',
             'board_game_id.required' => 'board_game_id обязателен для заполнения.',
             'bg_item_bind_id.required' => 'bg_item_bind_id обязателен для заполнения.',
             'status.required' => 'status обязателен для заполнения.',
