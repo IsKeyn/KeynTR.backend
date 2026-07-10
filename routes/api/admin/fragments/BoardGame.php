@@ -19,6 +19,7 @@ Route::prefix('BoardGame')->group(function () {
     Route::name('player-interaction')->middleware(['can:bg.player-interaction.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/PlayerInteraction.php'));
     Route::name('game-list')->middleware(['can:bg.game-list.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/GameList.php'));
     Route::name('player-game')->middleware(['can:bg.player-game.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/PlayerGame.php'));
+    Route::name('add-game')->middleware(['can:bg.add-game.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/AddGame.php'));
     Route::name('timer')->middleware(['can:bg.timer.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/Timer.php'));
     Route::name('bgPlayerTimer')->middleware(['can:bg.player-timer.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/PlayerTimer.php'));
     Route::name('log')->middleware(['can:bg.log.edit'])->group(base_path('routes/api/admin/fragments/BgFragments/Log.php'));

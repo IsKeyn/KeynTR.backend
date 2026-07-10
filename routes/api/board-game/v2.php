@@ -19,6 +19,7 @@ Route::prefix('board-game/v2/')->name('v2.')->group(function() {
     Route::name('board.')->group(base_path('routes/api/board-game/fragments/Board.php'));
     Route::name('dice.')->group(base_path('routes/api/board-game/fragments/Dice.php'));
     Route::name('timer.')->group(base_path('routes/api/board-game/fragments/Timer.php'));
+    Route::name('add-game.')->group(base_path('routes/api/board-game/fragments/AddGame.php'));
 
     Route::controller(BoardGameController::class)->group(function() {
         Route::get('get/{slug}', 'getBySlug')->name('get-by-slug');

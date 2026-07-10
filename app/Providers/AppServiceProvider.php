@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Article;
+use App\Models\BoardGame\AddGame;
 use App\Models\BoardGame\Board;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
@@ -39,6 +40,7 @@ use App\Models\User;
 use App\Models\User\Notification;
 use App\Models\Version;
 use App\Observers\ArticleObserver;
+use App\Observers\BoardGame\BgAddGameObserver;
 use App\Observers\BoardGame\BgPlayerGameObserver;
 use App\Observers\BoardGame\BgPlayerInteractionsObserver;
 use App\Observers\BoardGame\BgPlayerObserver;
@@ -133,6 +135,7 @@ class AppServiceProvider extends ServiceProvider
         PlayerInteractions::observe(BgPlayerInteractionsObserver::class);
         BoardGameGameList::observe(BgGameListObserver::class);
         PlayerGame::observe(BgPlayerGameObserver::class);
+        AddGame::observe(BgAddGameObserver::class);
         Timer::observe(TimerObserver::class);
         BoardGamePlayerTimer::observe(BgPlayerTimerObserver::class);
         BoardGameLog::observe(BgLogObserver::class);

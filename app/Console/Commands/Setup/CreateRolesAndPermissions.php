@@ -537,6 +537,14 @@ class CreateRolesAndPermissions extends Command
                 'active' => true,
             ],
             [
+                'id' => 46,
+                'name' => 'Модерация добавления игр (ни)',
+                'system_name' => 'bg.add-game.edit',
+                'entity_type' => null,
+                'sort' => 395,
+                'active' => true,
+            ],
+            [
                 'id' => 40,
                 'name' => 'Редактирование таймеров (ни)',
                 'system_name' => 'bg.timer.edit',

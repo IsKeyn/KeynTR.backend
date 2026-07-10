@@ -26,11 +26,11 @@ class BoardGamePlayer extends Model
     public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\BgPlayerController';
     public const REQUEST = 'App\Http\Requests\BoardGame\BgPlayerRequest';
 
-    /* Resource for admin panel */
+    // Resource for admin panel
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\Player\ListResource';
 
-    /* Resource for public */
+    // Resource for public
     public const PUBLIC_RESOURCES = [];
 
     protected $fillable = [
@@ -45,6 +45,7 @@ class BoardGamePlayer extends Model
         'rerolled_own_game_count',
         'active',
         'not_active_reason',
+        'added_games',
         'settings',
         'premium',
         'sort',
