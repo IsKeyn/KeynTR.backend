@@ -5,6 +5,7 @@ namespace App\Http\Resources\BoardGame\Player;
 use App\Http\Resources\BoardGame\Items\BgInventoryResource;
 use App\Http\Resources\BoardGame\PlayerGame\BgPlayerGameShortResource;
 use App\Http\Resources\BoardGame\StatusEffects\BgPlayerStatusEffectResource;
+use App\Http\Resources\Media\ShortMediaResource;
 use App\Http\Resources\User\UserPublicResource;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -34,6 +35,7 @@ class BgPlayerListResource extends JsonResource
 
             'user_id' => $this->user_id,
             'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
+            'premium' => $this->premium,
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
             'full_points' => $fullPoints,
@@ -54,6 +56,8 @@ class BgPlayerListResource extends JsonResource
             'not_active_reason' => $this->not_active_reason,
             'current_game' => $this->whenLoaded('currentGames', fn() => BgPlayerGameShortResource::make($this->currentGames->first())),
             'has_current_game' => $this->whenLoaded('currentGames', fn() => $this->currentGames->first() ?? false),
+            'settings' => $this->settings,
+            'backgroundImage' => $this->whenLoaded('media', fn() => ShortMediaResource::make($this->media->first())),
         ];
     }
 }

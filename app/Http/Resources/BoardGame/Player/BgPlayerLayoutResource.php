@@ -31,6 +31,7 @@ class BgPlayerLayoutResource extends JsonResource
 
             'user_id' => $this->user_id,
             'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
+            'premium' => $this->premium,
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
             'full_points' => $fullPoints,

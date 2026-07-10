@@ -33,6 +33,8 @@ class BoardGamePlayer extends Model
     // Resource for public
     public const PUBLIC_RESOURCES = [];
 
+    public const MEDIA_BG_IMAGE = 1;
+
     protected $fillable = [
         'user_id',
         'board_game_id',

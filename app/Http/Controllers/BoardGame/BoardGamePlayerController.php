@@ -40,6 +40,7 @@ use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService;
 use App\Services\Entity\DefaultEntityService;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -88,6 +89,9 @@ class BoardGamePlayerController extends Controller
                     'user.additionalFields',
                     'positions' => function ($query) {
                         $query->active()->orderBy('id', 'desc');
+                    },
+                    'media' => function ($query) {
+                        $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
                     },
                 ])
                 ->first();
@@ -181,6 +185,9 @@ class BoardGamePlayerController extends Controller
                     'inventory.itemBind.item.titleImage',
                     'inventory.itemBind.item.sound',
                     'inventory.itemBind.item.authorUser',
+                    'media' => function ($query) {
+                        $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
+                    },
                 ]);
 
             if (!isset($request->sort)) {
@@ -743,5 +750,64 @@ class BoardGamePlayerController extends Controller
         return response()
             ->json(['error' => __('actions.failed_save')])
             ->setStatusCode(Response::HTTP_BAD_REQUEST);
+    }
+
+    public function setPlayerBackground(Request $request, $slug)
+    {
+        $conditionData = PlayerGameService::checkConditions($slug);
+
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        }
+
+        $mediaService = new MediaService();
+
+        $conditionData['player']->load([
+            'media' => function ($query) {
+                $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
+            },
+        ]);
+
+        $bgImage = $conditionData['player']->media->first();
+
+        if ($bgImage) {
+            $mediaService->destroy($bgImage);
+            $conditionData['player']->media()->detach();
+        }
+
+        $playerName = $conditionData['user']->public_name ? $conditionData['user']->public_name : $conditionData['user']->name;
+
+       $fileArray = [
+           'name' => 'Бекграунд изображение игрока ' . $playerName . ' в ивенте ' . $conditionData['boardGame']->name,
+           'src' => $request->file('bgImage'),
+       ];
+
+       if ($bgImage = $mediaService->addMedia($fileArray, $conditionData['user'])) {
+           $conditionData['player']->media()->syncWithPivotValues($bgImage->id, ['type' => 1]);
+
+           $conditionData['player']->touch();
+       }
+
+       return $bgImage;
+    }
+
+    public function setPlayerSettings(Request $request, $slug)
+    {
+        $conditionData = PlayerGameService::checkConditions($slug);
+
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        }
+
+        $player = $conditionData['player'];
+
+        if ($request->name) {
+            $settings = $player->settings ?? [];
+            $settings[$request->name] = $request->value;
+            $player->settings = $settings;
+            $player->save();
+        }
+
+        return response()->json(['message' => 'Настройки обновлены']);
     }
 }

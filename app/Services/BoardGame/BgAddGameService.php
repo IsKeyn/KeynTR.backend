@@ -39,21 +39,10 @@ class BgAddGameService
     public static function checkCanPlayerAddGame($conditionData)
     {
         if ($conditionData['player']->added_games) {
-            return response()
-                ->json([
-                    'status' => AddGame::STATUS_ALREADY_ADDED,
-                    'message' => __('boardGame.add_game.already_added'),
-                ])
-                ->setStatusCode(Response::HTTP_OK);
-        }
-
-        if ($conditionData['player']->premium) {
-            return response()
-                ->json([
-                    'status' => AddGame::STATUS_CAN_ADD,
-                    'message' => __('boardGame.add_game.already_added'),
-                ])
-                ->setStatusCode(Response::HTTP_OK);
+            return [
+                'status' => AddGame::STATUS_ALREADY_ADDED,
+                'message' => __('boardGame.add_game.already_added'),
+            ];
         }
 
         // Проверям условия, может ли игрок добавлять игры
@@ -82,18 +71,20 @@ class BgAddGameService
             $addingGamesConditions = json_decode($addingGamesConditions, true);
         }
 
-        if (
-            $position >= (isset($addingGamesConditions['position']) ? $addingGamesConditions['position'] : 0)
-            && $finishedGames >= (isset($addingGamesConditions['finishedGames']) ? $addingGamesConditions['finishedGames'] : 0)
+        if ($conditionData['player']->premium ||
+            ($position >= (isset($addingGamesConditions['position']) ? $addingGamesConditions['position'] : 0)
+            && $finishedGames >= (isset($addingGamesConditions['finishedGames']) ? $addingGamesConditions['finishedGames'] : 0))
         ) {
             $status = AddGame::STATUS_CAN_ADD;
+            $message = __('boardGame.add_game.can_add');
         } else {
             $status = AddGame::STATUS_CANT_ADD;
+            $message = __('boardGame.add_game.cant_add');
         }
 
         return [
             'status' => $status,
-            'message' => __('boardGame.add_game.can_add'),
+            'message' => $message,
             'data' => [
                 'position' => $position,
                 'finishedGames' => $finishedGames,

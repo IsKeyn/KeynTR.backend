@@ -25,5 +25,7 @@ Route::prefix('player/')->controller(BoardGamePlayerController::class)->group(fu
         Route::get('getInventory/{slug}/{name}', 'getInventory')->name('getInventory');
         Route::post('rollItem/{slug}', 'rollItem')->name('rollItem');
         Route::post('setSetting/{slug}', 'setSetting')->name('set-setting');
+        Route::post('setPlayerSettings/{slug}', 'setPlayerSettings')->name('set-player-setting');
+        Route::post('setPlayerBackground/{slug}', 'setPlayerBackground')->name('set-player-background');
     });
 });

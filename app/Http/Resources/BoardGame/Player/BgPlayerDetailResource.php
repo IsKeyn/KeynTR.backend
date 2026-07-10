@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\BoardGame\Player;
 
+use App\Http\Resources\Media\ShortMediaResource;
 use App\Http\Resources\User\UserPublicResource;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -31,7 +32,8 @@ class BgPlayerDetailResource extends JsonResource
             ...$this->commonLoadedFields(),
 
             'user_id' => $this->user_id,
-            'user' => $this->whenLoaded('user', UserPublicResource::make($this->user)),
+            'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
+            'premium' => $this->premium,
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
             'full_points' => $fullPoints,
@@ -42,6 +44,8 @@ class BgPlayerDetailResource extends JsonResource
             'position' => $position ? $position->position : null,
             'place' => $this->place,
             'not_active_reason' => $this->not_active_reason,
+            'settings' => $this->settings,
+            'backgroundImage' => $this->whenLoaded('media', fn() => ShortMediaResource::make($this->media->first())),
         ];
     }
 }
