@@ -5,19 +5,18 @@ namespace App\Http\Controllers\BoardGame;
 use App\Filters\BoardGame\BgPlayerFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\BgShortResource;
+use App\Http\Resources\BoardGame\Board\BgPlayerInteractionResource;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerWithCurrentGameResource;
-use App\Http\Resources\BoardGame\BoardGamePlayerWithInventoryResource;
 use App\Http\Resources\BoardGame\Items\BgInventoryResource;
 use App\Http\Resources\BoardGame\Items\BgItemBindResource;
 use App\Http\Resources\BoardGame\LogResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerDetailResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerListResource;
 use App\Http\Resources\BoardGame\PlayerGame\BgPlayerGameShortResource;
-use App\Http\Resources\BoardGame\PlayerInteractionResource;
 use App\Http\Resources\BoardGame\StatusEffects\BgPlayerStatusEffectResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
@@ -37,6 +36,7 @@ use App\Services\BoardGame\UseItemService;
 use App\Services\Cache\BoardGame\BgInventoryCacheService;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
+use App\Services\Cache\BoardGame\BgPlayerInteractionCacheService;
 use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService;
 use App\Services\Entity\DefaultEntityService;
@@ -687,25 +687,70 @@ class BoardGamePlayerController extends Controller
         return BgItemBindResource::make($randItem);
     }
 
-    public function getInteractions($slug)
+    /**
+     * Взаимодействия игрока в ивенте
+     *
+     * @param Request $request
+     * @param $slug
+     * @return array|\Illuminate\Http\JsonResponse|\Illuminate\Http\Resources\Json\AnonymousResourceCollection|string[]
+     */
+    public function getInteractions(Request $request, $slug)
     {
-        $conditionData = PlayerGameService::checkConditions($slug);
+        $bgId = null;
+        $userId = null;
 
-        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
-            return $conditionData;
-        } else {
-            $playerInteractions = PlayerInteractions::where('board_game_id', $conditionData['boardGame']->id)
-                ->where(function($query) use ($conditionData) {
-                    $query->where('created_by', '=', $conditionData['user']->id)->orWhere('with_player', '=', $conditionData['user']->id);
-                })->active()->orderByDesc('id')
-                ->get();
-
-            return [
-                'status' => 1,
-                'interaction' => PlayerInteractionResource::collection($playerInteractions),
-                'player' => BoardGamePlayerWithInventoryResource::make($conditionData['player']),
-            ];
+        if (!$slug) {
+            return response()
+                ->json(['error' => __('boardGame.not_received_slug')])
+                ->setStatusCode(Response::HTTP_BAD_REQUEST);
         }
+
+        if ($request->boolean('checkCondition')) {
+            $conditionData = PlayerGameService::checkConditions($slug);
+
+            if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+                return $conditionData;
+            }
+
+            $bgId = $conditionData['boardGame']->id;
+            $userId = $conditionData['user']->id;
+        } else {
+            if (!$request->userId) {
+                return response()
+                    ->json(['error' => __('notReceived.not_received_user_id')])
+                    ->setStatusCode(Response::HTTP_BAD_REQUEST);
+            }
+
+            $bgId = BoardGame::findBySlug($slug)->active()->value('id');
+            $userId = $request->userId;
+        }
+
+        $cacheKey = BgPlayerInteractionCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId . '_' . $request->active;
+
+        return Cache::remember($cacheKey, BgPlayerInteractionCacheService::TIME, function () use ($request, $bgId, $userId) {
+            $playerInteractions = PlayerInteractions::query()
+                ->findByBoardGame($bgId)
+                ->where(function ($query) use ($userId) {
+                    $query
+                        ->where('created_by', '=', $userId)
+                        ->orWhere('with_player', '=', $userId);
+                })
+                ->orderByDesc('id')
+                ->with([
+                    'withPlayerData',
+                    'withPlayerData.avatar',
+                    'createdByData',
+                    'createdByData.avatar',
+                ]);
+
+            if ($request->boolean('active')) {
+                $playerInteractions->active();
+            }
+
+            $result = $playerInteractions->get();
+
+            return BgPlayerInteractionResource::collection($result);
+        });
     }
 
     /**

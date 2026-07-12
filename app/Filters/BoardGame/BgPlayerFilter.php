@@ -5,6 +5,7 @@ use App\Filters\Concerns\HasFilters;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use App\Models\BoardGame\PlayerInteractions;
 use App\Models\User;
 use App\Models\ViewsCount;
 use App\Models\VotesCount;
@@ -206,6 +207,59 @@ class BgPlayerFilter
 
         // 7. Фильтруем основной запрос
         $this->query->whereIn($table . '.user_id', $nearestUserIds);
+    }
+
+    protected function notPlayBattleForPoints($value): void
+    {
+        if ($value) {
+            $currentUserId = is_array($value) ? ($value['user_id'] ?? null) : ($value->user_id ?? null);
+            $bgSlug = is_array($value) ? ($value['bg_slug'] ?? null) : ($value->bg_slug ?? null);
+
+            $boardGameId = BoardGame::query()->findBySlug($bgSlug)->value('id');
+
+            $playerInteractions = PlayerInteractions::query()
+                ->where('board_game_id', $boardGameId)
+                ->where('created_by', $currentUserId)
+                ->where('status', PlayerInteractions::I_WIN)
+                ->orWhere('status', PlayerInteractions::I_LOSE)
+                ->where('type', 'battleForPoints')
+                ->select('with_player')
+                ->get();
+
+            $arWithPlayers = [];
+
+            foreach ($playerInteractions as $interaction) {
+                $arWithPlayers[] = $interaction->with_player;
+            }
+
+            $this->query->whereNotIn('user_id', $arWithPlayers);
+        }
+    }
+
+    protected function notInvitedToCoop($value): void
+    {
+        if ($value) {
+            $currentUserId = is_array($value) ? ($value['user_id'] ?? null) : ($value->user_id ?? null);
+            $bgSlug = is_array($value) ? ($value['bg_slug'] ?? null) : ($value->bg_slug ?? null);
+
+            $boardGameId = BoardGame::query()->findBySlug($bgSlug)->value('id');
+
+            $playerInteractions = PlayerInteractions::query()
+                ->where('board_game_id', $boardGameId)
+                ->where('created_by', $currentUserId)
+                ->where('status', PlayerInteractions::COOP_FINISH)
+                ->where('type', 'inviteToCoop')
+                ->select('with_player')
+                ->get();
+
+            $arWithPlayers = [];
+
+            foreach ($playerInteractions as $interaction) {
+                $arWithPlayers[] = $interaction->with_player;
+            }
+
+            $this->query->whereNotIn('user_id', $arWithPlayers);
+        }
     }
 
     protected function sort($value): void

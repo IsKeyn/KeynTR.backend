@@ -182,7 +182,7 @@ class InteractionsService
         }
         if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE) {
             if ($this->interaction->created_by) {
-                $message =  $this->interaction->withPlayerData->name . 'Отказался от предложения "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
+                $message =  $this->interaction->withPlayerData->name . ' отказался от предложения "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
 
                 $fields = [
                     'user_id' => $this->interaction->created_by,
@@ -279,7 +279,10 @@ class InteractionsService
             return ErrorService::message('Вы не можете отозвать взаимодействие, которое создано не вами');
         }
 
-        if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE || $forced) {
+        if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE
+            || $this->interaction->status === PlayerInteractions::STATUS_ACCEPTED
+            || $forced
+        ) {
             if ($this->interaction->with_player) {
                 $message = 'Отозвал предложение "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '" отправленное ' . $this->interaction->withPlayerData->name;
 

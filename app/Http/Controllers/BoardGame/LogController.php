@@ -77,6 +77,10 @@ class LogController extends Controller
 
         $cacheKey = BgLogCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId;
 
+        if ($request->page && $request->perPage) {
+            $cacheKey .= '_' . $request->page . '_' . $request->perPage;
+        }
+
         return Cache::remember($cacheKey, BgLogCacheService::TIME, function () use ($request, $userId, $bgId) {
             $query = BoardGameLog::query()
                 ->where('board_game_id', $bgId)

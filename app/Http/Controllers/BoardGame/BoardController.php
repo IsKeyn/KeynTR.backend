@@ -103,7 +103,11 @@ class BoardController extends Controller
         if ($user) {
             $cacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $slug . '_' . $user->id . '_board';
 
-            $returnData2 = Cache::remember($cacheKey, BgPlayerCacheService::TIME, function () use ($user, $BoardGame, $slug) {
+            $returnData2 = Cache::remember(
+                $cacheKey,
+                BgPlayerCacheService::TIME,
+                function () use ($user, $BoardGame, $slug
+            ) {
                 $bgId = $BoardGame::query()->findBySlug($slug)->value('id');
 
                 $player = BoardGamePlayer::query()
@@ -123,7 +127,9 @@ class BoardController extends Controller
                             $query->where('type', 'battleForPoints')->active();
                         },
                         'playerInteractions.withPlayerData',
+                        'playerInteractions.withPlayerData.avatar',
                         'playerInteractions.createdByData',
+                        'playerInteractions.createdByData.avatar',
                     ])
                     ->first();
 

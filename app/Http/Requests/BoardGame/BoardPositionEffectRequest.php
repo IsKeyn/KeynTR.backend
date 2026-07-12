@@ -16,7 +16,7 @@ class BoardPositionEffectRequest extends FormRequest
 
     public function rules()
     {
-        $id = $this->route('BoardPositionEffect')?->id ?? $this->route('id') ?? $this->get('id');
+        $id = $this->route('boardPositionEffect')?->id ?? $this->route('id') ?? $this->get('id');
 
         return [
             'name' => 'required|string|sometimes',
@@ -27,7 +27,7 @@ class BoardPositionEffectRequest extends FormRequest
                 Rule::unique(BoardPositionEffect::TABLE_NAME, 'slug')->ignore($id),
             ],
             'description' => 'sometimes|string|nullable',
-            'actions' => 'sometimes|string|nullable',
+            'actions' => 'nullable|array',
             'sort' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean|nullable',
             'created_by' => 'sometimes|integer|nullable',

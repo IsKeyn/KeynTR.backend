@@ -23,10 +23,29 @@ class BgLogCacheService extends BaseCacheService
     public const LIST_TOKEN = self::NAME . '_list_token';
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
+    public const ARR_PER_PAGE = [10, 20, 30];
 
     public function clearClientPlayerListCache($element)
     {
-        $cacheKey = static::LIST_PREFIX . '_' . $element->boardGame->slug . '_' . $element->created_at;
+        $cacheKey = static::LIST_PREFIX . '_' . $element->boardGame->slug . '_' . $element->created_by;
         Cache::forget($cacheKey);
+
+        $modelClass = static::MODEL;
+
+        // Очистка списочного публичного кеша
+        foreach (static::ARR_PER_PAGE as $perPage) {
+            $lastPage = $modelClass::query()
+                ->where('board_game_id', $element->boardGame->id)
+                ->where('created_by', $element->created_by)
+                ->orderByDesc('created_at')
+                ->paginate($perPage)
+                ->lastPage();
+
+            for ($i = 1; $i <= $lastPage; $i++) {
+                $cacheKey = static::LIST_PREFIX . '_' . $i . '_' . $perPage;
+
+                Cache::forget($cacheKey);
+            }
+        }
     }
 }

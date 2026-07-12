@@ -47,7 +47,7 @@ class DiceController extends Controller
 
         foreach ($playerStatusEffects as $statusEffect) {
             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::DICE_TYPE) {
-                foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
+                foreach (json_decode($statusEffect->statusEffectBind->statusEffect->actions) as $action) {
                     if (isset($action->value) && $action->value) {
                         $rollResult = $action->value;
                     }

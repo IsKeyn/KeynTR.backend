@@ -33,6 +33,7 @@ return [
             'denied' => 'отказался от статус эффекта :name',
             'successfully_applied' => 'Успешно применено',
         ],
+        'interactions' => [],
     ],
     'shop' => [
         'create_failed' => 'Не удалось создать элемент магазина',

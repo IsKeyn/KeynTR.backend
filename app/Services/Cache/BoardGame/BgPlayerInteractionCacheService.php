@@ -4,6 +4,7 @@ namespace App\Services\Cache\BoardGame;
 
 use App\Models\BoardGame\PlayerInteractions;
 use App\Services\Cache\BaseCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class BgPlayerInteractionCacheService extends BaseCacheService
 {
@@ -22,4 +23,17 @@ class BgPlayerInteractionCacheService extends BaseCacheService
     public const LIST_TOKEN = self::NAME . '_list_token';
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
+
+    public function clearClientPlayerListCache($element)
+    {
+        $cacheKey1 = BgPlayerInteractionCacheService::LIST_PREFIX . '_' . $element->boardGame->slug . '_' . $element->created_by . '_true';
+        $cacheKey2 = BgPlayerInteractionCacheService::LIST_PREFIX . '_' . $element->boardGame->slug . '_' . $element->created_by . '_false';
+        $cacheKey3 = BgPlayerInteractionCacheService::LIST_PREFIX . '_' . $element->boardGame->slug . '_' . $element->with_player . '_true';
+        $cacheKey4 = BgPlayerInteractionCacheService::LIST_PREFIX . '_' . $element->boardGame->slug . '_' . $element->with_player . '_false';
+
+        Cache::forget($cacheKey1);
+        Cache::forget($cacheKey2);
+        Cache::forget($cacheKey3);
+        Cache::forget($cacheKey4);
+    }
 }

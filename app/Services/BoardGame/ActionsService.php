@@ -800,6 +800,7 @@ class ActionsService
             'type' => $action->value,
             'status' => PlayerInteractions::STATUS_ACTIVE,
             'board_game_id' => $this->conditionData['boardGame']->id,
+            'bg_player_id' => $this->conditionData['player']->id,
             'created_by' => $this->conditionData['user']->id,
             'with_player' => $player->user_id,
             'active' => true,
@@ -1101,6 +1102,52 @@ class ActionsService
                 $players[] = $query->first();
                 break;
 
+            case 'notPlayBattleForPoints':
+                $filters = [
+                    'notPlayBattleForPoints' => [
+                        'user_id' => $this->conditionData['user']->id,
+                        'bg_slug' => $this->conditionData['boardGame']->slug,
+                    ]
+                ];
+
+                $filterRequest = new \Illuminate\Http\Request(['filters' => json_encode($filters)]);
+                $filter = new BgPlayerFilter($filterRequest);
+
+                $query = $filter
+                    ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                if ($request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
+                break;
+
+            case 'notInvitedToCoop':
+                $filters = [
+                    'notInvitedToCoop' => [
+                        'user_id' => $this->conditionData['user']->id,
+                        'bg_slug' => $this->conditionData['boardGame']->slug,
+                    ]
+                ];
+
+                $filterRequest = new \Illuminate\Http\Request(['filters' => json_encode($filters)]);
+                $filter = new BgPlayerFilter($filterRequest);
+
+                $query = $filter
+                    ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                if (!isset($request->additionalParams['player']) || $request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
+                break;
+
             case 'nearestPlayer':
                 $filters = [
                     'nearestOnly' => [
@@ -1113,8 +1160,7 @@ class ActionsService
                 $filter = new BgPlayerFilter($filterRequest);
 
                 $query = $filter
-                    ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id))
-                    ->get();
+                    ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
 
                 if ($request->additionalParams['player'] === 'randomPlayer') {
                     $query->inRandomOrder();

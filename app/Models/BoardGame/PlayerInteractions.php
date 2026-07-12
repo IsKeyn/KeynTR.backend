@@ -28,11 +28,11 @@ class PlayerInteractions extends Model
 
     public const OBSERVER = 'App\Observers\BoardGame\BgPlayerInteractionsObserver';
 
-    /* Resource for admin panel */
+    // Resource for admin panel
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerInteraction\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerInteraction\ListResource';
 
-    /* Resource for public */
+    // Resource for public
     public const PUBLIC_RESOURCES = [];
 
     public const STATUS_ACTIVE = 1;

@@ -575,7 +575,7 @@ class PlayerGameController extends Controller
 
                 $action = (Object)[
                     'type' => 'playerInteractions',
-                    'target' => 'other',
+                    'target' => 'notInvitedToCoop',
                     'value' => 'inviteToCoop',
                     'description' => 'Приглашение пройти в коопе игру ' . $boardGameGameList->game->name,
                 ];
