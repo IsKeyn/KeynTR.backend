@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\BoardGame\PlayerInfoForObs;
 use App\Events\PlayerData;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Services\Cache\BoardGame\BoardGameCacheService;
@@ -88,18 +89,21 @@ class BgPlayerObserver
 
     private function additionalActions($boardGamePlayer)
     {
-        /* Делаем перерасчет мест */
+        // Делаем перерасчет мест
         if ($boardGamePlayer->boardGame) {
             $service = app(self::SERVICE);
             $service->recalculatePlaces($boardGamePlayer->boardGame->id);
         }
 
-        /* Пересчитываем места игроков */
+        // Пересчитываем места игроков
         $cacheService = app(self::CACHE_SERVICE);
         $cacheService->clearBgListCache($boardGamePlayer->boardGame);
 
-        /* Сбрасываем кеш зависимых сущностей */
+        // Сбрасываем кеш зависимых сущностей
         $this->clearRelatedCache($boardGamePlayer);
+
+        // Отправляем данные через WS
+        PlayerInfoForObs::dispatch($boardGamePlayer->user_id);
     }
 
     private function clearRelatedCache($boardGamePlayer)

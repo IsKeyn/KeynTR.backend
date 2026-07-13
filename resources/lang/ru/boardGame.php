@@ -13,6 +13,7 @@ return [
     'timer_settings_updated' => 'Настройки обновлены',
 
     'player' => [
+        'not_found' => 'Игрок не найден',
         'settings' => [
             'dont_received_setting_name' => 'Не получено название опции',
             'dont_received_setting_value' => 'Не получено значение опции',

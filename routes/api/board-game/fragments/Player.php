@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('player/')->controller(BoardGamePlayerController::class)->group(function() {
     Route::post('add', 'add')->name('add');
     Route::get('get/{slug}/{name}', 'getPlayer')->name('getPlayer');
+    Route::get('getPlayerWithInventory', 'getPlayerWithInventory')->name('getPlayerWithInventory');
     Route::get('current/{slug}', 'getCurrent')->middleware('auth:sanctum')->name('getCurrent');
     Route::get('list/{boardGame:slug}', 'getList')->name('getList');
     Route::get('filters', 'getListFilters')->name('filters');

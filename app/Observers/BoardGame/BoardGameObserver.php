@@ -20,7 +20,7 @@ class BoardGameObserver
 
     public function created(BoardGame $boardGame)
     {
-        $this->clearRelatedCache($boardGame);
+        $this->additionalActions($boardGame);
 
         $this->defaultObserverService->created(
             $boardGame,
@@ -31,7 +31,7 @@ class BoardGameObserver
 
     public function updated(BoardGame $boardGame)
     {
-        $this->clearRelatedCache($boardGame);
+        $this->additionalActions($boardGame);
 
         $this->defaultObserverService->updated(
             $boardGame,
@@ -42,7 +42,7 @@ class BoardGameObserver
 
     public function deleted(BoardGame $boardGame)
     {
-        $this->clearRelatedCache($boardGame);
+        $this->additionalActions($boardGame);
 
         $this->defaultObserverService->deleted(
             $boardGame,
@@ -53,7 +53,7 @@ class BoardGameObserver
 
     public function restored(BoardGame $boardGame)
     {
-        $this->clearRelatedCache($boardGame);
+        $this->additionalActions($boardGame);
 
         $this->defaultObserverService->restored(
             $boardGame,
@@ -64,7 +64,7 @@ class BoardGameObserver
 
     public function forceDeleted(BoardGame $boardGame)
     {
-        $this->clearRelatedCache($boardGame);
+        $this->additionalActions($boardGame);
 
         $this->defaultObserverService->forceDeleted(
             $boardGame,
@@ -72,10 +72,15 @@ class BoardGameObserver
         );
     }
 
-    private function clearRelatedCache($boardGame)
+    private function additionalActions($boardGame)
     {
         $boardGame->load(['players', 'players.boardGame']);
 
+        $this->clearRelatedCache($boardGame);
+    }
+
+    private function clearRelatedCache($boardGame)
+    {
         $cacheService = app(self::CACHE_SERVICE);
         $cacheService->clearClientPlayerListByBgCache($boardGame);
 

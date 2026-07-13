@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\BoardGame\PlayerInfoForObs;
 use App\Events\MovePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
@@ -21,7 +22,7 @@ class BgPlayerPositionObserver
 
     public function created(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
-        $this->clearRelatedCache($boardGamePlayerPosition);
+        $this->additionalActions($boardGamePlayerPosition);
 
         $this->defaultObserverService->created(
             $boardGamePlayerPosition,
@@ -47,7 +48,7 @@ class BgPlayerPositionObserver
 
     public function updated(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
-        $this->clearRelatedCache($boardGamePlayerPosition);
+        $this->additionalActions($boardGamePlayerPosition);
 
         $this->defaultObserverService->updated(
             $boardGamePlayerPosition,
@@ -58,7 +59,7 @@ class BgPlayerPositionObserver
 
     public function deleted(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
-        $this->clearRelatedCache($boardGamePlayerPosition);
+        $this->additionalActions($boardGamePlayerPosition);
 
         $this->defaultObserverService->deleted(
             $boardGamePlayerPosition,
@@ -69,7 +70,7 @@ class BgPlayerPositionObserver
 
     public function restored(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
-        $this->clearRelatedCache($boardGamePlayerPosition);
+        $this->additionalActions($boardGamePlayerPosition);
 
         $this->defaultObserverService->restored(
             $boardGamePlayerPosition,
@@ -80,7 +81,7 @@ class BgPlayerPositionObserver
 
     public function forceDeleted(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
-        $this->clearRelatedCache($boardGamePlayerPosition);
+        $this->additionalActions($boardGamePlayerPosition);
 
         $this->defaultObserverService->forceDeleted(
             $boardGamePlayerPosition,
@@ -88,10 +89,18 @@ class BgPlayerPositionObserver
         );
     }
 
+    private function additionalActions($boardGamePlayerPosition)
+    {
+        $boardGamePlayerPosition->load(['boardGame', 'boardGame.players', 'player']);
+
+        // Отправляем данные через WS
+        PlayerInfoForObs::dispatch($boardGamePlayerPosition->player->user_id);
+
+        $this->clearRelatedCache($boardGamePlayerPosition);
+    }
+
     private function clearRelatedCache($boardGamePlayerPosition)
     {
-        $boardGamePlayerPosition->load(['boardGame', 'boardGame.players']);
-
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $bgPlayerCacheService->clearBgListCache($boardGamePlayerPosition->boardGame);
 

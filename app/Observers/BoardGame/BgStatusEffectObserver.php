@@ -4,6 +4,7 @@ namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\StatusEffect;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
+use App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgStatusEffectObserver
@@ -20,7 +21,7 @@ class BgStatusEffectObserver
 
     public function created(StatusEffect $statusEffect)
     {
-        $this->clearRelatedCache($statusEffect);
+        $this->additionalActions($statusEffect);
 
         $this->defaultObserverService->created(
             $statusEffect,
@@ -31,7 +32,7 @@ class BgStatusEffectObserver
 
     public function updated(StatusEffect $statusEffect)
     {
-        $this->clearRelatedCache($statusEffect);
+        $this->additionalActions($statusEffect);
 
         $this->defaultObserverService->updated(
             $statusEffect,
@@ -42,7 +43,7 @@ class BgStatusEffectObserver
 
     public function deleted(StatusEffect $statusEffect)
     {
-        $this->clearRelatedCache($statusEffect);
+        $this->additionalActions($statusEffect);
 
         $this->defaultObserverService->deleted(
             $statusEffect,
@@ -53,7 +54,7 @@ class BgStatusEffectObserver
 
     public function restored(StatusEffect $statusEffect)
     {
-        $this->clearRelatedCache($statusEffect);
+        $this->additionalActions($statusEffect);
 
         $this->defaultObserverService->restored(
             $statusEffect,
@@ -64,7 +65,7 @@ class BgStatusEffectObserver
 
     public function forceDeleted(StatusEffect $statusEffect)
     {
-        $this->clearRelatedCache($statusEffect);
+        $this->additionalActions($statusEffect);
 
         $this->defaultObserverService->forceDeleted(
             $statusEffect,
@@ -72,7 +73,7 @@ class BgStatusEffectObserver
         );
     }
 
-    private function clearRelatedCache($statusEffect)
+    private function additionalActions($statusEffect)
     {
         $statusEffect->load([
             'statusEffectBinds',
@@ -82,13 +83,21 @@ class BgStatusEffectObserver
             'boardGame'
         ]);
 
+        $this->clearRelatedCache($statusEffect);
+    }
+
+    private function clearRelatedCache($statusEffect)
+    {
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
+        $bgPlayerStatusEffectCacheService = app(BgPlayerStatusEffectCacheService::class);
+
         $bgPlayerCacheService->clearListCache();
         $bgPlayerCacheService->clearBgListCache($statusEffect->boardGame);
 
         foreach ($statusEffect->statusEffectBind as $statusEffectBind) {
             foreach ($statusEffectBind->playerStatusEffect as $playerStatusEffect) {
                 $bgPlayerCacheService->clearDetailCacheAllTypes($playerStatusEffect->player);
+                $bgPlayerStatusEffectCacheService->clearClientListCache($playerStatusEffect);
             }
         }
     }

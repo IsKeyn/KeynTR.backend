@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\BoardGame\PlayerInfoForObs;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
@@ -20,7 +21,7 @@ class BgPlayerStatusEffectObserver
 
     public function created(PlayerStatusEffect $playerStatusEffect)
     {
-        $this->clearRelatedCache($playerStatusEffect);
+        $this->additionalActions($playerStatusEffect);
 
         $this->defaultObserverService->created(
             $playerStatusEffect,
@@ -31,7 +32,7 @@ class BgPlayerStatusEffectObserver
 
     public function updated(PlayerStatusEffect $playerStatusEffect)
     {
-        $this->clearRelatedCache($playerStatusEffect);
+        $this->additionalActions($playerStatusEffect);
 
         $this->defaultObserverService->updated(
             $playerStatusEffect,
@@ -42,7 +43,7 @@ class BgPlayerStatusEffectObserver
 
     public function deleted(PlayerStatusEffect $playerStatusEffect)
     {
-        $this->clearRelatedCache($playerStatusEffect);
+        $this->additionalActions($playerStatusEffect);
 
         $this->defaultObserverService->deleted(
             $playerStatusEffect,
@@ -53,7 +54,7 @@ class BgPlayerStatusEffectObserver
 
     public function restored(PlayerStatusEffect $playerStatusEffect)
     {
-        $this->clearRelatedCache($playerStatusEffect);
+        $this->additionalActions($playerStatusEffect);
 
         $this->defaultObserverService->restored(
             $playerStatusEffect,
@@ -64,7 +65,7 @@ class BgPlayerStatusEffectObserver
 
     public function forceDeleted(PlayerStatusEffect $playerStatusEffect)
     {
-        $this->clearRelatedCache($playerStatusEffect);
+        $this->additionalActions($playerStatusEffect);
 
         $this->defaultObserverService->forceDeleted(
             $playerStatusEffect,
@@ -72,10 +73,18 @@ class BgPlayerStatusEffectObserver
         );
     }
 
-    private function clearRelatedCache($playerStatusEffect)
+    private function additionalActions($playerStatusEffect)
     {
         $playerStatusEffect->load('boardGame', 'player', 'player.boardGame');
 
+        // Отправляем данные через WS
+        PlayerInfoForObs::dispatch($playerStatusEffect->player->user_id);
+
+        $this->clearRelatedCache($playerStatusEffect);
+    }
+
+    private function clearRelatedCache($playerStatusEffect)
+    {
         $cacheService = app(self::CACHE_SERVICE);
         $cacheService->clearClientListCache($playerStatusEffect);
 

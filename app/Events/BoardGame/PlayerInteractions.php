@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\BoardGame;
 
-use App\Http\Resources\BoardGame\Board\BgPlayerInteractionResource;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -16,10 +15,9 @@ class PlayerInteractions implements ShouldBroadcastNow
     public $userId;
     public $playerInteractions;
 
-    public function __construct($userId, $playerInteractions)
+    public function __construct($userId)
     {
         $this->userId = $userId;
-        $this->playerInteractions = $playerInteractions;
     }
 
     public function broadcastOn(): array
@@ -31,6 +29,8 @@ class PlayerInteractions implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return BgPlayerInteractionResource::collection($this->playerInteractions)->toArray(request());
+        return [
+            'status' => 'update',
+        ];
     }
 }

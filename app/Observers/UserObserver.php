@@ -30,7 +30,7 @@ class UserObserver
      */
     public function created(User $user)
     {
-        $this->clearRelatedCache($user);
+        $this->additionalActions($user);
 
         $this->defaultObserverService->created(
             $user,
@@ -49,7 +49,7 @@ class UserObserver
      */
     public function updated(User $user)
     {
-        $this->clearRelatedCache($user);
+        $this->additionalActions($user);
 
         $this->defaultObserverService->updated(
             $user,
@@ -68,7 +68,7 @@ class UserObserver
      */
     public function deleted(User $user)
     {
-        $this->clearRelatedCache($user);
+        $this->additionalActions($user);
 
         $this->defaultObserverService->deleted(
             $user,
@@ -87,7 +87,7 @@ class UserObserver
      */
     public function restored(User $user)
     {
-        $this->clearRelatedCache($user);
+        $this->additionalActions($user);
 
         $this->defaultObserverService->restored(
             $user,
@@ -106,7 +106,7 @@ class UserObserver
      */
     public function forceDeleted(User $user)
     {
-        $this->clearRelatedCache($user);
+        $this->additionalActions($user);
 
         $this->defaultObserverService->forceDeleted(
             $user,
@@ -116,10 +116,14 @@ class UserObserver
         AdminCacheService::clearAdminAdditionalDataCache();
     }
 
-    private function clearRelatedCache($user)
+    private function additionalActions($user)
     {
         $user->load(['bgPlayer', 'bgPlayer.boardGame', 'bgGamesList', 'bgGamesList.boardGame', 'bgGamesList.game']);
+        $this->clearRelatedCache($user);
+    }
 
+    private function clearRelatedCache($user)
+    {
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $boardGameCacheService = app(BoardGameCacheService::class);
         $bgShopItemCacheService = app(BgShopItemCacheService::class);
@@ -131,6 +135,7 @@ class UserObserver
 
             $boardGameCacheService->clearDetailCacheAllTypes($player->boardGame);
             $boardGameCacheService->clearClientPlayerListCacheFn($player->boardGame->slug, $player->user_id);
+            $bgPlayerCacheService->clearAllGameHistoryCache($player->boardGame);
 
             // Очищаем кеш магазина ивента
             if ($user->wasChanged('public_name')) {
@@ -138,8 +143,6 @@ class UserObserver
                 Cache::forget($cacheKey);
             }
         }
-
-        $bgPlayerCacheService = app(BgPlayerGameCacheService::class);
 
         foreach ($user->bgGamesList as $bgGamesList) {
             $bgPlayerCacheService->clearActionsWithGameList($bgGamesList);

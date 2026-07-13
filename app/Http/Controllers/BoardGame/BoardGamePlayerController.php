@@ -102,6 +102,11 @@ class BoardGamePlayerController extends Controller
         });
     }
 
+    public function getPlayerWithInventory(Request $request)
+    {
+        return BgPlayerService::getPlayerWithInventoryById($request->player_id);
+    }
+
     public function getCurrent( // TODO где используется?
         $slug,
         BoardGame $BoardGame,

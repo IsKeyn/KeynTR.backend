@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\BoardGame\PlayerInfoForObs;
 use App\Models\BoardGame\PlayerGame;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
@@ -20,7 +21,7 @@ class BgPlayerGameObserver
 
     public function created(PlayerGame $playerGame)
     {
-        $this->clearRelatedCache($playerGame);
+        $this->additionalActions($playerGame);
 
         $this->defaultObserverService->created(
             $playerGame,
@@ -31,7 +32,7 @@ class BgPlayerGameObserver
 
     public function updated(PlayerGame $playerGame)
     {
-        $this->clearRelatedCache($playerGame);
+        $this->additionalActions($playerGame);
 
         $this->defaultObserverService->updated(
             $playerGame,
@@ -42,7 +43,7 @@ class BgPlayerGameObserver
 
     public function deleted(PlayerGame $playerGame)
     {
-        $this->clearRelatedCache($playerGame);
+        $this->additionalActions($playerGame);
 
         $this->defaultObserverService->deleted(
             $playerGame,
@@ -53,7 +54,7 @@ class BgPlayerGameObserver
 
     public function restored(PlayerGame $playerGame)
     {
-        $this->clearRelatedCache($playerGame);
+        $this->additionalActions($playerGame);
 
         $this->defaultObserverService->restored(
             $playerGame,
@@ -64,7 +65,7 @@ class BgPlayerGameObserver
 
     public function forceDeleted(PlayerGame $playerGame)
     {
-        $this->clearRelatedCache($playerGame);
+        $this->additionalActions($playerGame);
 
         $this->defaultObserverService->forceDeleted(
             $playerGame,
@@ -72,10 +73,18 @@ class BgPlayerGameObserver
         );
     }
 
-    private function clearRelatedCache($playerGame)
+    private function additionalActions($playerGame)
     {
         $playerGame->load(['boardGame', 'player', 'user']);
 
+        // Отправляем данные через WS
+        PlayerInfoForObs::dispatch($playerGame->player->user_id);
+
+        $this->clearRelatedCache($playerGame);
+    }
+
+    private function clearRelatedCache($playerGame)
+    {
         $service = app(self::CACHE_SERVICE);
         $service->clearClientDetailCache($playerGame);
         $service->clearActionsWithGameList($playerGame);

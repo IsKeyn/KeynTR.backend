@@ -12,6 +12,7 @@ use App\Services\Entity\EntityService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
 
 class BgPlayerService
 {
@@ -99,6 +100,50 @@ class BgPlayerService
                 },
                 'statusEffects.statusEffectBind.statusEffect.titleImage',
             ]);
+
+            return BgPlayerWithInventoryResource::make($player);
+        });
+    }
+
+    public static function getPlayerWithInventoryById($playerId)
+    {
+        $withInventoryCacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $playerId . '_with_inventory_obs';
+
+        return Cache::remember($withInventoryCacheKey, BgPlayerCacheService::TIME, function () use ($playerId) {
+            if (!$playerId) {
+                return response()
+                    ->json(['error' => __('notReceived.not_received_id')])
+                    ->setStatusCode(Response::HTTP_BAD_REQUEST);
+            }
+
+            $player = BoardGamePlayer::query()
+                ->findById($playerId)
+                ->with([
+                    'user',
+                    'positions' => function ($query) {
+                        $query->orderBy('id', 'desc');
+                    },
+                    'statusEffects' => function ($query) {
+                        $query->active()->orderBy('updated_at', 'desc');
+                    },
+                    'statusEffects.statusEffectBind.statusEffect.titleImage',
+                    'inventory' => function ($query) {
+                        $query->active()->where('has_used', false)->orderBy('created_at', 'desc');
+                    },
+                    'inventory.itemBind.item',
+                    'inventory.itemBind.item.titleImage',
+                    'currentGames',
+                    'currentGames.game',
+                    'currentGames.game.game',
+                    'currentGames.game.game.titleImage',
+                ])
+                ->first();
+
+            if (!$player) {
+                return response()
+                    ->json(['error' => __('boardGame.player.not_found')])
+                    ->setStatusCode(Response::HTTP_BAD_REQUEST);
+            }
 
             return BgPlayerWithInventoryResource::make($player);
         });

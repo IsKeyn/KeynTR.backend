@@ -53,6 +53,7 @@ class BgPlayerWithInventoryResource extends JsonResource
             ),
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
+            'settings' => $this->settings,
             'current_game' => $this->whenLoaded('currentGames', fn() => BgPlayerGameShortResource::make($this->currentGames->first())),
             'has_current_game' => $this->whenLoaded('currentGames', fn() => $this->currentGames->first() ?? false),
         ];

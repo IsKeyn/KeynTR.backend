@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\BoardGame\PlayerInfoForObs;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
@@ -20,7 +21,7 @@ class BgInventoryObserver
 
     public function created(BoardGameInventory $boardGameInventory)
     {
-        $this->clearRelatedCache($boardGameInventory);
+        $this->additionalActions($boardGameInventory);
 
         $this->defaultObserverService->created(
             $boardGameInventory,
@@ -31,7 +32,7 @@ class BgInventoryObserver
 
     public function updated(BoardGameInventory $boardGameInventory)
     {
-        $this->clearRelatedCache($boardGameInventory);
+        $this->additionalActions($boardGameInventory);
 
         $this->defaultObserverService->updated(
             $boardGameInventory,
@@ -42,7 +43,7 @@ class BgInventoryObserver
 
     public function deleted(BoardGameInventory $boardGameInventory)
     {
-        $this->clearRelatedCache($boardGameInventory);
+        $this->additionalActions($boardGameInventory);
 
         $this->defaultObserverService->deleted(
             $boardGameInventory,
@@ -53,7 +54,7 @@ class BgInventoryObserver
 
     public function restored(BoardGameInventory $boardGameInventory)
     {
-        $this->clearRelatedCache($boardGameInventory);
+        $this->additionalActions($boardGameInventory);
 
         $this->defaultObserverService->restored(
             $boardGameInventory,
@@ -64,7 +65,7 @@ class BgInventoryObserver
 
     public function forceDeleted(BoardGameInventory $boardGameInventory)
     {
-        $this->clearRelatedCache($boardGameInventory);
+        $this->additionalActions($boardGameInventory);
 
         $this->defaultObserverService->forceDeleted(
             $boardGameInventory,
@@ -72,14 +73,23 @@ class BgInventoryObserver
         );
     }
 
-    private function clearRelatedCache($boardGameInventory)
+    private function additionalActions($boardGameInventory)
     {
         $boardGameInventory->load(['player', 'player.boardGame']);
 
+        // Отправляем данные через WS
+        PlayerInfoForObs::dispatch($boardGameInventory->player->user_id);
+
+        $this->clearRelatedCache($boardGameInventory);
+    }
+
+    private function clearRelatedCache($boardGameInventory)
+    {
         $cacheService = app(self::CACHE_SERVICE);
         $cacheService->clearClientPlayerListCache($boardGameInventory->player);
 
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
+        $bgPlayerCacheService->clearBgListCache($boardGameInventory->player->boardGame);
         $bgPlayerCacheService->clearClientDetailCache($boardGameInventory->player);
     }
 }

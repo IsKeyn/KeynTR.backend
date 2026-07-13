@@ -5,7 +5,7 @@ namespace App\Observers\BoardGame;
 use App\Models\BoardGame\PlayerInteractions;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Observer\DefaultObserverService;
-use App\Events\PlayerInteractions as PlayerInteractionsEvent;
+use App\Events\BoardGame\PlayerInteractions as PlayerInteractionsEvent;
 
 class BgPlayerInteractionsObserver
 {
@@ -114,52 +114,12 @@ class BgPlayerInteractionsObserver
     {
         if ($playerInteractions->created_by) {
             $userId = $playerInteractions->created_by;
-            $bgId = $playerInteractions->boardGame->id;
-
-            $playerInteractionsQuery = PlayerInteractions::query()
-                ->findByBoardGame($bgId)
-                ->where(function ($query) use ($userId) {
-                    $query
-                        ->where('created_by', '=', $userId)
-                        ->orWhere('with_player', '=', $userId);
-                })
-                ->orderByDesc('id')
-                ->with([
-                    'withPlayerData',
-                    'withPlayerData.avatar',
-                    'createdByData',
-                    'createdByData.avatar',
-                ]);
-
-            $playerInteractionsQuery->active();
-            $result = $playerInteractionsQuery->get();
-
-            PlayerInteractionsEvent::dispatch($userId, $result);
+            PlayerInteractionsEvent::dispatch($userId);
         }
 
         if ($playerInteractions->with_player) {
             $userId = $playerInteractions->with_player;
-            $bgId = $playerInteractions->boardGame->id;
-
-            $playerInteractionsQuery = PlayerInteractions::query()
-                ->findByBoardGame($bgId)
-                ->where(function ($query) use ($userId) {
-                    $query
-                        ->where('created_by', '=', $userId)
-                        ->orWhere('with_player', '=', $userId);
-                })
-                ->orderByDesc('id')
-                ->with([
-                    'withPlayerData',
-                    'withPlayerData.avatar',
-                    'createdByData',
-                    'createdByData.avatar',
-                ]);
-
-            $playerInteractionsQuery->active();
-            $result = $playerInteractionsQuery->get();
-
-            PlayerInteractionsEvent::dispatch($userId, $result);
+            PlayerInteractionsEvent::dispatch($userId);
         }
     }
 }

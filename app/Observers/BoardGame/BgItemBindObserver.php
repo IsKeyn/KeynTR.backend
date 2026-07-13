@@ -21,7 +21,7 @@ class BgItemBindObserver
 
     public function created(ItemBind $itemBind)
     {
-        $this->clearRelatedCache($itemBind);
+        $this->additionalActions($itemBind);
 
         $this->defaultObserverService->created(
             $itemBind,
@@ -32,7 +32,7 @@ class BgItemBindObserver
 
     public function updated(ItemBind $itemBind)
     {
-        $this->clearRelatedCache($itemBind);
+        $this->additionalActions($itemBind);
 
         $this->defaultObserverService->updated(
             $itemBind,
@@ -43,7 +43,7 @@ class BgItemBindObserver
 
     public function deleted(ItemBind $itemBind)
     {
-        $this->clearRelatedCache($itemBind);
+        $this->additionalActions($itemBind);
 
         $this->defaultObserverService->deleted(
             $itemBind,
@@ -54,7 +54,7 @@ class BgItemBindObserver
 
     public function restored(ItemBind $itemBind)
     {
-        $this->clearRelatedCache($itemBind);
+        $this->additionalActions($itemBind);
 
         $this->defaultObserverService->restored(
             $itemBind,
@@ -65,7 +65,7 @@ class BgItemBindObserver
 
     public function forceDeleted(ItemBind $itemBind)
     {
-        $this->clearRelatedCache($itemBind);
+        $this->additionalActions($itemBind);
 
         $this->defaultObserverService->forceDeleted(
             $itemBind,
@@ -73,10 +73,14 @@ class BgItemBindObserver
         );
     }
 
-    private function clearRelatedCache($itemBind)
+    private function additionalActions($itemBind)
     {
         $itemBind->load(['boardGame', 'inventories.player']);
+        $this->clearRelatedCache($itemBind);
+    }
 
+    private function clearRelatedCache($itemBind)
+    {
         $cacheService = app(self::CACHE_SERVICE);
         $cacheService->clearListCacheByBgId($itemBind->boardGame->id);
 
