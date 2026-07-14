@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\groupRequest;
+use App\Http\Requests\GroupRequest;
 use App\Models\Group;
 use App\Services\Entity\DefaultAdminEntityService;
 use Illuminate\Http\Request;
@@ -28,7 +28,7 @@ class GroupController extends Controller
         );
     }
 
-    public function store(groupRequest $request)
+    public function store(GroupRequest $request)
     {
         return $this->defaultAdminEntityService->store(
             $request,
@@ -36,7 +36,7 @@ class GroupController extends Controller
         );
     }
 
-    public function update(groupRequest $request, Group $group)
+    public function update(GroupRequest $request, Group $group)
     {
         return $this->defaultAdminEntityService->update(
             $request,
