@@ -11,6 +11,8 @@ class GamingPlatform extends Model
 {
     use HasFactory, ExtendModelTrait, SoftDeletes;
 
+    public const TABLE_NAME = 'gaming_platforms';
+
     const REALISE_TYPE = 1;
 
     protected $fillable = [
