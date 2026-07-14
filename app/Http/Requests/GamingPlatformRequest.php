@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Models\GamingPlatform;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class GamingPlatformRequest extends FormRequest
 {
-    private const NAME = 'genre';
-    private const TABLE_NAME = 'genres';
+    private const NAME = 'gamingPlatform';
+    private const TABLE_NAME = GamingPlatform::TABLE_NAME;
 
     public function authorize()
     {

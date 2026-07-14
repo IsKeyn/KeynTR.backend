@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Article;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,7 @@ class ArticleRequest extends FormRequest
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('movies', 'slug')
+                Rule::unique(Article::TABLE_NAME, 'slug')
                     ->ignore($articleId)
                     ->where(function ($query) {
                         $entityId = $this->input('entity_id');
@@ -50,8 +51,8 @@ class ArticleRequest extends FormRequest
             'editor' => 'sometimes|integer|nullable',
             'show_author' => 'sometimes|boolean|nullable',
             'show_editor' => 'sometimes|boolean|nullable',
-            'entity_id' => 'sometimes|boolean',
-            'entity_type' => 'sometimes|boolean',
+            'entity_id' => 'sometimes|nullable|boolean',
+            'entity_type' => 'sometimes|nullable|boolean',
             'sort' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean',
             'published_at' => 'sometimes|nullable|date',
