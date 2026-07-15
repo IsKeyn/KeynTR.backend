@@ -10,6 +10,7 @@ use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Cache\CompanyCacheService;
 use App\Services\Cache\GameCacheService;
 use App\Services\Cache\GenreCacheService;
+use App\Services\Cache\PersonCacheService;
 use App\Services\Cache\SeriesCacheService;
 use App\Services\GameService;
 use App\Services\VersionService;
@@ -80,6 +81,15 @@ class GameObserver
             $entityCacheService = app(GenreCacheService::class);
 
             foreach ($game->genres as $item) {
+                $entityCacheService->clearDetailCacheBySlug($item->slug);
+                $entityCacheService->clearAdminDetailCacheById($item->id);
+            }
+        }
+
+        if ($game->people) {
+            $entityCacheService = app(PersonCacheService::class);
+
+            foreach ($game->people as $item) {
                 $entityCacheService->clearDetailCacheBySlug($item->slug);
                 $entityCacheService->clearAdminDetailCacheById($item->id);
             }

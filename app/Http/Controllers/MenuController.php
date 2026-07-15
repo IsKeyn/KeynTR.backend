@@ -42,6 +42,9 @@ class MenuController extends Controller
         $gameQuery->whereHas('groups', function ($q)  {
             $q->where('groups.slug', 'main-series-games');
         });
+        $gameQuery->whereHas('series', function ($q)  {
+            $q->where('series.slug', 'silent-hill');
+        });
 
         $gameMenu = $gameQuery->orderBy('id', 'asc')->get();
         $arGameMenu = [];

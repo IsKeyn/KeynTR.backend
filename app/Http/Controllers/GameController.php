@@ -178,7 +178,7 @@ class GameController extends Controller
     }
 
     public function getGame(Request $request, $slug) {
-        $game = Game::findBySlug($slug)
+        $gameWithDynamicData = Game::findBySlug($slug)
             ->with([
                 'views',
                 'likes',
@@ -186,14 +186,14 @@ class GameController extends Controller
             ]);
 
         if (!$request->preview) {
-            $game->active();
+            $gameWithDynamicData->active();
         }
 
-        $game = $game->first();
+        $gameWithDynamicDataResult = $gameWithDynamicData->first();
 
-        if ($game) {
+        if ($gameWithDynamicDataResult) {
             if (!$request->preview) {
-                ViewsLogService::set($request, get_class($game), $game->id);
+                ViewsLogService::set($request, get_class($gameWithDynamicDataResult), $gameWithDynamicDataResult->id);
             }
 
             $cacheKey = GameCacheService::DETAIL_PREFIX . '_' . $slug;
@@ -215,6 +215,9 @@ class GameController extends Controller
                         'series.games.media',
                         'people',
                         'people.group',
+                        'people.group.cover' => function ($query) {
+                            $query->orderByPivot('sort');
+                        },
                         'groups',
                         'genres',
                         'company',
@@ -256,7 +259,7 @@ class GameController extends Controller
 
             return [
                 ...$data,
-                ...UserActionsResource::make($game)->toArray(request()),
+                ...UserActionsResource::make($gameWithDynamicDataResult)->toArray(request()),
             ];
         } else {
             return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);

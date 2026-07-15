@@ -4,6 +4,8 @@ namespace App\Observers;
 
 use App\Models\Person\Person;
 use App\Models\Version;
+use App\Services\Cache\AdminCacheService;
+use App\Services\Cache\GameCacheService;
 use App\Services\Cache\PersonCacheService;
 use App\Services\PersonService;
 use App\Services\VersionService;
@@ -25,6 +27,8 @@ class PersonObserver
 
         $version = PersonService::getById($person->id, true)->toArray(request());
         VersionService::set($version, $person->model, $person->id, $person->name, Version::TYPE_CREATE);
+
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -42,6 +46,17 @@ class PersonObserver
 
         $version = PersonService::getById($person->id, true, true)->toArray(request());
         VersionService::set($version, $person->model, $person->id, $person->name, Version::TYPE_UPDATE);
+
+        if ($person->games) {
+            $entityCacheService = app(GameCacheService::class);
+
+            foreach ($person->games as $item) {
+                $entityCacheService->clearDetailCacheBySlug($item->slug);
+                $entityCacheService->clearAdminDetailCacheById($item->id);
+            }
+        }
+
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -72,6 +87,8 @@ class PersonObserver
         $personCacheService->clearListCache();
         $personCacheService->clearAdminDetailCacheById($person->id);
         $personCacheService->clearDetailCacheBySlug($person->slug);
+
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -89,6 +106,8 @@ class PersonObserver
 
         $version = PersonService::getById($person->id, true, true)->toArray(request());
         VersionService::set($version, $person->model, $person->id, $person->name, Version::TYPE_RECOVERY);
+
+        AdminCacheService::clearAdminAdditionalDataCache();
     }
 
     /**
@@ -101,6 +120,8 @@ class PersonObserver
     {
         $personCacheService = app(PersonCacheService::class);
         $personCacheService->clearListCache();
+
+        AdminCacheService::clearAdminAdditionalDataCache();
 
         // Удаление связей
         $person->tags()->detach();
