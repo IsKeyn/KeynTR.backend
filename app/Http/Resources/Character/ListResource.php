@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Person;
+namespace App\Http\Resources\Character;
 
 use App\Http\Resources\GroupResource;
 use App\Models\Game;
@@ -8,7 +8,7 @@ use App\Http\Resources\Media\ShortMediaResource;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PersonListResource extends JsonResource
+class ListResource extends JsonResource
 {
     use CommonResourceFields;
 
@@ -34,10 +34,10 @@ class PersonListResource extends JsonResource
 
     private function resolveGroup()
     {
-        if (!$this->pivot || !$this->pivot->person_bind_id || !$this->pivot->person_bind_type) {
+        if (!$this->pivot || !$this->pivot->character_bind_id || !$this->pivot->character_bind_type) {
             return null;
         }
 
-        return $this->group($this->pivot->person_bind_id, $this->pivot->person_bind_type)->first();
+        return $this->group($this->pivot->character_bind_id, $this->pivot->character_bind_type)->first();
     }
 }

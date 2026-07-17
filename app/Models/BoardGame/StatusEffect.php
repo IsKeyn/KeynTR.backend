@@ -21,14 +21,14 @@ class StatusEffect extends Model
     public const FILTER = 'App\Filters\BoardGame\BgStatusEffectFilter';
     public const SERVICE = 'App\Services\BoardGame\StatusEffectService';
 
-    /* Resource for admin panel */
+    // Resource for admin panel
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgStatusEffect\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgStatusEffect\ListResource';
 
-    /* Resource for public */
+    // Resource for public
     public const PUBLIC_RESOURCES = [];
 
-    /* Type value */
+    // Type value
     const DICE_TYPE = 0;
     const POINTS_TYPE = 1;
     const GAME_LIST_TYPE = 2;

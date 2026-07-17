@@ -214,6 +214,9 @@ class GameController extends Controller
                         'series.games',
                         'series.games.media',
                         'people',
+                        'people.cover',
+                        'characters',
+                        'characters.cover',
                         'people.group',
                         'people.group.cover' => function ($query) {
                             $query->orderByPivot('sort');

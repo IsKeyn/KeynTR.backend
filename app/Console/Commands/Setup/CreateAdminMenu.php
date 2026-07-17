@@ -171,6 +171,16 @@ class CreateAdminMenu extends Command
                 'active' => true,
             ],
             [
+                'name' => 'Персонажи',
+                'url' => '/admin/character/',
+                'target' => null,
+                'menu_type_id' => 35,
+                'link_type' => 'route',
+                'icon' => null,
+                'sort' => 35,
+                'active' => true,
+            ],
+            [
                 'name' => 'Игры',
                 'url' => '/admin/games/',
                 'target' => null,
@@ -334,6 +344,10 @@ class CreateAdminMenu extends Command
             [
                 'url' => '/admin/person/',
                 'permissions' => ['person.edit'],
+            ],
+            [
+                'url' => '/admin/character/',
+                'permissions' => ['character.edit'],
             ],
             [
                 'url' => '/admin/articles/',

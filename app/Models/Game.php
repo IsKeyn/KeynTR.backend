@@ -22,6 +22,8 @@ class Game extends Model
     public const CACHE_NAME = 'game';
     public const TABLE_NAME = 'games';
 
+    public const REQUEST = 'App\Http\Requests\GameRequest';
+
     const SERIES_TYPE = 1;
     const DATE_ANONS_TYPE = 1;
 
@@ -73,6 +75,11 @@ class Game extends Model
     public function people()
     {
         return $this->morphToMany(Person::class, 'person_bind')->withTimestamps();
+    }
+
+    public function characters()
+    {
+        return $this->morphToMany(Character::class, 'character_bind')->withTimestamps();
     }
 
     public function groups()

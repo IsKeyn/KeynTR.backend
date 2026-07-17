@@ -50,6 +50,10 @@ class RelatedDataService
             PersonService::set($model, $validated['people']);
         }
 
+        if (isset($validated['characters'])) {
+            CharacterService::set($model, $validated['characters']);
+        }
+
         if (isset($validated['groups'])) {
             GroupService::set($model, $validated['groups']);
         }

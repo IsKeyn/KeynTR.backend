@@ -5,12 +5,14 @@ use App\Filters\GameFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GameRequest;
 use App\Http\Resources\Admin\AdminGameListResource;
+use App\Http\Resources\Character\ShortResource;
 use App\Http\Resources\CompanyResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\GamingPlatformResource;
 use App\Http\Resources\GenreResource;
 use App\Http\Resources\Person\PersonShortResource;
 use App\Http\Resources\Series\SeriesResource;
+use App\Models\Character;
 use App\Models\Company;
 use App\Models\Game;
 use App\Models\Person\Person;
@@ -144,8 +146,10 @@ class AdminGameController extends Controller {
                 'company' => CompanyResource::collection(Company::all()),
                 'company_role' => GroupResource::collection(Group::where('entity_type', 'App\Models\Company')->get()),
                 'person_role' => GroupResource::collection(Group::where('entity_type', 'App\Models\Person\Person')->get()),
+                'character_role' => GroupResource::collection(Group::where('entity_type', 'App\Models\Character')->get()),
                 'series' => SeriesResource::collection(Series::all()),
                 'people' => PersonShortResource::collection(Person::all()),
+                'character' => ShortResource::collection(Character::all()),
             ];
         });
     }

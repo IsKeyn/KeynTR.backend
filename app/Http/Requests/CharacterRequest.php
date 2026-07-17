@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class GameRequest extends FormRequest
+class CharacterRequest extends FormRequest
 {
     public function authorize()
     {
@@ -16,7 +16,7 @@ class GameRequest extends FormRequest
     public function rules()
     {
         // Получаем ID из роута (при обновлении) или из запроса
-        $gameId = $this->route('game')?->id ?? $this->route('id') ?? $this->get('id');
+        $id = $this->route('character')?->id ?? $this->route('id') ?? $this->get('id');
 
         return [
             'name' => 'required|string',
@@ -24,28 +24,20 @@ class GameRequest extends FormRequest
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('games', 'slug')->ignore($gameId),
+                Rule::unique('characters', 'slug')->ignore($id),
             ],
             'description' => 'sometimes|string|nullable',
-            'mod' => 'sometimes|boolean',
             'sort' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean',
-            'show_in_list' => 'sometimes|boolean',
-            'spc_id' => 'sometimes|string|nullable',
             'title_image' => 'sometimes|nullable',
             'covers' => 'sometimes|nullable',
             'additional_fields' => 'sometimes|nullable',
             'groups' => 'sometimes|nullable',
-            'series' => 'sometimes|nullable',
-            'people' => 'sometimes|nullable',
-            'characters' => 'sometimes|nullable',
+            'game' => 'sometimes|nullable',
             'genres' => 'sometimes|nullable',
             'companies' => 'sometimes|nullable',
             'tags' => 'sometimes|nullable',
             'seo' => 'sometimes|nullable',
-            'links' => 'sometimes|nullable',
-            'anons_dates' => 'sometimes|nullable',
-            'release_dates' => 'sometimes|nullable',
             'blocks' => 'sometimes|nullable',
             'created_at' => 'sometimes|nullable|date',
         ];
@@ -56,7 +48,7 @@ class GameRequest extends FormRequest
         return [
             'name.required' => 'Название обязательно для заполнения.',
             'slug.required' => 'Слаг обязателен для заполнения.',
-            'slug.unique'   => 'Игра с таким слагом уже существует.',
+            'slug.unique'   => 'Элемент с таким слагом уже существует.',
             'slug.alpha_dash' => 'Слаг может содержать только буквы, цифры, дефисы и подчёркивания.',
         ];
     }
