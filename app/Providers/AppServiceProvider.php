@@ -29,6 +29,8 @@ use App\Models\GamingPlatform;
 use App\Models\Genre;
 use App\Models\Group;
 use App\Models\Menu;
+use App\Models\Messenger\Chat;
+use App\Models\Messenger\Message;
 use App\Models\Movie;
 use App\Models\Permission;
 use App\Models\Person\Person;
@@ -65,6 +67,8 @@ use App\Observers\GamingPlatformObserver;
 use App\Observers\GenreObserver;
 use App\Observers\GroupObserver;
 use App\Observers\MenuObserver;
+use App\Observers\Messenger\ChatObserver;
+use App\Observers\Messenger\MessageObserver;
 use App\Observers\MovieObserver;
 use App\Observers\NotificationObserver;
 use App\Observers\PermissionObserver;
@@ -139,5 +143,7 @@ class AppServiceProvider extends ServiceProvider
         Timer::observe(TimerObserver::class);
         BoardGamePlayerTimer::observe(BgPlayerTimerObserver::class);
         BoardGameLog::observe(BgLogObserver::class);
+        Message::observe(MessageObserver::class);
+        Chat::observe(ChatObserver::class);
     }
 }

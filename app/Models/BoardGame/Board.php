@@ -24,7 +24,7 @@ class Board extends Model
     public const FILTER = 'App\Filters\BoardGame\BgBoardFilter';
     public const SERVICE = 'App\Services\BoardGame\BoardService';
 
-    /* Admin resource */
+    // Admin resource
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgBoard\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgBoard\ListResource';
 

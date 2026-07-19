@@ -123,6 +123,8 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    'message_encryption_key' => env('MESSAGE_ENCRYPTION_KEY'),
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

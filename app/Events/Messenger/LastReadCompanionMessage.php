@@ -1,23 +1,24 @@
 <?php
 
-namespace App\Events;
+namespace App\Events\Messenger;
 
-use App\Services\NotificationService;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class NotificationCount implements ShouldBroadcastNow
+class LastReadCompanionMessage implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $userId;
+    public $dataForSend;
 
-    public function __construct($userId)
+    public function __construct($userId, $dataForSend)
     {
         $this->userId = $userId;
+        $this->dataForSend = $dataForSend;
     }
 
     public function broadcastOn(): array
@@ -29,6 +30,6 @@ class NotificationCount implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return NotificationService::getCount($this->userId);
+        return $this->dataForSend;
     }
 }
