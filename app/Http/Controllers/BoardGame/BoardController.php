@@ -167,7 +167,7 @@ class BoardController extends Controller
             return ErrorService::message('Не получен ID предмета инвентаря');
         }
 
-        /* Получаем информацию о эффекте позиции */
+        // Получаем информацию о эффекте позиции
         $boardPositionEffectBind = BoardPositionEffectsBind::query()
             ->where('id', $request->id)
             ->first();

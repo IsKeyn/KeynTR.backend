@@ -156,6 +156,20 @@ class ActionsService
                     $action,
                 );
                 break;
+
+            case 'random':
+                $result = $this->randomAction(
+                    $data,
+                    $action,
+                );
+                break;
+
+            case 'game':
+                $result = $this->gameAction(
+                    $data,
+                    $action,
+                );
+                break;
         }
 
         return $result;
@@ -1003,6 +1017,62 @@ class ActionsService
         }
     }
 
+    private function randomAction($data, $action)
+    {
+        $players = $this->target($data, $action);
+
+        if (isset($players['error'])) {
+            return $players['error'];
+        }
+
+        if (gettype($players) !== 'array') {
+            return false;
+        }
+
+        $resultByPlayers = [];
+
+        foreach ($players as $player) {
+            if ($action->actionsForRandom) {
+                $randomKey = array_rand($action->actionsForRandom);
+                $randomAction = $action->actionsForRandom[$randomKey];
+
+                if ($this->activateAction($data, (object) $randomAction, $player->user_id)) {
+                    $resultByPlayers[$player->id] = $randomAction;
+                }
+            }
+        }
+
+        return $resultByPlayers;
+    }
+
+    private function gameAction($data, $action)
+    {
+        $players = $this->target($data, $action);
+
+        if (isset($players['error'])) {
+            return $players['error'];
+        }
+
+        if (gettype($players) !== 'array') {
+            return false;
+        }
+
+        $resultByPlayers = [];
+
+        foreach ($players as $player) {
+            if ($action->actionsForRandom) {
+                $randomKey = array_rand($action->actionsForRandom);
+                $randomAction = $action->actionsForRandom[$randomKey];
+
+                if ($this->activateAction($data, (object) $randomAction, $player->user_id)) {
+                    $resultByPlayers[$player->id] = $randomAction;
+                }
+            }
+        }
+
+        return $resultByPlayers;
+    }
+
     private function getValueAndSetLog($action, $player, $columnName, $fieldHumanName)
     {
         if (!isset($action->changeType) || !$action->changeType) {
@@ -1197,10 +1267,10 @@ class ActionsService
                 break;
 
             case 'allExpectMe':
-                $players[] = $this->BoardGamePlayer::query()
+                $players = $this->BoardGamePlayer::query()
                     ->findByBoardGame($this->conditionData['boardGame']->id)
                     ->where('user_id', '!=', $this->conditionData['user']->id)
-                    ->get();
+                    ->get()->all();
                 break;
 
             case 'positionLeader':

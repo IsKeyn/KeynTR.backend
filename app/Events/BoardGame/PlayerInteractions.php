@@ -13,7 +13,6 @@ class PlayerInteractions implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $userId;
-    public $playerInteractions;
 
     public function __construct($userId)
     {

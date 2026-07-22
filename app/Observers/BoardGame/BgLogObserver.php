@@ -2,6 +2,7 @@
 
 namespace App\Observers\BoardGame;
 
+use App\Events\BoardGame\ImportantLogs;
 use App\Models\BoardGame\BoardGameLog;
 use App\Services\Observer\DefaultObserverService;
 
@@ -28,6 +29,11 @@ class BgLogObserver
             self::CACHE_SERVICE,
             self::SERVICE
         );
+
+        if ($boardGameLog->important) {
+            $boardGameLog->load(['boardGame', 'user']);
+            ImportantLogs::dispatch($boardGameLog);
+        }
     }
 
     public function updated(BoardGameLog $boardGameLog)

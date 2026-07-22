@@ -2,35 +2,33 @@
 
 namespace App\Events\BoardGame;
 
+use App\Http\Resources\BoardGame\LogResource;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PlayerInfoForObs implements ShouldBroadcastNow
+class ImportantLogs implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $player;
+    public $log;
 
-    public function __construct($player)
+    public function __construct($log)
     {
-        $this->player = $player;
+        $this->log = $log;
     }
 
     public function broadcastOn(): array
     {
         return [
-            new Channel("playerInfoForObs.{$this->player->boardGame->slug}.{$this->player->id}"),
+            new Channel("logs.{$this->log->boardGame->slug}"),
         ];
     }
 
     public function broadcastWith()
     {
-        return [
-            'status' => 'update',
-        ];
+        return LogResource::make($this->log)->toArray(request());
     }
 }

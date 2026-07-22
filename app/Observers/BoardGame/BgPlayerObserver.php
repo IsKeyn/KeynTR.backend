@@ -103,7 +103,7 @@ class BgPlayerObserver
         $this->clearRelatedCache($boardGamePlayer);
 
         // Отправляем данные через WS
-        PlayerInfoForObs::dispatch($boardGamePlayer->user_id);
+        PlayerInfoForObs::dispatch($boardGamePlayer);
     }
 
     private function clearRelatedCache($boardGamePlayer)

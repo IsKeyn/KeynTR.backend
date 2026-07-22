@@ -78,7 +78,7 @@ class BgInventoryObserver
         $boardGameInventory->load(['player', 'player.boardGame']);
 
         // Отправляем данные через WS
-        PlayerInfoForObs::dispatch($boardGameInventory->player->user_id);
+        PlayerInfoForObs::dispatch($boardGameInventory->player);
 
         $this->clearRelatedCache($boardGameInventory);
     }

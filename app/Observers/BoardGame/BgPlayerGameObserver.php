@@ -78,7 +78,7 @@ class BgPlayerGameObserver
         $playerGame->load(['boardGame', 'player', 'user']);
 
         // Отправляем данные через WS
-        PlayerInfoForObs::dispatch($playerGame->player->user_id);
+        PlayerInfoForObs::dispatch($playerGame->player);
 
         $this->clearRelatedCache($playerGame);
     }

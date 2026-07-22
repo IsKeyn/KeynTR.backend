@@ -54,6 +54,17 @@ return [
         'not_found' => 'Игровое поле не найдено',
     ],
 
+    'player_game' => [
+        'cant_roll_new_game_because_finish_board' => 'Вы не можете крутить игру, так как достигли последней клетки игрового поля',
+        'cant_roll_new_game_because_finish_timer' => 'Вы не можете крутить игру, так как исчерпали время таймера',
+        'you_must_use_item_rolls_and_board_steps' => 'Перед круткой рулетки игр вы должны использовать доступные крутки рулетки предметов, а такж использовать доступные ходы на игровом поле',
+        'dont_have_game_for_roll' => 'У вас не осталось игр, для рулетки',
+        'choice_game_error' => 'Ошибка выбора игры',
+        'create_current_game_error' => 'Ошибка создания новой текущей игры',
+        'roll_game_and_now_play' => 'Крутанул рулетку и выбил игру :name',
+        'cant_roll_new_game_because_have_so_many_negative_points' => 'Вы не можете крутить игру, так как достигли максимального количества отрицательных очков, у вас должно быть больше :negativePoints, у вас сейчас :playerPoints',
+    ],
+
     'add_game' => [
       'already_added' => 'Вы уже добавили игры в ивент',
       'can_add' => 'Вы можете добавить игры в ивент',

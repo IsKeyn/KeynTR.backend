@@ -94,7 +94,7 @@ class BgPlayerPositionObserver
         $boardGamePlayerPosition->load(['boardGame', 'boardGame.players', 'player']);
 
         // Отправляем данные через WS
-        PlayerInfoForObs::dispatch($boardGamePlayerPosition->player->user_id);
+        PlayerInfoForObs::dispatch($boardGamePlayerPosition->player);
 
         $this->clearRelatedCache($boardGamePlayerPosition);
     }

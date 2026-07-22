@@ -118,7 +118,7 @@ class UserObserver
 
     private function additionalActions($user)
     {
-        $user->load(['bgPlayer', 'bgPlayer.boardGame', 'bgGamesList', 'bgGamesList.boardGame', 'bgGamesList.game']);
+        $user->load(['bgPlayer', 'bgPlayer.boardGame', 'bgPlayer.boardGame.players', 'bgPlayer.boardGame.players.boardGame', 'bgGamesList', 'bgGamesList.boardGame', 'bgGamesList.game']);
         $this->clearRelatedCache($user);
     }
 
@@ -127,6 +127,7 @@ class UserObserver
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $boardGameCacheService = app(BoardGameCacheService::class);
         $bgShopItemCacheService = app(BgShopItemCacheService::class);
+        $bgPlayerGameCacheService = app(BgPlayerGameCacheService::class);
 
         foreach ($user->bgPlayer as $player) {
             PlayerData::dispatch($player);
@@ -135,7 +136,8 @@ class UserObserver
 
             $boardGameCacheService->clearDetailCacheAllTypes($player->boardGame);
             $boardGameCacheService->clearClientPlayerListCacheFn($player->boardGame->slug, $player->user_id);
-            $bgPlayerCacheService->clearAllGameHistoryCache($player->boardGame);
+
+            $bgPlayerGameCacheService->clearAllGameHistoryCache($player->boardGame);
 
             // Очищаем кеш магазина ивента
             if ($user->wasChanged('public_name')) {
@@ -145,7 +147,7 @@ class UserObserver
         }
 
         foreach ($user->bgGamesList as $bgGamesList) {
-            $bgPlayerCacheService->clearActionsWithGameList($bgGamesList);
+            $bgPlayerGameCacheService->clearActionsWithGameList($bgGamesList);
         }
     }
 }

@@ -28,6 +28,7 @@ class BoardPositionEffectRequest extends FormRequest
             ],
             'description' => 'sometimes|string|nullable',
             'actions' => 'nullable|array',
+            'title_image' => 'nullable|integer|exists:media,id',
             'sort' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean|nullable',
             'created_by' => 'sometimes|integer|nullable',

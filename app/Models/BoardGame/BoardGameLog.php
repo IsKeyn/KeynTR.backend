@@ -19,14 +19,23 @@ class BoardGameLog extends Model
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgLogCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgLogFilter';
+    public const SERVICE = 'App\Services\BoardGame\LogService';
+    public const OBSERVER = 'App\Observers\BoardGame\BgLogObserver';
+
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\BgLogController';
+    public const REQUEST = 'App\Http\Requests\BoardGame\BgLogRequest';
+
+    // Admin resource
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgLog\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgLog\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\LogService';
 
     protected $fillable = [
         'bg_player_id',
         'message',
         'board_game_id',
+        'important',
+        'entity_type',
+        'entity_id',
         'sort',
         'active',
         'created_by',
@@ -35,5 +44,10 @@ class BoardGameLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function entity()
+    {
+        return $this->morphTo();
     }
 }

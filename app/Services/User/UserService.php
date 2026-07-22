@@ -2,7 +2,7 @@
 
 namespace App\Services\User;
 
-use App\Http\Resources\UserResource;
+use App\Http\Resources\User\UserResource;
 use App\Models\User;
 use App\Services\AdditionalFieldsService;
 use App\Services\Cache\UserCacheService;

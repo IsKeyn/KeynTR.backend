@@ -410,7 +410,7 @@ class PlayerGameController extends Controller
 
                         $conditionData['player']->points = $conditionData['player']->points + $pointsForGame;
 
-                        /* Добавляем стрик, если он не достиг максимального */
+                        // Добавляем стрик, если он не достиг максимального
                         $maxStreakSetting = $conditionData['boardGame']->settings->where('code', '=',
                             'max_string')->first();
                         $maxStreak = $maxStreakSetting ? $maxStreakSetting->value : 5;
@@ -420,8 +420,24 @@ class PlayerGameController extends Controller
                         }
 
                         /* Добавляем ролл предметы и добавляем ходы */
-                        $conditionData['player']->item_roll_count = $conditionData['player']->item_roll_count + 1;
-                        $conditionData['player']->step_count = $conditionData['player']->step_count + 1;
+                        $eventType = $conditionData['boardGame']->settings->where('code', '=', 'event_type')->first();
+
+                        if ($eventType->value === 'board-last-cell') {
+                            $itemRollCountForAdd = 1;
+                            $stepCountForAdd = 1;
+
+                            if ($playerCurrentGame->game->game_completion_time) {
+                                $count = ceil(($playerCurrentGame->game->game_completion_time / 60) / 4);
+                                $itemRollCountForAdd = $count;
+                                $stepCountForAdd = $count;
+                            }
+                        } else {
+                            $itemRollCountForAdd = 1;
+                            $stepCountForAdd = 1;
+                        }
+
+                        $conditionData['player']->item_roll_count = $conditionData['player']->item_roll_count + $itemRollCountForAdd;
+                        $conditionData['player']->step_count = $conditionData['player']->step_count + $stepCountForAdd;
 
                         $conditionData['player']->save();
 
@@ -509,6 +525,7 @@ class PlayerGameController extends Controller
                             $conditionData['boardGame']->id,
                             $message,
                             $conditionData['player']->id,
+                            true
                         );
                     }
 
@@ -612,6 +629,7 @@ class PlayerGameController extends Controller
 
     /**
      * Функция отвечает за выбор игры, при крутке рулетки
+     *
      * @param $slug
      * @param Request $request
      * @param PlayerGame $playerGame
@@ -642,13 +660,40 @@ class PlayerGameController extends Controller
                 'currentGames',
             ]);
 
-        $status = TimerService::getTimerStatus($conditionData['player']->mainTimers->first());
+        // Проверяем не выполнил ли игрок условия окончания ивента
+        $eventType = $conditionData['boardGame']->settings->where('code', '=', 'event_type')->first();
 
-        // Проверяем, не превысил ли игрок таймер
-        if ($status && ($status['reached_the_limit'] ?? null)) {
+        if ($eventType->value === 'board-last-cell') {
+            // Проверяем не достиг ли игрок последней клетки игрового поля
+            if ($conditionData['player']->finishBoard) {
+                return [
+                    'status' => 'error',
+                    'status_message' => __('boardGame.player_game.cant_roll_new_game_because_finish_board'),
+                ];
+            }
+        } else {
+            // Если настройка event_type не задана, значит используется дефолтный тип окончания ивента - закрытие таймера
+            // Проверяем, не превысил ли игрок таймер
+            $status = TimerService::getTimerStatus($conditionData['player']->mainTimers->first());
+
+            if ($status && ($status['reached_the_limit'] ?? null)) {
+                return [
+                    'status' => 'error',
+                    'status_message' => __('boardGame.player_game.cant_roll_new_game_because_finish_timer'),
+                ];
+            }
+        }
+
+        // Проверяем нет ли в ивенте ограничения, по количеству отрицательных очков
+        $maxNegativePoints = $conditionData['boardGame']->settings->where('code', '=', 'max_negative_points_for_roll_game')->first();
+
+        if ($maxNegativePoints && (int) $maxNegativePoints->value > $conditionData['player']->points) {
             return [
                 'status' => 'error',
-                'status_message' => 'Вы не можете крутить игру, так как исчерпали время таймера',
+                'status_message' => __('boardGame.player_game.cant_roll_new_game_because_have_so_many_negative_points', [
+                    'negativePoints' => (int) $maxNegativePoints->value,
+                    'playerPoints' => $conditionData['player']->points,
+                ]),
             ];
         }
 
@@ -657,7 +702,7 @@ class PlayerGameController extends Controller
             || $conditionData['player']->item_roll_count > 0) {
             return [
                 'status' => 'error',
-                'status_message' => 'Перед круткой рулетки игр вы должны использовать доступные крутки рулетки предметов, а такж использовать доступные ходы на игровом поле',
+                'status_message' => __('boardGame.player_game.you_must_use_item_rolls_and_board_steps'),
             ];
         }
 
@@ -690,13 +735,13 @@ class PlayerGameController extends Controller
         $gameListFiltered = $this->getFilteredGameList($platformId, $conditionData);
 
         if (isset($gameListFiltered['gameList']) && $gameListFiltered['gameList']->count() === 0) {
-            return ErrorService::message('У вас не осталось игр, для рулетки');
+            return ErrorService::message(__('boardGame.player_game.dont_have_game_for_roll'));
         }
 
         $randomGame = $gameListFiltered['gameList']->random();
 
         if (!$randomGame) {
-            return ErrorService::message('Ошибка выбора игры');
+            return ErrorService::message(__('boardGame.player_game.choice_game_error'));
         }
 
         // Если у игрока есть текущая игра, отмечаем её как рерольнутую
@@ -717,7 +762,7 @@ class PlayerGameController extends Controller
         ];
 
         if (!$playerGame::create($fields)) {
-            return ErrorService::message('Ошибка создания новой текущей игры');
+            return ErrorService::message(__('boardGame.player_game.create_current_game_error'));
         }
 
         // Если игра была из списка рерольнутых, то сбрасывает счетчик собственных рерольнутых игр
@@ -729,9 +774,20 @@ class PlayerGameController extends Controller
         LogService::addLog(
             $conditionData['user']->id,
             $conditionData['boardGame']->id,
-            'Крутанул рулетку и выбил игру ' . $randomGame->game->name,
+            __('boardGame.player_game.roll_game_and_now_play', [
+                'name' => $randomGame->game->name,
+            ]),
             $conditionData['player']->id
         );
+
+        // Если тип ивента board-last-cell (достижение последней клетки ивента), то сбрасываем основной таймер и меняем его название
+        if ($eventType->value === 'board-last-cell') {
+            $timer = $conditionData['player']->mainTimers->first();
+            $timer->name = $randomGame->game->name;
+            $timer->save();
+
+            TimerService::reset($conditionData['boardGame'], $conditionData['player'], $timer);
+        }
 
         return GameListResource::make($randomGame);
     }

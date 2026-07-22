@@ -20,13 +20,14 @@ class BoardGame extends Model
 
     /*
      * Настройки BoardGame
-     * type: upon-request - закрытая игра, registrationIsClose - регистрация закрыта
-     * item_roll_default_count - достуное количество круток рулетки предметов, для нового игрока
-     * step_default_count - доступное количество шагов по игровой доске, для нового игрока
-     * board_type - тип доски, который используется в настольной игре
-     * subtract_points - количество очков, которое отнимается при рероле
-     * time_limit (в минутах, максимальное количество времени для челенджа, используется в таймере)
-     * game_over_type (тип окончания ивента для игрока null - лимит времени, board-last-cell - достижение последней клетки игры)
+     * type String upon-request - закрытая игра, registrationIsClose - регистрация закрыта
+     * item_roll_default_count Int Достуное количество круток рулетки предметов, для нового игрока
+     * step_default_count Int Доступное количество шагов по игровой доске, для нового игрока
+     * board_type String Тип доски, который используется в настольной игре
+     * subtract_points Int Количество очков, которое отнимается при рероле
+     * time_limit Int В часах, максимальное количество времени для челенджа, используется в таймере
+     * event_type String Тип окончания ивента для игрока null - лимит времени, board-last-cell - достижение последней клетки игры
+     * max_negative_points_for_roll_game Int Минимальное количество очков, при котором игрок более не может крутить рулетку игр
      * eventGamePlatforms Json Игровые платформы в ивенте
      * Пример eventGamePlatforms: [{"id":25,"name":"Nintendo Entertainment System (NES)","active":true,"difficult":80,"minCountForAdd":2}]
      * hasExceptionPlatforms Boolean Могут ли игроки исключать платформы из пула рулетки

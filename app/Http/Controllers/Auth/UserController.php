@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\UserResource;
+use App\Http\Resources\User\UserResource;
 use App\Models\Media;
 use App\Models\User;
 use App\Services\MediaService;
@@ -93,6 +93,8 @@ class UserController extends Controller
         ]);
 
         $user = Auth::user();
+
+        $user->load(['avatar', 'roles', 'additionalFields']);
 
         if ($user) {
             $settings = $user->settings;

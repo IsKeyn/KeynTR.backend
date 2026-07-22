@@ -129,6 +129,12 @@ class PlayerGameService
         return $playerGame;
     }
 
+    /**
+     * Метод проверяет может ли игрок производить действия в ивенте
+     *
+     * @param $slug
+     * @return array|string[]
+     */
     public static function checkConditions($slug)
     {
         $user = Auth::user();

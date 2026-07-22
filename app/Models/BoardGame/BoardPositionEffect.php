@@ -34,6 +34,7 @@ class BoardPositionEffect extends Model
     ];
 
     protected $casts = [
+        'actions' => 'array',
         'active' => 'boolean',
     ];
 

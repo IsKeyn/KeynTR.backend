@@ -18,6 +18,9 @@ class DetailResource extends JsonResource
             'bg_player_id' => $this->bg_player_id,
             'message' => $this->message,
             'board_game_id' => $this->board_game_id,
+            'important' => $this->important,
+            'entity_type' => $this->entity_type,
+            'entity_id' => $this->entity_id,
         ];
     }
 }

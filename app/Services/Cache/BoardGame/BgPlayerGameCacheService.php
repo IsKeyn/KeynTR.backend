@@ -41,7 +41,7 @@ class BgPlayerGameCacheService extends BaseCacheService
         $players = $boardGame->players;
 
         foreach ($players as $player) {
-            $this->clearPlayerGameHistoryCache($boardGame, $player);
+            $this->clearPlayerGameHistoryCache($player);
         }
     }
 

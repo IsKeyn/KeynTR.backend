@@ -34,7 +34,10 @@ class LogService
         $userId,
         $boardGameId,
         $message,
-        $playerId = null
+        $playerId = null,
+        $important = false,
+        $entityType = null,
+        $entityId = null
     )
     {
         $fields = [
@@ -45,6 +48,18 @@ class LogService
 
         if ($playerId) {
             $fields['bg_player_id'] = $playerId;
+        }
+
+        if ($important) {
+            $fields['important'] = $important;
+        }
+
+        if ($playerId) {
+            $fields['entity_type'] = $entityType;
+        }
+
+        if ($playerId) {
+            $fields['entity_id'] = $entityId;
         }
 
         return BoardGameLog::create($fields);

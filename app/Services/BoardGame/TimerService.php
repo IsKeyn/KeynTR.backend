@@ -7,6 +7,7 @@ use App\Models\BoardGame\BoardGamePlayerTimer;
 use App\Models\BoardGame\Timer;
 use App\Services\Entity\EntityService;
 use Carbon\Carbon;
+use Illuminate\Http\Response;
 
 class TimerService
 {
@@ -184,5 +185,93 @@ class TimerService
             $forceRefresh,
             $withTrashed,
         );
+    }
+
+    public static function reset($boardGame, $player, $timer)
+    {
+        $seconds = 0;
+
+        if ($timer) {
+            $status = TimerService::getTimerStatus($timer);
+
+            if (isset($status['time'])) {
+                if ($status['time'] === $seconds) {
+                    return true;
+                }
+
+                if ($status['time'] > $seconds) {
+                    $secondsForSave = $status['time'] - $seconds;
+
+                    $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
+                        ->where('timer_id', $timer->id)
+                        ->get();
+
+                    $lastTime = null;
+
+                    foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
+                        $seconds = Carbon::parse($playerTimer->time_start)->diffInSeconds($playerTimer->time_stop);
+
+                        if ($seconds < $secondsForSave) {
+                            $secondsForSave = $secondsForSave - $seconds;
+                            $playerTimer->delete();
+                        } else {
+                            $lastTime = $playerTimer;
+                        }
+                    }
+
+                    if ($lastTime) {
+                        $lastTime->time_stop = Carbon::parse($lastTime->time_stop)->subSeconds($secondsForSave);
+
+                        if ($lastTime->update()) {
+                            $result = true;
+                        }
+                    } else {
+                        $fields = [
+                            'timer_id' => $timer->id,
+                            'time_start' => Carbon::now()->subSeconds($secondsForSave),
+                            'time_stop' => Carbon::now(),
+                            'created_by' => $player->user_id,
+                        ];
+
+                        $result = BoardGamePlayerTimer::create($fields);
+                    }
+                }
+
+                if ($status['time'] < $seconds) {
+                    $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
+                        ->where('timer_id', $timer->id)
+                        ->where('time_start', '>=', Carbon::now()->subSeconds($seconds))
+                        ->get();
+
+                    foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
+                        $playerTimer->delete();
+                    }
+
+                    $timer = Timer::query()
+                        ->where('user_id', $player->user_id)
+                        ->where('board_game_id', $boardGame->id)
+                        ->where('slug', $boardGame->slug ? $boardGame->slug : 'main')
+                        ->where('active', true)
+                        ->orderBy('id', 'desc')->first();
+
+                    $statusNew = TimerService::getTimerStatus($timer);
+
+                    $secondsForSave = $seconds - $statusNew['time'];
+
+                    $fields = [
+                        'timer_id' => $timer->id,
+                        'time_start' => Carbon::now()->subSeconds($secondsForSave),
+                        'time_stop' => Carbon::now(),
+                        'created_by' => $player->user_id,
+                    ];
+
+                    $result = BoardGamePlayerTimer::create($fields);
+                }
+
+                return $result;
+            } else {
+                return response()->json(['error' => 'Ошибка статуса таймера'])->setStatusCode(Response::HTTP_OK);
+            }
+        }
     }
 }

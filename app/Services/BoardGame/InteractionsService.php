@@ -383,7 +383,8 @@ class InteractionsService
                                         $boardPositionEffectBind->position
                                     );
 
-                                    foreach (json_decode($boardPositionEffectBind->boardPositionEffect->actions) as $action) {
+                                    foreach ($boardPositionEffectBind->boardPositionEffect->actions as $action) {
+                                        $action = (object) $action;
                                         $player = BoardGamePlayer::query()
                                             ->findByBoardGame($this->conditionData['boardGame']->id)
                                             ->findByUserId($this->conditionData['user']->id)
@@ -463,8 +464,8 @@ class InteractionsService
                                         $boardPositionEffectBind->position
                                     );
 
-                                    foreach (json_decode($boardPositionEffectBind->boardPositionEffect->actions) as $action) {
-
+                                    foreach ($boardPositionEffectBind->boardPositionEffect->actions as $action) {
+                                        $action = (object) $action;
                                         $player = BoardGamePlayer::query()
                                             ->findByBoardGame($this->conditionData['boardGame']->id)
                                             ->findByUserId($this->interaction->with_player)

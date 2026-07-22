@@ -78,7 +78,7 @@ class BgPlayerStatusEffectObserver
         $playerStatusEffect->load('boardGame', 'player', 'player.boardGame');
 
         // Отправляем данные через WS
-        PlayerInfoForObs::dispatch($playerStatusEffect->player->user_id);
+        PlayerInfoForObs::dispatch($playerStatusEffect->player);
 
         $this->clearRelatedCache($playerStatusEffect);
     }
