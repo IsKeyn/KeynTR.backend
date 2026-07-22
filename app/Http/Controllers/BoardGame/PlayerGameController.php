@@ -83,6 +83,9 @@ class PlayerGameController extends Controller
                 'mainTimers' => function ($query) use ($conditionData) {
                     $query->where('board_game_id', $conditionData['boardGame']->id)->orderBy('id', 'desc');
                 },
+                'statusEffects',
+                'statusEffects.statusEffectBind',
+                'statusEffects.statusEffectBind.statusEffect',
             ]);
 
         // Если есть текущая игра, то возвращаем её
@@ -108,7 +111,9 @@ class PlayerGameController extends Controller
 
         foreach ($playerStatusEffects as $statusEffect) {
             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
-                foreach (json_decode($statusEffect->statusEffectBind->statusEffect->actions) as $action) {
+                foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
+                    $action = (Object) $action;
+
                     if (isset($action->type) && $action->type === 'platform' && $action->value) {
                         $platformSlug = $action->value;
                     }
@@ -261,7 +266,9 @@ class PlayerGameController extends Controller
 
                         foreach ($playerStatusEffects as $statusEffect) {
                             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
-                                foreach (json_decode($statusEffect->statusEffectBind->statusEffect->actions) as $action) {
+                                foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
+                                    $action = (Object) $action;
+
                                     if ($action->value && $action->value === 'free-reroll') {
                                         $freeReroll = true;
                                     }
@@ -401,7 +408,7 @@ class PlayerGameController extends Controller
                             }
                         }
 
-                        // Добавляем очки за стрик
+                        // Рассчитываем очки за игру
                         $pointsForGame = GameService::finishPoints($conditionData['player'], $playerCurrentGame);
 
                         // Тихо обновляем очки игрока, чтобы не вызывать событие, оно уже было вызвано вверху метода
@@ -419,7 +426,7 @@ class PlayerGameController extends Controller
                             $conditionData['player']->streak++;
                         }
 
-                        /* Добавляем ролл предметы и добавляем ходы */
+                        // Добавляем ролл предметы и добавляем ходы
                         $eventType = $conditionData['boardGame']->settings->where('code', '=', 'event_type')->first();
 
                         if ($eventType->value === 'board-last-cell') {
@@ -439,25 +446,6 @@ class PlayerGameController extends Controller
                         $conditionData['player']->item_roll_count = $conditionData['player']->item_roll_count + $itemRollCountForAdd;
                         $conditionData['player']->step_count = $conditionData['player']->step_count + $stepCountForAdd;
 
-                        $conditionData['player']->save();
-
-                        // Игра из очереди
-                        $this->gameFromQueue($conditionData);
-
-                        $message = 'прошел игру ' . $playerCurrentGame->game->game->name . ' и получил за неё ' . $pointsForGame . ' очков';
-
-                        if ($request->time) {
-                            $formattedTime = sprintf("%02d:%02d:%02d",
-                                floor($request->time / 3600),
-                                floor(($request->time % 3600) / 60),
-                                $request->time % 60
-                            );
-
-                            if ($formattedTime) {
-                                $message .= ', затратил ' . $formattedTime;
-                            }
-                        }
-
                         // Проверяем, есть ли активное и принятое приглашение в кооп от этого игрока и есть есть, то добавляем напарнику по коопу очки
                         $conditionData['player']->load([
                             'playerInteractions' => function ($query) use ($conditionData) {
@@ -467,18 +455,14 @@ class PlayerGameController extends Controller
                                     ->where('created_by', $conditionData['user']->id);
                             },
                             'playerInteractions.entity',
-                            'playerInteractions.withPlayerData' => function ($query) use ($conditionData) {
-                                $query
-                                    ->findByBoardGame($conditionData['boardGame']->id)
-                                    ->active();
-                            },
+                            'playerInteractions.withPlayerData',
+                            'playerInteractions.withPlayerData.bgPlayer',
                         ]);
-
 
                         $coopInteraction = $conditionData['player']->playerInteractions->first();
 
                         if ($coopInteraction && $playerCurrentGame->game->coop) {
-                            $player = $coopInteraction->withPlayerData->first();
+                            $player = $coopInteraction->withPlayerData->bgPlayer->where('board_game_id', $conditionData['boardGame']->id)->first();
 
                             if ($player) {
                                 $player->points = $player->points + round($defaultPointsForGame / 2);
@@ -501,6 +485,58 @@ class PlayerGameController extends Controller
                                     'получил ' . round($defaultPointsForGame / 2) . ' за помощь в прохождении игры ' . $playerCurrentGame->game->game->name,
                                     $player->id,
                                 );
+
+                                // Если в настольной игре/ивенте установлен бонус за кооп, то активируем его
+                                $bonusForCoopSetting = $conditionData['boardGame']
+                                    ->settings
+                                    ->where('code', '=', 'bonus_for_coop')
+                                    ->first();
+
+                                if ($bonusForCoopSetting && $bonusForCoopSetting->value) {
+                                    $bonus = json_decode($bonusForCoopSetting->value, true);
+
+                                    if ($bonus) {
+                                        if ($bonus['value']) {
+                                            foreach ($bonus['value'] as $bonusElement) {
+                                                if ($bonusElement['type'] === 'addPoints') {
+                                                    $conditionData['player']->points += $bonusElement['value'];
+                                                }
+
+                                                if ($bonusElement['type'] === 'itemRoll') {
+                                                    $conditionData['player']->item_roll_count += $bonusElement['value'];
+                                                }
+                                            }
+                                        }
+
+                                        if ($bonus['message']) {
+                                            LogService::addLog(
+                                                $conditionData['player']->user_id,
+                                                $conditionData['boardGame']->id,
+                                                $bonus['message'],
+                                                $conditionData['player']->id,
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        $conditionData['player']->save();
+
+                        // Игра из очереди
+                        $this->gameFromQueue($conditionData);
+
+                        $message = 'прошел игру ' . $playerCurrentGame->game->game->name . ' и получил за неё ' . $pointsForGame . ' очков';
+
+                        if ($request->time) {
+                            $formattedTime = sprintf("%02d:%02d:%02d",
+                                floor($request->time / 3600),
+                                floor(($request->time % 3600) / 60),
+                                $request->time % 60
+                            );
+
+                            if ($formattedTime) {
+                                $message .= ', затратил ' . $formattedTime;
                             }
                         }
 
@@ -713,7 +749,9 @@ class PlayerGameController extends Controller
 
         foreach ($playerStatusEffects as $statusEffect) {
             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
-                foreach (json_decode($statusEffect->statusEffectBind->statusEffect->actions) as $action) {
+                foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
+                    $action = (Object) $action;
+
                     if (isset($action->type) && $action->type === 'platform' && $action->value) {
                         $platformSlug = $action->value;
                     }

@@ -92,12 +92,14 @@ class BgStatusEffectObserver
         $bgPlayerStatusEffectCacheService = app(BgPlayerStatusEffectCacheService::class);
 
         $bgPlayerCacheService->clearListCache();
-        $bgPlayerCacheService->clearBgListCache($statusEffect->boardGame);
 
-        foreach ($statusEffect->statusEffectBind as $statusEffectBind) {
-            foreach ($statusEffectBind->playerStatusEffect as $playerStatusEffect) {
-                $bgPlayerCacheService->clearDetailCacheAllTypes($playerStatusEffect->player);
-                $bgPlayerStatusEffectCacheService->clearClientListCache($playerStatusEffect);
+        if ($statusEffect->statusEffectBind) {
+            foreach ($statusEffect->statusEffectBind as $statusEffectBind) {
+                foreach ($statusEffectBind->playerStatusEffect as $playerStatusEffect) {
+                    $bgPlayerCacheService->clearBgListCache($playerStatusEffect->boardGame);
+                    $bgPlayerCacheService->clearDetailCacheAllTypes($playerStatusEffect->player);
+                    $bgPlayerStatusEffectCacheService->clearClientListCache($playerStatusEffect);
+                }
             }
         }
     }

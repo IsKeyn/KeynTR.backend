@@ -86,7 +86,9 @@ class GameService
 
         foreach ($playerStatusEffects as $statusEffect) {
             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
-                foreach (json_decode($statusEffect->statusEffectBind->statusEffect->actions) as $action) {
+                foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
+                    $action = (Object) $action;
+
                     if ($action->value && $action->value === 'free-reroll') {
                         $penaltyDefence = true;
                         $data = BgStatusEffectResource::make($statusEffect->statusEffect);
@@ -129,11 +131,32 @@ class GameService
     {
         if (!$player || !$currentGame) return;
 
-        /* Рассчитываем количество очков за игру */
+        // Рассчитываем количество очков за игру
         $pointsForGame = self::calcPoints($currentGame->game);
 
         if ($currentGame->type === PlayerGame::TYPE_TAKEN) {
             $pointsForGame = round($pointsForGame / 2);
+        }
+
+
+        // Добавляем или отничаем очки за статус эффекты
+        foreach ($player->statusEffects as $playerStatusEffect) {
+            $statusEffect = $playerStatusEffect->statusEffectBind->statusEffect;
+
+            if ((int) $statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
+                $actions = $statusEffect->actions;
+
+                foreach ($actions as $action) {
+                    if (
+                        is_array($action) &&
+                        isset($action['type']) &&
+                        $action['type'] === 'finalPointsMod' &&
+                        isset($action['value'])
+                    ) {
+                        $pointsForGame = $pointsForGame * (1 - $action['value'] / 100);
+                    }
+                }
+            }
         }
 
         // Отнимаем очки, за исключенные платформы

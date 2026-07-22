@@ -35,6 +35,8 @@ class BoardGame extends Model
      * usePlatformDifficultInCalc Int Использовать сложность платформы в расчете очков за игру
      * addingGamesConditions Json Условия добавления игр
      * Пример {"position":30,"finishedGames":3}
+     * last_players_with_every_day_status_effect Int Количество игроков, которое ислючаются для поиска нового игрока для предмета
+     * bonus_for_coop Json Бонус начисляемый после прохождения игры в коопе, для игрока, пригласившего в кооп
      */
 
     public const CACHE_NAME = 'board-game';

@@ -6,6 +6,7 @@ use App\Http\Resources\BoardGame\Player\BgPlayerLayoutResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerWithInventoryResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
+use App\Models\User;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Entity\EntityService;
@@ -39,11 +40,15 @@ class BgPlayerService
         );
     }
 
-    public static function getCurrent($bgSlug)
+    public static function getCurrent($bgSlug, $userId = null)
     {
         if (!$bgSlug) return null;
 
-        $user = Auth::user();
+        if ($userId) {
+            $user = User::query()->where('id', $userId)->first();
+        } else {
+            $user = Auth::user();
+        }
 
         if (!$user) return null;
 

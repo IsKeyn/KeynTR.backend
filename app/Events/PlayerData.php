@@ -33,6 +33,6 @@ class PlayerData implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return BgPlayerService::getCurrent($this->bgSlug)->toArray(request());
+        return BgPlayerService::getCurrent($this->bgSlug, $this->userId)->toArray(request());
     }
 }

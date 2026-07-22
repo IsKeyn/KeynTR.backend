@@ -19,7 +19,7 @@ class BgStatusEffectRequest extends FormRequest
         $id = $this->route('statusEffect')?->id ?? $this->route('id') ?? $this->get('id');
 
         return [
-            'type' => 'sometimes|string|nullable',
+            'type' => 'sometimes|integer|nullable',
             'name' => 'required|string|sometimes',
             'slug' => [
                 'required',
@@ -30,7 +30,7 @@ class BgStatusEffectRequest extends FormRequest
             'description' => 'sometimes|string|nullable',
             'board_game_player_id' => 'sometimes|integer|nullable',
             'board_game_id' => 'sometimes|integer|nullable',
-            'actions' => 'sometimes|string|nullable',
+            'actions' => 'nullable|array',
             'debuff' => 'sometimes|boolean|nullable',
             'title_image' => 'sometimes|integer|nullable',
             'sound' => 'sometimes|integer|nullable',

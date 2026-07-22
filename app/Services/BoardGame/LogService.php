@@ -44,11 +44,8 @@ class LogService
             'board_game_id' => $boardGameId,
             'message' => $message,
             'created_by' => $userId,
+            'bg_player_id' => $playerId,
         ];
-
-        if ($playerId) {
-            $fields['bg_player_id'] = $playerId;
-        }
 
         if ($important) {
             $fields['important'] = $important;

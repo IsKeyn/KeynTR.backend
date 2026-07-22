@@ -21,6 +21,9 @@ class StatusEffect extends Model
     public const FILTER = 'App\Filters\BoardGame\BgStatusEffectFilter';
     public const SERVICE = 'App\Services\BoardGame\StatusEffectService';
 
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\StatusEffectController';
+    public const REQUEST = 'App\Http\Requests\BoardGame\BgStatusEffectRequest';
+
     // Resource for admin panel
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgStatusEffect\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgStatusEffect\ListResource';
@@ -54,6 +57,7 @@ class StatusEffect extends Model
     protected $casts = [
         'debuff' => 'boolean',
         'active' => 'boolean',
+        'actions' => 'array',
     ];
 
     public function statusEffectBinds(): HasMany

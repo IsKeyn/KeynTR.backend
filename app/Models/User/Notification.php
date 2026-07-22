@@ -38,6 +38,11 @@ class Notification extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function from(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function entity()
     {
         return $this->morphTo();

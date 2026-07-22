@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\User;
 
-use App\Models\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class NotificationResource extends JsonResource
@@ -15,8 +14,6 @@ class NotificationResource extends JsonResource
      */
     public function toArray($request)
     {
-        $user = User::where('id', $this->created_by)->first();
-
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
@@ -24,7 +21,7 @@ class NotificationResource extends JsonResource
             'actions' => $this->actions,
             'viewed' => $this->viewed,
             'entity' => $this->entity,
-            'from' => UserResource::make($user),
+            'from' => $this->whenLoaded('from', fn() => UserResource::make($this->from)),
             'created_by' => $this->created_by,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

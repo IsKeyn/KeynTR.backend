@@ -81,7 +81,9 @@ class StatusEffectService
         );
 
         if ($statusEffect->actions) {
-            foreach (json_decode($statusEffect->actions) as $action) {
+            foreach ($statusEffect->actions as $action) {
+                $action = (Object) $action;
+
                 if (!$action->type || !$action->actions) continue;
 
                 if ($action->type === "choice") {
