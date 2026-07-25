@@ -17,13 +17,11 @@ Route::prefix('player/')->controller(BoardGamePlayerController::class)->group(fu
     Route::get('getGames/{slug}/{name}', 'getGames')->name('getGames');
     Route::get('getCurrentGame/{slug}/{name}', 'getCurrentGame')->name('getCurrentGame');
     Route::get('getStatusEffects/{slug}/{name}', 'getStatusEffects')->name('getStatusEffects');
-
+    Route::get('getInventory/{slug}/{name}', 'getInventory')->name('getInventory');
+    Route::get('interactions/get/{slug}', 'getInteractions')->name('getInteractions');
     Route::get('item/gamblingGame/{slug}', 'getDataForItemGamblingGame')->name('getDataForItemGamblingGame');
 
-    Route::get('interactions/get/{slug}', 'getInteractions')->name('getInteractions');
-
     Route::middleware('auth:sanctum')->group(function() {
-        Route::get('getInventory/{slug}/{name}', 'getInventory')->name('getInventory');
         Route::post('rollItem/{slug}', 'rollItem')->name('rollItem');
         Route::post('setSetting/{slug}', 'setSetting')->name('set-setting');
         Route::post('setPlayerSettings/{slug}', 'setPlayerSettings')->name('set-player-setting');

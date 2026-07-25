@@ -30,6 +30,7 @@ class GameListResource extends JsonResource
             'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
             'release_dates' => $this->whenLoaded('dates', DateShortResource::collection($this->dates)),
             'groups' => $this->whenLoaded('groups', GroupResource::collection($this->groups)),
+            'bgGamesList' => $this->whenLoaded('bgGamesList', $this->bgGamesList),
         ];
     }
 }

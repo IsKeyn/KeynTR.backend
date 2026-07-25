@@ -134,7 +134,11 @@ class BoardGamePlayer extends Model
 
         if (!$boardGame) return false;
 
-        return BoardService::getMaxBoardPosition($boardGame) === $this->positions->sortByDesc('id')->first()->position;
+        $lastPos = $this->positions->sortByDesc('id')->first();
+
+        $currentPosition = optional($lastPos)->position;
+
+        return BoardService::getMaxBoardPosition($boardGame) === $currentPosition;
     }
 
     public function getPositionAttribute()

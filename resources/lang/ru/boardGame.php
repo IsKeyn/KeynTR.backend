@@ -6,6 +6,7 @@ return [
     'not_found' => 'Ивент не найден',
     'not_received_slug' => 'Slug ивента не получен',
     'not_received_type' => 'Тип не получен',
+    'registration_is_close' => 'Регистрация на ивент закрыта',
     'board_type_not_found' => 'В ивенте отсуствует настройка board_type, указывающая на тип игрового поля',
 
     'timer_not_found' => 'Таймер не найден',
@@ -14,6 +15,12 @@ return [
 
     'player' => [
         'not_found' => 'Игрок не найден',
+        'already_in_event' => 'Данный пользователь уже участвует в ивенте',
+        'on_moderate' => 'Ожидает одобрения модератора',
+        'request_on_moderate' => 'Заявка на участие успешно отправлена и рассматривается модераторами',
+        'applied_to_participate_in_the_event' => 'подал заявку на участие в ивенте',
+        'success_registration_in_event' => 'Вы успешно зарегистрированы в ивенте',
+        'joined_in_event' => 'присоединился к ивенту',
         'settings' => [
             'dont_received_setting_name' => 'Не получено название опции',
             'dont_received_setting_value' => 'Не получено значение опции',

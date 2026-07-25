@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Services\BoardGame\PlayerGameService;
+use App\Services\BoardGame\BgPlayerService;
 use App\Services\ErrorService;
 use App\Services\MediaService;
 use App\Services\User\UserPasswordService;
@@ -112,7 +112,7 @@ class TwitchController extends Controller
             Auth::login($user);
 
             if ($request->registerOnEventBySlug) {
-                PlayerGameService::joinTheGame($user, $request->registerOnEventBySlug);
+                BgPlayerService::joinTheGame($user, $request->registerOnEventBySlug);
             }
 
             return Auth::user();

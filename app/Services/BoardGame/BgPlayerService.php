@@ -6,10 +6,12 @@ use App\Http\Resources\BoardGame\Player\BgPlayerLayoutResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerWithInventoryResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
+use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Entity\EntityService;
+use App\Services\ErrorService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,116 @@ use Symfony\Component\HttpFoundation\Response;
 
 class BgPlayerService
 {
+    /**
+     * Регистрация в ивенте
+     *
+     * @param $user
+     * @param $slug
+     * @return array|mixed
+     */
+    public static function joinTheGame($user, $slug)
+    {
+        if (!$user) {
+            return [
+                'status' => 'error',
+                'status_message' => __('notReceived.not_received_user')
+            ];
+        }
+
+        if (!$slug) {
+            return [
+                'status' => 'error',
+                'status_message' => __('notReceived.not_received_slug')
+            ];
+        }
+
+        $boardGame = BoardGame::query()
+            ->findBySlug($slug)
+            ->with([
+                'players' => function ($q) use ($user) {
+                    $q->findByUserId($user->id);
+                },
+                'settings'
+            ])
+            ->first();
+
+        $player = $boardGame->players->first();
+
+        if (!$boardGame) {
+            return [
+                'status' => 'error',
+                'status_message' => __('boardGame.not_found'),
+            ];
+        }
+
+        if ($player) {
+            return ErrorService::message(__('boardGame.player.already_in_event'));
+        }
+
+        $typeSettings = $boardGame->settings->where('code', '=', 'type')->first();
+
+        if ($typeSettings === 'registrationIsClose') {
+            return [
+                'status' => 'error',
+                'status_message' => __('boardGame.registration_is_close'),
+            ];
+        }
+
+        return DB::transaction(function () use ($user, $boardGame, $typeSettings) {
+            $itemRollCountSetting = $boardGame->settings->where('code', '=', 'item_roll_default_count')->first();
+            $stepCountSetting = $boardGame->settings->where('code', '=', 'step_default_count')->first();
+
+            $fields = [
+                'user_id' => $user->id,
+                'board_game_id' => $boardGame->id,
+                'item_roll_count' => $itemRollCountSetting ? $itemRollCountSetting->value : 2,
+                'step_count' => $stepCountSetting ? $stepCountSetting->value : 1,
+                'active' => $typeSettings ? ($typeSettings->value === 'upon-request' ? false : true) : true,
+                'not_active_reason' => $typeSettings ? ($typeSettings->value === 'upon-request' ? __('boardGame.player.on_moderate') : null) : null,
+                'created_by' => $user->id,
+            ];
+
+            $newPlayer = BoardGamePlayer::create($fields);
+
+            switch ($typeSettings->value ?? null) {
+                case 'upon-request':
+                    $returnMessage = __('boardGame.player.request_on_moderate');
+                    $logMessage = __('boardGame.player.applied_to_participate_in_the_event');
+                    break;
+                default:
+                    $returnMessage = __('boardGame.player.success_registration_in_event');
+                    $logMessage = __('boardGame.player.joined_in_event');
+                    break;
+            }
+
+            LogService::addLog(
+                $user->id,
+                $boardGame->id,
+                $logMessage,
+                $newPlayer->id
+            );
+
+            // Ставим игрока на игровое поле
+            $positionFields = [
+                'user_id' => $user->id,
+                'position' => 1,
+                'board_game_id' => $boardGame->id,
+                'bg_player_id' => $newPlayer->id,
+                'created_by' => $user->id,
+            ];
+
+            BoardGamePlayerPosition::create($positionFields);
+
+            // Устанавливаем таймер для игрока
+            TimerService::createTimer($boardGame->id, $user, 'main');
+
+            return [
+                'status' => 'success',
+                'status_message' => $returnMessage,
+            ];
+        });
+    }
+
     public static function getById($id, $forceRefresh = false, $withTrashed = false)
     {
         return EntityService::getById(

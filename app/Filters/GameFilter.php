@@ -3,6 +3,7 @@
 namespace App\Filters;
 
 use App\Filters\Concerns\HasFilters;
+use App\Models\BoardGame\BoardGameGameList;
 use App\Models\Game;
 use App\Models\ViewsCount;
 use App\Models\VotesCount;
@@ -82,6 +83,20 @@ class GameFilter
                     $query_0->whereHas('boardGame', function($query_1) use ($value) {
                         $query_1->whereIn('board_games.id', $value);
                     });
+                });
+        }
+    }
+
+    protected function onlyGold($value): void
+    {
+        $decodedFilters = $this->filters();
+
+        if ($value && isset($decodedFilters['events'])) {
+            $this->query
+                ->with('bgGamesList')
+                ->whereHas('bgGamesList', function($query) use ($decodedFilters) {
+                    $query->whereIn('board_game_id', $decodedFilters['events']);
+                    $query->where('list_type', BoardGameGameList::GOLDEN_LIST);
                 });
         }
     }

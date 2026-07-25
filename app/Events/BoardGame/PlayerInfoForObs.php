@@ -4,7 +4,6 @@ namespace App\Events\BoardGame;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -23,7 +22,7 @@ class PlayerInfoForObs implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new Channel("playerInfoForObs.{$this->player->boardGame->slug}.{$this->player->id}"),
+            new Channel("playerInfoForObs.{$this->player->id}"),
         ];
     }
 

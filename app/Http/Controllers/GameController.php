@@ -37,8 +37,9 @@ class GameController extends Controller
             $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
             $time = GameCacheService::FILTER_TIME;
         }
-
         return Cache::remember($cacheKey, $time, function () use ($request) {
+            $decodedFilters = json_decode($request->filters, true);
+
             $filter = new GameFilter($request);
             $games = $filter->apply(Game::query())
                 ->with([
@@ -46,7 +47,12 @@ class GameController extends Controller
                         $query->orderByPivot('sort');
                     },
                     'genres',
-                    'dates'
+                    'dates',
+                    'bgGamesList' => function ($query) use ($decodedFilters) {
+                        if (isset($decodedFilters['events'])) {
+                            $query->whereIn('board_game_id', $decodedFilters['events']);
+                        }
+                    },
                 ])
                 ->where('show_in_list', true)
                 ->active();

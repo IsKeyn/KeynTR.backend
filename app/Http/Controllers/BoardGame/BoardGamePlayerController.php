@@ -542,7 +542,7 @@ class BoardGamePlayerController extends Controller
 
         // Если игрок не участвует в этом ивенте, то создаем нового игрока
         if (!$currentPlayer) {
-            return PlayerGameService::joinTheGame($user, $request->slug);
+            return BgPlayerService::joinTheGame($user, $request->slug);
         } else {
             return [
                 'status' => 'error',
