@@ -81,6 +81,10 @@ use App\Observers\BoardGame\TimerObserver;
 use App\Observers\UserObserver;
 use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\VKontakte\VKontakteExtendSocialite;
+use SocialiteProviders\Yandex\YandexExtendSocialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -105,6 +109,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Event::listen(
+            SocialiteWasCalled::class,
+            [YandexExtendSocialite::class, 'handle']
+        );
+
+        Event::listen(
+            SocialiteWasCalled::class,
+            [VKontakteExtendSocialite::class, 'handle']
+        );
+
         Game::observe(GameObserver::class);
         Movie::observe(MovieObserver::class);
         Series::observe(SeriesObserver::class);

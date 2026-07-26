@@ -88,7 +88,7 @@ class LoginController extends Controller
             'message' => [
                 'message' => __('user_action_log.auth_fail'),
                 'email' => $request->email,
-                'password' => $request->password,
+//                'password' => $request->password,
             ]
         ];
 
