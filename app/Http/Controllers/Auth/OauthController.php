@@ -1,8 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Services\BoardGame\BgPlayerService;
 use App\Services\ErrorService;
 use App\Services\MediaService;
@@ -10,54 +9,60 @@ use App\Services\User\UserPasswordService;
 use App\Services\User\UserService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Laravel\Socialite\Facades\Socialite;
+use App\Models\User;
 
-class VkAuthController extends Controller
+class OauthController extends Controller
 {
-    // 1. Редирект на Яндекс
-    public function redirect()
+    public function redirect($oauthName)
     {
-        $redirectResponse = Socialite::driver('vkontakte')->stateless()->redirect();
+        $redirectResponse = Socialite::driver($oauthName)->stateless()->redirect();
         $redirectUrl = $redirectResponse->getTargetUrl();
 
         return response()->json(['url' => $redirectUrl]);
     }
 
-    // 2. Обработка ответа от Яндекса
-    public function apiCallback(Request $request)
+    public function apiCallback(Request $request, $oauthName)
     {
-        $provider = Socialite::driver('vkontakte')
+        $provider = Socialite::driver($oauthName)
             ->stateless()
             ->setRequest($request);
 
         $oauthUser = $provider->user();
 
         if (!$oauthUser) {
-            return ErrorService::message('Не получен пользователь от Yandex');
+            return ErrorService::message(__('user.not_received', ['name' => $oauthName]));
         }
 
         if (!$oauthUser->getEmail()) {
-            return ErrorService::message('У Yandex пользователя отсутсвует email');
+            return ErrorService::message(__('user.not_found_email', ['name' => $oauthName]));
         }
 
-        // Ищем пользователя с таким же email как и в yandex и с верентифицированным email
+        // Ищем пользователя с email, верефицированным email
         $user = User::query()
             ->where('email', $oauthUser->getEmail())
             ->first();
 
         // Регистрируем пользователя, если его нет в системе
         if (!$user) {
+            $name = $oauthUser->getNickname();
+
+            if (!$name) {
+                $name = $oauthUser->getName();
+            }
+
             // Проверка никнейма и добаляем текст, если такой никнейм уже существует на сайте
-            $userLogin = UserService::checkLogin($oauthUser->getName() ?? 'VK User',);
+            $userLogin = UserService::checkLogin($name);
 
             // Генерируем пароль
             $userPasswordService = new UserPasswordService();
 
             $newUserFields = [
                 'name' => $userLogin,
-                'public_name' => $oauthUser->getName(),
+                'public_name' => $name,
                 'email' => $oauthUser->getEmail(),
                 'email_verified_at' => Carbon::now(),
                 'password' => $userPasswordService->generatePassword(),
@@ -74,6 +79,8 @@ class VkAuthController extends Controller
                 // Создаем временный файл
                 $tempFile = tempnam(sys_get_temp_dir(), 'downloaded_image');
                 file_put_contents($tempFile, $imageContent);
+
+                $contentType = $response->header('Content-Type') ?: 'image/jpeg';
 
                 // Создаем объект UploadedFile
                 $uploadedFile = new \Illuminate\Http\UploadedFile(
@@ -96,29 +103,40 @@ class VkAuthController extends Controller
                 }
             }
 
+            $additionalFields = [];
+
             // Добавляем пользователю дополнительные поля
-            $additionalFields = [
-                [
-                    'name' => 'VK id',
-                    'slug' => 'vk_id',
-                    'value' => $oauthUser->getId(),
-                    'sort' => 4,
-                ],
-            ];
-
-            UserService::setAdditionalFields($user, $additionalFields);
-        }
-
-        if ($user->email_verified_at) {
-            Auth::login($user);
-
-            if ($request->registerOnEventBySlug) {
-                BgPlayerService::joinTheGame($user, $request->registerOnEventBySlug);
+            if ($oauthName === 'twitch') {
+                $additionalFields[] = [
+                    'name' => 'Twitch канал',
+                    'slug' => 'twitch_channel',
+                    'value' => $oauthUser->getNickname(),
+                    'sort' => 2,
+                ];
             }
 
-            return Auth::user();
-        } else {
-            return ErrorService::message('Для авторизации этим пользователем, вы должны подтвердить свой email');
+            $additionalFields[] = [
+                'name' => "{$oauthName} id",
+                'slug' => "{$oauthName}_id",
+                'value' => $oauthUser->getId(),
+                'sort' => 5,
+            ];
+
+            if ($additionalFields) {
+                UserService::setAdditionalFields($user, $additionalFields);
+            }
         }
+
+        if (!$user->email_verified_at) {
+            return ErrorService::message(__('user.confirm_you_email'));
+        }
+
+        Auth::login($user);
+
+        if ($request->registerOnEventBySlug) {
+            BgPlayerService::joinTheGame($user, $request->registerOnEventBySlug);
+        }
+
+        return Auth::user();
     }
 }
