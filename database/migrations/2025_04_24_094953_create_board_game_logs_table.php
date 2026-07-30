@@ -18,9 +18,9 @@ class CreateBoardGameLogsTable extends Migration
             $table->foreignId('bg_player_id');
             $table->text('message');
             $table->foreignId('board_game_id')->nullable();
-            $table->boolean('important')->default(false)->after('board_game_id');
+            $table->boolean('important')->default(false);
             $table->string('entity_type')->nullable();
-            $table->integer('entity_id')->nullable()->after('board_game_id');
+            $table->integer('entity_id')->nullable();
             $table->boolean('active')->default(true);
             $table->integer('sort')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

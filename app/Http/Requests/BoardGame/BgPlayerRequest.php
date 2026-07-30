@@ -23,6 +23,7 @@ class BgPlayerRequest extends FormRequest
             'item_roll_count' => 'sometimes|integer|nullable',
             'step_count' => 'sometimes|integer|nullable',
             'streak' => 'sometimes|integer|nullable',
+            'rerolled_game_count' => 'sometimes|nullable|integer',
             'rerolled_own_game_count' => 'sometimes|integer|nullable',
             'not_active_reason' => 'sometimes|string|nullable',
             'added_games' => 'nullable|boolean',

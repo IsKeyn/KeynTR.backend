@@ -57,8 +57,8 @@ class BgPlayerGameService
      * @return array Массив игр
      */
     public function getFilteredGameList(
-        $platformIds,
-        $conditionData
+        int|array|null $platformIds,
+        array $conditionData
     )
     {
         $listType = 'default'; // Тип списка игр
@@ -73,23 +73,6 @@ class BgPlayerGameService
         $gameListQuery = BoardGameGameList::query()
             ->where('board_game_id', $boardGameId);
 
-        if ($platformIds) {
-            // Фильтрация по платформе если она есть
-            if (!is_array($platformIds))  {
-                $platformIds = [$platformIds];
-            }
-
-            $gameListQuery->whereIn('gaming_platform_id', $platformIds);
-        } else if (
-            (bool) $boardGame->settings->firstWhere('code', 'hasExceptionPlatforms')?->value('value')
-            && $player->settings
-            && isset($player->settings['exceptionPlatforms'])
-            && $player->settings['exceptionPlatforms']
-        ) {
-            // Если платформы нет, то исключаем выбранные (на исключение) пользователем платформы
-            $gameListQuery->whereNotIn('gaming_platform_id', $player->settings['exceptionPlatforms']);
-        }
-
         // Рулетка рерольнутых игр (извлекает все уникальные рерольнутые игры, всех игроков)
         $rerolledOwnGameCountForRerolledList = $boardGame
             ->settings
@@ -97,22 +80,13 @@ class BgPlayerGameService
             ?->value('value') ?? 2;
 
         if ($player->rerolled_own_game_count >= $rerolledOwnGameCountForRerolledList) {
-            $rerolledGames = PlayerGame::query()
-                ->findByBoardGame($boardGameId)
-                ->where('status', PlayerGame::REROLLED)
-                ->select('board_game_game_list_id')
-                ->get()
-                ->unique('board_game_game_list_id');
+            $rerolledIds = $this->rerolledGamesIds($boardGameId);
 
-            $rerolledIds = [];
-
-            foreach ($rerolledGames as $game) {
-                $rerolledIds[] = $game['board_game_game_list_id'];
+            if (!empty($rerolledIds)) {
+                $gameListQuery->whereIn('id', $rerolledIds);
             }
 
-            $gameListQuery->whereIn('id', $rerolledIds);
-            $gameListQuery->where('list_type', null);
-
+            $gameListQuery->whereNull('list_type');
             $listType = 'rerolled';
         }
 
@@ -122,9 +96,6 @@ class BgPlayerGameService
                 ->firstWhere('code', 'rerolled_game_count_for_gold_list')
                 ?->value('value') ?? 3;
 
-
-        // TODO сбрасывать $player->rerolled_game_count после рола
-
         if ($listType !== 'rerolled' && $player->rerolled_game_count >= $rerolledGameCountForGoldList) {
             $gameListQuery->where('list_type', BoardGameGameList::GOLDEN_LIST);
 
@@ -133,6 +104,21 @@ class BgPlayerGameService
 
         if ($listType === 'default') {
             $gameListQuery->where('list_type', null);
+        }
+
+        if ($platformIds) {
+            // Фильтрация по платформе если она есть
+            $platformIds = (array) $platformIds;
+            $gameListQuery->whereIn('gaming_platform_id', $platformIds);
+        } else if (
+                $listType !== 'rerolled'
+                && (bool) $boardGame->settings->firstWhere('code', 'hasExceptionPlatforms')?->value('value')
+                && $player->settings
+                && isset($player->settings['exceptionPlatforms'])
+                && $player->settings['exceptionPlatforms']
+            ) {
+            // Если платформы нет, то исключаем выбранные (на исключение) пользователем платформы
+            $gameListQuery->whereNotIn('gaming_platform_id', $player->settings['exceptionPlatforms']);
         }
 
         $gameList = $gameListQuery
@@ -177,5 +163,21 @@ class BgPlayerGameService
             'gameList' => $finalGameList,
             'listType' => $listType,
         ];
+    }
+
+    /**
+     * Возвращает массив с ID рерольнутых игры
+     *
+     * @param $boardGameId int ID настольной игры
+     * @return array Массив с ID рерольнутых игр
+     */
+    public function rerolledGamesIds(int $boardGameId)
+    {
+        return PlayerGame::query()
+            ->findByBoardGame($boardGameId)
+            ->where('status', PlayerGame::REROLLED)
+            ->pluck('board_game_game_list_id')
+            ->distinct()
+            ->toArray();
     }
 }

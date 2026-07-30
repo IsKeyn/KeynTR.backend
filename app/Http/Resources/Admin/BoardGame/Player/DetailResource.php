@@ -23,6 +23,8 @@ class DetailResource extends JsonResource
             'item_roll_count' => $this->item_roll_count,
             'step_count' => $this->step_count,
             'streak' => $this->streak,
+            'rerolled_game_count' => $this->rerolled_game_count,
+            'rerolled_own_game_count' => $this->rerolled_own_game_count,
             'active' => $this->active,
             'not_active_reason' => $this->not_active_reason,
             'added_games' => $this->added_games,

@@ -17,6 +17,7 @@ use App\Models\BoardGame\StatusEffect;
 use App\Models\GamingPlatform;
 use App\Models\User;
 use App\Services\BoardGame\ActionsService;
+use App\Services\BoardGame\BgPlayerGameService;
 use App\Services\BoardGame\GameService;
 use App\Services\BoardGame\InteractionsService;
 use App\Services\BoardGame\LogService;
@@ -129,7 +130,8 @@ class PlayerGameController extends Controller
             $platformId = $request->platform_id ? $request->platform_id : null;
         }
 
-        $games = $this->getFilteredGameList($platformId, $conditionData);
+        $bgPlayerGameService = app(BgPlayerGameService::class);
+        $games = $bgPlayerGameService->getFilteredGameList($platformId, $conditionData);
 
         return [
             'status' => 1,
@@ -292,6 +294,8 @@ class PlayerGameController extends Controller
                             // Если игрок рерольнул свою игру, то обновляем счетчик своих рерольнутых игр
                             if ($playerCurrentGame->game->addedBy === $conditionData['player']->user_id) {
                                 $conditionData['player']->rerolled_own_game_count = $conditionData['player']->rerolled_own_game_count + 1;
+                            } else {
+                                $conditionData['player']->rerolled_game_count = $conditionData['player']->rerolled_game_count + 1;
                             }
 
                             $conditionData['player']->save();
@@ -683,6 +687,10 @@ class PlayerGameController extends Controller
             return $conditionData;
         }
 
+        $conditionData['boardGame']->load([
+            'settings',
+        ]);
+
         $conditionData['player']
             ->load([
                 'mainTimers' => function ($query) use ($conditionData) {
@@ -804,8 +812,22 @@ class PlayerGameController extends Controller
         }
 
         // Если игра была из списка рерольнутых, то сбрасывает счетчик собственных рерольнутых игр
-        if ($gameListFiltered['listType'] === 'rerolled' && $conditionData['player']->rerolled_own_game_count >= 2) {
+        $rerolledOwnGameCountForRerolledList = $conditionData['boardGame']->settings
+            ->firstWhere('code', 'rerolled_own_game_count_for_rerolled_list')
+            ?->value('value') ?? 2;
+
+        if ($gameListFiltered['listType'] === 'rerolled' && $conditionData['player']->rerolled_own_game_count >= $rerolledOwnGameCountForRerolledList) {
             $conditionData['player']->rerolled_own_game_count = 0;
+            $conditionData['player']->save();
+        }
+
+        // Если игра была из списка золота, то сбрасывает счетчик рерольнутых подрят игр
+        $rerolledGameCountForGoldList = $conditionData['boardGame']->settings
+            ->firstWhere('code', 'rerolled_game_count_for_gold_list')
+            ?->value('value') ?? 3;
+
+        if ($gameListFiltered['listType'] === 'golden' && $conditionData['player']->rerolled_game_count >= $rerolledGameCountForGoldList) {
+            $conditionData['player']->rerolled_game_count = 0;
             $conditionData['player']->save();
         }
 
@@ -828,127 +850,6 @@ class PlayerGameController extends Controller
         }
 
         return GameListResource::make($randomGame);
-    }
-
-    /**
-     * @param $platformId
-     * @param $conditionData
-     * @return array
-     */
-    private function getFilteredGameList(
-        $platformId,
-        $conditionData
-    )
-    {
-        $conditionData['boardGame']->load(['settings']);
-
-        $listType = 'default';
-        $boardGameGameQuery = BoardGameGameList::query()->where('board_game_id', $conditionData['boardGame']->id);
-
-        // Фильтрация по платформе если она есть
-        if ($platformId) {
-            $boardGameGameQuery->where('gaming_platform_id', $platformId);
-        } else if ((bool) $conditionData['boardGame']->settings->where('code', 'hasExceptionPlatforms')->value('value')) {
-            if ($conditionData['player']->settings
-                && isset($conditionData['player']->settings['exceptionPlatforms'])
-                && $conditionData['player']->settings['exceptionPlatforms']
-            ) {
-                $boardGameGameQuery->whereNotIn('gaming_platform_id', $conditionData['player']->settings['exceptionPlatforms']);
-            }
-
-        }
-
-        // Рулетка рерольнутых игр
-        if ($conditionData['player']->rerolled_own_game_count >= 2) {
-            $rerolledGames = PlayerGame::query()
-                ->findByBoardGame($conditionData['boardGame']->id)
-                ->where('status', PlayerGame::REROLLED)
-                ->select('board_game_game_list_id')
-                ->get()
-                ->unique('board_game_game_list_id');
-
-            $rerolledIds = [];
-
-            foreach ($rerolledGames as $game) {
-                $rerolledIds[] = $game['board_game_game_list_id'];
-            }
-
-            $boardGameGameQuery->whereIn('id', $rerolledIds);
-            $boardGameGameQuery->where('list_type', null);
-
-            $listType = 'rerolled';
-        }
-
-        if ($listType !== 'rerolled') {
-            // Рулетка "Золотая коллекция"
-            $currentPlayerGames = PlayerGame::query()
-                ->findByBoardGame($conditionData['boardGame']->id)
-                ->findByUserId($conditionData['user']->id)
-                ->orderBy('id', 'desc')
-                ->get();
-
-            $goldenList = false;
-            $rerolledGameInaRow = 0;
-
-            foreach ($currentPlayerGames as $game) {
-                if ($game->status === PlayerGame::REROLLED) {
-                    $rerolledGameInaRow++;
-
-                    if ($rerolledGameInaRow === 3) {
-                        $goldenList = true;
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-
-            if ($goldenList) {
-                $boardGameGameQuery->where('list_type', BoardGameGameList::GOLDEN_LIST);
-
-                $listType = 'golden';
-            }
-        }
-
-        if ($listType === 'default') {
-            $boardGameGameQuery->where('list_type', null);
-        }
-
-        $boardGameGameList = $boardGameGameQuery
-            ->with([
-                'game',
-                'game.titleImage',
-            ])
-            ->active()
-            ->get();
-
-        // Убираем из списка игры, выпадали игроку
-        $playerGameListQuery = PlayerGame::query()
-            ->where('board_game_id', $conditionData['boardGame']->id)
-            ->where('user_id', $conditionData['user']->id);
-
-        // Если это список рерольнутых, то добавляем рерольнутые игроком игры
-        if ($listType === 'rerolled') {
-            $playerGameListQuery->where('status', '!=', PlayerGame::REROLLED);
-        }
-
-        $playerGameList = $playerGameListQuery->get();
-
-        $usedGames = [];
-
-        foreach ($playerGameList as $game) {
-            $usedGames[] = $game->board_game_game_list_id;
-        }
-
-        $gameList = $boardGameGameList->filter(function ($value) use ($usedGames) {
-            return !in_array($value->id, $usedGames);
-        });
-
-        // TODO возможно стоит что-то придумать когда игр 0
-        return [
-            'gameList' => $gameList,
-            'listType' => $listType,
-        ];
     }
 
     public function getSpendTime(Request $request)
