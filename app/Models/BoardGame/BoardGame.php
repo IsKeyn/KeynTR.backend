@@ -48,6 +48,9 @@ class BoardGame extends Model
     const OPEN_STATUS = 1;
     const COMING_SOON = 2;
 
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\BoardGameController';
+    public const REQUEST = 'App\Http\Requests\BoardGame\BoardGameRequest';
+
     public const PUBLIC_CONTROLLER = 'App\Http\Controllers\BoardGame\BoardController';
 
     protected $fillable = [

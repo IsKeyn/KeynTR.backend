@@ -8,11 +8,23 @@ class RelatedDataService
 {
     public function set($model, $validated)
     {
-        if (isset($validated['title_image']) || isset($validated['covers'])  || isset($validated['avatar'])) {
+        if (isset($validated['title_image'])
+            || isset($validated['covers'])
+            || isset($validated['avatar'])
+            || isset($validated['media'])
+        ) {
             $mediaService = new MediaService();
 
-            if (isset($validated['title_image'])) {
-                $mediaService->setTitleImage($model, $validated['title_image']);
+            if (isset($validated['title_image']) || isset($validated['media'])) {
+                if (isset($validated['title_image'])) {
+                    $media = $validated['title_image'];
+                }
+
+                if (isset($validated['media'])) {
+                    $media = $validated['media'];
+                }
+
+                $mediaService->setTitleImage($model, $media);
             }
 
             if (isset($validated['covers'])) {

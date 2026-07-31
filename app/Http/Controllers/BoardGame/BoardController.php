@@ -68,25 +68,19 @@ class BoardController extends Controller
                     ->first();
 
                 if (!$boardGame) {
-                    return response()
-                        ->json(['message' => __('boardGame.not_found')])
-                        ->setStatusCode(Response::HTTP_NOT_FOUND);
+                    abort(404, __('boardGame.not_found'));
                 }
 
                 $boardType = $boardGame->settings->where('code', '=', 'board_type')->value('value');
 
                 if (!$boardType) {
-                    return response()
-                        ->json(['message' => __('boardGame.board_type_not_found')])
-                        ->setStatusCode(Response::HTTP_NOT_FOUND);
+                    abort(404, __('boardGame.board_type_not_found'));
                 }
 
                 $board = Board::query()->where('slug', '=', $boardType)->active()->first();
 
                 if (!$board) {
-                    return response()
-                        ->json(['message' => __('boardGame.board.not_found')])
-                        ->setStatusCode(Response::HTTP_NOT_FOUND);
+                    abort(404, __('boardGame.board.not_found'));
                 }
 
                 return [
@@ -132,6 +126,10 @@ class BoardController extends Controller
                         'playerInteractions.createdByData.avatar',
                     ])
                     ->first();
+
+                if (!$player) {
+                    return [];
+                }
 
                 return [
                     'current_player' => [
