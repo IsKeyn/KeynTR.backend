@@ -14,7 +14,7 @@ class CreateRolesAndPermissions extends Command
      *
      * @var string
      */
-    protected $signature = 'setup:create-role-and-permissions {resetData}';
+    protected $signature = 'setup:create-role-and-permissions {resetData=false}';
 
     /**
      * The console command description.

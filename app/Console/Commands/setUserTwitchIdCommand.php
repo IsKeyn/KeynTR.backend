@@ -42,8 +42,8 @@ class setUserTwitchIdCommand extends Command
     {
         $users = User::query()->get();
 
-        $clientId = 'dub1gz76pv44mx1ojnyb9fvhe52m86';
-        $clientSecret = '0uj93fwkcaq67q4uywkqzhjvw7idx2';
+        $clientId = config('twitch.client_id');
+        $clientSecret = config('twitch.client_secret');
 
         $twitchService = new TwitchService();
         $token = $twitchService->getAccessToken($clientId, $clientSecret);

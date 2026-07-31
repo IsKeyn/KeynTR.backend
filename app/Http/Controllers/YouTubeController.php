@@ -13,15 +13,12 @@ use DateTime;
 use Google_Client;
 use Illuminate\Http\Request;
 
-// TODO разница между this и self
-
 class YouTubeController extends Controller
 {
     public const APP_NAME = 'KeynTR';
     public const API_URL = 'https://youtube.googleapis.com/youtube/v3/';
-    public const CHANNEL_ID = 'UCOGatAJNTBG0HIHDLsM7xGw';
-    public const API_KEY = 'AIzaSyA0_9fFr2ho7faSbNqLt_nM4kMgx3KH9js';
-//    public const API_KEY = 'AIzaSyBVdseDG7v_2kdVZybGgHJO2q6Y46SGoEM';
+    public const CHANNEL_ID = '';
+    public const API_KEY = '';
 
     private const YOU_TUBE_DATE_FORMAT = 'Y-m-d?H:i:s?';
     private const DB_FORMAT = 'Y-m-d H:i:s';
@@ -141,12 +138,12 @@ class YouTubeController extends Controller
         /*
             params example
             $params = array(
-                'channelId' => self::CHANNEL_ID,
+                'channelId' => config('youtube.channel_id'),
                 'order' => 'date',
                 'part' => 'snippet',
                 'type' => 'playlist',
                 'maxResults' => 10,
-                'key' => self::API_KEY
+                'key' => config('youtube.api_key')
             );
         */
 
@@ -162,12 +159,12 @@ class YouTubeController extends Controller
         $requestUrl = $this->requestUrlCreator(
             'search',
             [
-                'channelId' => self::CHANNEL_ID,
+                'channelId' => config('youtube.channel_id'),
                 'order' => 'date',
                 'part' => 'snippet',
                 'type' => 'video',
                 'maxResults' => 10,
-                'key' => self::API_KEY
+                'key' => config('youtube.api_key')
             ]
         );
 
@@ -183,7 +180,7 @@ class YouTubeController extends Controller
                 'title' => $video->snippet->title,
                 'thumbnails' => json_encode($video->snippet->thumbnails),
                 'status' => 'public',
-                'channel_id' => self::CHANNEL_ID,
+                'channel_id' => config('youtube.channel_id'),
             ];
         }
 
@@ -214,8 +211,8 @@ class YouTubeController extends Controller
             $requestUrl = self::API_URL
                 . 'channels?'
                 . 'part=auditDetails,brandingSettings,contentDetails,contentOwnerDetails,id,localizations,snippet,statistics,status,topicDetails&'
-                . 'key=' . self::API_KEY . '&'
-                . 'id=' . self::CHANNEL_ID . '&';
+                . 'key=' . config('youtube.api_key') . '&'
+                . 'id=' . config('youtube.channel_id') . '&';
 
             $result = $this->sendRequestByUsingCurl($requestUrl, $accessToken)->items[0];
 
@@ -265,8 +262,8 @@ class YouTubeController extends Controller
         . 'playlists?'
         . 'part=contentDetails,snippet,player&'
         . 'maxResults=50&'
-        . 'key=' . self::API_KEY . '&'
-        . 'channelId=' . self::CHANNEL_ID . '&';
+        . 'key=' . config('youtube.api_key') . '&'
+        . 'channelId=' . config('youtube.channel_id') . '&';
 
         if ($nextPageToken)
             $requestUrl .= 'pageToken=' . $nextPageToken . '&';
@@ -388,7 +385,7 @@ class YouTubeController extends Controller
         . 'part=contentDetails,id,snippet,status&'
         . 'maxResults=50&'
         . 'playlistId=' . $playlistId . '&'
-        . 'key=' . self::API_KEY . '&';
+        . 'key=' . config('youtube.api_key') . '&';
 
         if ($nextPageToken)
             $requestUrl .= 'pageToken=' . $nextPageToken . '&';

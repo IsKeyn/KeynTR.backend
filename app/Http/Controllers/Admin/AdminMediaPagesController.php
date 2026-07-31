@@ -3,8 +3,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MediaResource;
+use App\Jobs\Media\CreateResizes;
+use App\Jobs\Media\CreateWebp;
 use App\Models\Media;
 use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -51,7 +54,14 @@ class AdminMediaPagesController extends Controller
         return $tag;
     }
 
-    private function addMedia($fileArray, $user) {
+    /**
+     * Добавление медиа файла в систему
+     *
+     * @param array $fileArray Массив файла
+     * @param User $user Пользователь
+     * @return mixed
+     */
+    private function addMedia(Array $fileArray, User $user) {
         $fileData = [
             'name' => $fileArray['name'],
             'description' => $fileArray['description'],
@@ -88,6 +98,10 @@ class AdminMediaPagesController extends Controller
         ];
 
         $media->update($fileData);
+
+        // Ставим в очередь ресайз изображения и создание webp
+        CreateWebp::dispatch($media);
+        CreateResizes::dispatch($media);
 
         return $media;
     }

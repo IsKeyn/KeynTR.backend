@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services\BoardGame;
 
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,7 +14,7 @@ use App\Models\User;
 
 class BgPlayerGameServiceTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     protected BgPlayerGameService $service;
 
