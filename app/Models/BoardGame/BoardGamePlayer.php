@@ -146,9 +146,10 @@ class BoardGamePlayer extends Model
 
     public function getPositionAttribute()
     {
-        return $this
-            ->positions
-            ->where('board_game_id', $this->board_game_id)->sortByDesc('id')->first()->position;
+        return $this->positions
+            ->where('board_game_id', $this->board_game_id)
+            ->sortByDesc('id')
+            ->first()?->position;
     }
 
     public function userInteraction()
