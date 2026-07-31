@@ -29,6 +29,6 @@ class NotificationCount implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return NotificationService::getCount();
+        return NotificationService::getCount($this->userId);
     }
 }

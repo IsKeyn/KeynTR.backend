@@ -3,107 +3,181 @@
 namespace App\Http\Controllers\BoardGame;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BoardGame\BoardGamePlayerPositionsResource;
-use App\Http\Resources\BoardGame\BoardGamePlayerShortResource;
-use App\Http\Resources\BoardGame\BoardPositionEffectsBindResource;
-use App\Http\Resources\BoardGame\BoardResource;
-use App\Http\Resources\BoardGame\PlayerInteractionResource;
+use App\Http\Resources\BoardGame\Board\BgBoardPositionEffectsBindResource;
+use App\Http\Resources\BoardGame\Board\BgBoardResource;
+use App\Http\Resources\BoardGame\Board\BgPlayerInteractionResource;
+use App\Http\Resources\BoardGame\Board\BgPlayerPositionsResource;
+use App\Http\Resources\BoardGame\Player\BgPlayerDetailResource;
 use App\Models\BoardGame\Board;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\BoardPositionEffectsBind;
-use App\Models\BoardGame\PlayerInteractions;
-use App\Models\Setting;
 use App\Services\BoardGame\BoardService;
 use App\Services\BoardGame\PlayerGameService;
+use App\Services\Cache\BoardGame\BgPlayerCacheService;
+use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\ErrorService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Response;
 
 class BoardController extends Controller
 {
-    public function get($slug, BoardGame $BoardGame)
+    /**
+     * @param $slug
+     * @param BoardGame $BoardGame
+     * @return array|JsonResponse
+     */
+    public function get($slug, BoardGame $BoardGame) : array|JsonResponse
     {
-        if ($slug) {
-            $boardGame = $BoardGame->findBySlug($slug)->first();
-
-            if ($boardGame) {
-                $boardType = Setting::query()
-                    ->where('code', '=', 'board_type')
-                    ->where('entity_type', '=', $boardGame->model)
-                    ->where('entity_id', '=', $boardGame->id)->value('value');
-
-                if ($boardType) {
-                    $board = Board::query()->where('slug', '=', $boardType)->first();
-                    $players = BoardGamePlayer::query()->findByBoardGame($boardGame->id)->active()->get();
-                    $boardPositionEffectsBind = BoardPositionEffectsBind::query()->findByBoardGame($boardGame->id)->active()->get();
-
-                    if ($board) {
-                        $returnData = [
-                            'board' => BoardResource::make($board),
-                            'players' => BoardGamePlayerShortResource::collection($players),
-                            'effects' => BoardPositionEffectsBindResource::collection($boardPositionEffectsBind),
-                        ];
-
-                        $user = Auth::user();
-
-                        if ($user) {
-                            $player = BoardGamePlayer::query()->where('user_id', $user->id)->findByBoardGame($boardGame->id)->first();
-
-                            if ($player) {
-                                $player = BoardGamePlayer::query()->findByBoardGame($boardGame->id)->findByUserId($user->id)->first();
-                                $positionHistory = BoardGamePlayerPosition::query()
-                                    ->findByBoardGame($boardGame->id)
-                                    ->findByUserId($user->id)
-                                    ->where('has_use_effect', true)
-                                    ->get();
-                                $boardInteraction = PlayerInteractions::query()
-                                    ->findByBoardGame($boardGame->id)
-                                    ->where('created_by', $user->id)
-                                    ->where('type', 'battleForPoints')
-                                    ->active()
-                                    ->get();
-
-                                $returnData['current_player'] = [
-                                    'info' => BoardGamePlayerShortResource::make($player),
-                                    'position_has_use_effect' => BoardGamePlayerPositionsResource::collection($positionHistory),
-                                    'board_interaction' => PlayerInteractionResource::collection($boardInteraction),
-                                ];
-                            }
-                        }
-
-                        return $returnData;
-                    }
-                }
-            }
+        if (!$slug) {
+            return response()
+                ->json()
+                ->setStatusCode(Response::HTTP_NOT_FOUND);
         }
+
+        $cacheKey = BoardGameCacheService::DETAIL_PREFIX . '_' . $slug . '_board';
+
+        $returnData1 = Cache::remember(
+            $cacheKey,
+            BoardGameCacheService::TIME,
+            function () use ($BoardGame, $slug
+            ) {
+                $boardGame = $BoardGame::query()
+                    ->findBySlug($slug)
+                    ->with([
+                        'settings',
+                        'players' => function ($query) {
+                            $query->active();
+                        },
+                        'players.user',
+                        'players.user.avatar',
+                        'players.user.additionalFields',
+                        'players.positions' => function ($query) {
+                            $query->active()->orderBy('id', 'desc');
+                        },
+                        'boardPositionEffectsBinds' => function ($query) {
+                            $query->active();
+                        },
+                        'boardPositionEffectsBinds.boardPositionEffect',
+                        'boardPositionEffectsBinds.boardPositionEffect.titleImage',
+                    ])
+                    ->first();
+
+                if (!$boardGame) {
+                    return response()
+                        ->json(['message' => __('boardGame.not_found')])
+                        ->setStatusCode(Response::HTTP_NOT_FOUND);
+                }
+
+                $boardType = $boardGame->settings->where('code', '=', 'board_type')->value('value');
+
+                if (!$boardType) {
+                    return response()
+                        ->json(['message' => __('boardGame.board_type_not_found')])
+                        ->setStatusCode(Response::HTTP_NOT_FOUND);
+                }
+
+                $board = Board::query()->where('slug', '=', $boardType)->active()->first();
+
+                if (!$board) {
+                    return response()
+                        ->json(['message' => __('boardGame.board.not_found')])
+                        ->setStatusCode(Response::HTTP_NOT_FOUND);
+                }
+
+                return [
+                    'board' => BgBoardResource::make($board),
+                    'players' => BgPlayerDetailResource::collection($boardGame->players),
+                    'effects' => BgBoardPositionEffectsBindResource::collection($boardGame->boardPositionEffectsBinds),
+                ];
+        });
+
+        $returnData2 = [];
+
+        $user = Auth::user();
+
+        if ($user) {
+            $cacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $slug . '_' . $user->id . '_board';
+
+            $returnData2 = Cache::remember(
+                $cacheKey,
+                BgPlayerCacheService::TIME,
+                function () use ($user, $BoardGame, $slug
+            ) {
+                $bgId = $BoardGame::query()->findBySlug($slug)->value('id');
+
+                $player = BoardGamePlayer::query()
+                    ->where('user_id', $user->id)
+                    ->findByBoardGame($bgId)
+                    ->with([
+                        'user',
+                        'user.avatar',
+                        'user.additionalFields',
+                        'positions' => function ($query) {
+                            $query->active()->orderBy('id', 'desc');
+                        },
+                        'playerPositions' => function ($query) {
+                            $query->where('has_use_effect', true);
+                        },
+                        'playerInteractions' => function ($query) {
+                            $query->where('type', 'battleForPoints')->active();
+                        },
+                        'playerInteractions.withPlayerData',
+                        'playerInteractions.withPlayerData.avatar',
+                        'playerInteractions.createdByData',
+                        'playerInteractions.createdByData.avatar',
+                    ])
+                    ->first();
+
+                return [
+                    'current_player' => [
+                        'info' => BgPlayerDetailResource::make($player),
+                        'position_has_use_effect' => BgPlayerPositionsResource::collection($player->playerPositions),
+                        'board_interaction' => BgPlayerInteractionResource::collection($player->playerInteractions),
+                    ],
+                ];
+            });
+        }
+
+        return [
+            ...$returnData1,
+            ...$returnData2,
+        ];
     }
 
+    /**
+     * @param Request $request
+     * @return array|bool|mixed|string|null
+     */
     public function usePositionEffect(Request $request)
     {
         $conditionData = PlayerGameService::checkConditions($request->slug);
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
-        } else {
-            $result = null;
-
-            if ($request->id) {
-                /* Получаем информацию о эффекте позиции */
-                $boardPositionEffectBind = BoardPositionEffectsBind::query()
-                    ->where('id', $request->id)->first();
-
-                $position = BoardGamePlayerPosition::query()
-                    ->findByBoardGame($conditionData['boardGame']->id)
-                    ->findByUserId($conditionData['user']->id)
-                    ->where('position', $boardPositionEffectBind->position)
-                    ->first();
-
-                 return BoardService::activateCellEffect($boardPositionEffectBind, $position, $conditionData, $request);
-            } else {
-                return ErrorService::message('Не получен ID предмета инвентаря');
-            }
         }
+
+        $result = null;
+
+        if (!$request->id) {
+            return ErrorService::message('Не получен ID предмета инвентаря');
+        }
+
+        // Получаем информацию о эффекте позиции
+        $boardPositionEffectBind = BoardPositionEffectsBind::query()
+            ->where('id', $request->id)
+            ->first();
+
+        $position = BoardGamePlayerPosition::query()
+            ->findByBoardGame($conditionData['boardGame']->id)
+            ->findByUserId($conditionData['user']->id)
+            ->where('position', $boardPositionEffectBind->position)
+            ->first();
+
+         return BoardService::activateCellEffect($boardPositionEffectBind, $position, $conditionData, $request);
     }
 }

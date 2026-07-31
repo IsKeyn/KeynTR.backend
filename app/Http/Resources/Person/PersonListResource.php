@@ -28,7 +28,7 @@ class PersonListResource extends JsonResource
 
             'entity_type' => Game::class,
             'role' => $group ? GroupResource::make($group) : null,
-            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover)),
+            'covers' => $this->whenLoaded('cover', fn() => ShortMediaResource::collection($this->cover)),
         ];
     }
 

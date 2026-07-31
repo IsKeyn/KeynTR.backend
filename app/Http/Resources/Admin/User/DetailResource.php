@@ -18,7 +18,10 @@ class DetailResource extends JsonResource
             'public_name' => $this->public_name,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at?->format('Y-m-d H:i:s'),
-            'avatar' => $this->whenLoaded('avatar', ShortMediaResource::make($this->avatar()->first())),
+            'avatar' => $this->whenLoaded('avatar', function () {
+                $avatarModel = $this->avatar->first();
+                return $avatarModel ? ShortMediaResource::make($avatarModel) : null;
+            }),
             'settings' => $this->settings,
             'sort' => $this->sort,
             'is_admin' => $this->is_admin,

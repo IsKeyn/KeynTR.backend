@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGamePlayer;
+use App\Models\Messenger\Chat;
 use App\Models\Traits\ExtendModelTrait;
-use App\Models\User\Message;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -58,6 +59,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'settings' => 'array',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function (User $user) {
+            if (blank($user->public_name)) {
+                $user->public_name = $user->name;
+            }
+        });
+    }
+
     public function isAdmin() {
         return $this->is_admin === 1;
     }
@@ -96,31 +106,18 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->morphMany(AdditionalField::class, 'entity');
     }
 
-    // Сообщения, где пользователь является отправителем
-    public function sentMessages(): HasMany
-    {
-        return $this->hasMany(Message::class, 'created_by');
-    }
-
-    // Сообщения, где пользователь является получателем
-    public function receivedMessages(): HasMany
-    {
-        return $this->hasMany(Message::class, 'recipient');
-    }
-
-    // Все сообщения, связанные с пользователем (как отправителем, так и получателем)
-    public function allMessages()
-    {
-        return Message::where(function($query) {
-            $query->where('created_by', $this->id)
-                ->orWhere('recipient', $this->id);
-        });
-    }
-
     // Получить все сообщения, где пользователь является участником
     public function messages()
     {
         return $this->allMessages();
+    }
+
+    public function chats()
+    {
+        return $this->belongsToMany(Chat::class, 'ms_chat_user')
+            ->withPivot('role', 'last_read_message_id')
+            ->withTimestamps()
+            ->orderByDesc('last_message_at');
     }
 
     // Кэш будет жить только пока существует экземпляр User (т.е. один запрос)
@@ -160,5 +157,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function bgPlayer(): hasMany
     {
         return $this->hasMany(BoardGamePlayer::class, 'user_id');
+    }
+
+    public function bgGamesList(): hasMany
+    {
+        return $this->hasMany(BoardGameGameList::class, 'added_by');
     }
 }

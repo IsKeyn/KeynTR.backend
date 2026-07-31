@@ -16,24 +16,36 @@ trait CommonResourceFields
             'model' => $this->model ?? null,
             'name' => $this->name ?? null,
             'slug' => $this->slug ?? null,
+            'description' => $this->description ?? null,
             'active' => $this->active ?? null,
             'sort' => $this->sort ?? null,
             'created_by' => $this->created_by ?? null,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'deleted_at' => $this->deleted_at?->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at instanceof \DateTimeInterface ? $this->created_at->format('Y-m-d H:i:s') : $this->created_at,
+            'updated_at' => $this->updated_at instanceof \DateTimeInterface ? $this->updated_at->format('Y-m-d H:i:s') : $this->updated_at,
+            'deleted_at' => $this->deleted_at instanceof \DateTimeInterface ? $this->deleted_at->format('Y-m-d H:i:s') : $this->deleted_at,
         ];
     }
 
     protected function commonLoadedFields(): array
     {
         return [
-            'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
-            'seo' => $this->whenLoaded('seo', function() {
-                return $this->seo && $this->seo->count() ? SeoResource::make($this->seo) : null;
-            }),
-            'menu' => $this->whenLoaded('menu', MenuTypeResource::collection($this->menu)),
-            'blocks' => $this->whenLoaded('blocks', BlockResource::collection($this->blocks)),
+            'tags' => $this->when(
+                $this->relationLoaded('tags') && $this->tags,
+                fn() => TagResource::collection($this->tags)
+            ),
+            'seo' => $this->when(
+                $this->relationLoaded('seo') && $this->seo,
+                fn() => SeoResource::make($this->seo)
+            ),
+            'additional_fields' => $this->whenLoaded('additionalFields', fn() => $this->additionalFields),
+            'menu' => $this->when(
+                $this->relationLoaded('menu') && $this->menu,
+                fn() => MenuTypeResource::collection($this->menu)
+            ),
+            'blocks' => $this->when(
+                $this->relationLoaded('blocks') && $this->blocks,
+                fn() => BlockResource::collection($this->blocks)
+            ),
         ];
     }
 }

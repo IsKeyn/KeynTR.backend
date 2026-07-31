@@ -17,6 +17,7 @@ class ListResource extends JsonResource
             'user_id' => $this->user_id,
             'position' => $this->position,
             'board_game_id' => $this->board_game_id,
+            'bg_player_id' => $this->board_game_id,
             'has_use_effect' => $this->has_use_effect,
         ];
     }

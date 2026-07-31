@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardGameGameList extends Model
@@ -23,9 +24,12 @@ class BoardGameGameList extends Model
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgGameListCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgGameListFilter';
+    public const SERVICE = 'App\Services\BoardGame\BgGameListService';
+
+    public const OBSERVER = 'App\Observers\BoardGame\BgGameListObserver';
+
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgGameList\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgGameList\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\BgGameListService';
 
     protected $fillable = [
         'game_id',
@@ -62,5 +66,10 @@ class BoardGameGameList extends Model
     public function addedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'added_by');
+    }
+
+    public function playerGames(): HasMany
+    {
+        return $this->hasMany(PlayerGame::class, 'board_game_game_list_id');
     }
 }

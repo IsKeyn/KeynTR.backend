@@ -15,8 +15,12 @@ class CreateBoardGameLogsTable extends Migration
     {
         Schema::create('board_game_logs', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('bg_player_id');
             $table->text('message');
             $table->foreignId('board_game_id')->nullable();
+            $table->boolean('important')->default(false);
+            $table->string('entity_type')->nullable();
+            $table->integer('entity_id')->nullable();
             $table->boolean('active')->default(true);
             $table->integer('sort')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

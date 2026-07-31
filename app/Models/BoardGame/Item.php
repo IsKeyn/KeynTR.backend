@@ -2,13 +2,12 @@
 
 namespace App\Models\BoardGame;
 
-use App\Models\Media;
 use App\Models\Traits\ExtendModelTrait;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Item extends Model
@@ -22,9 +21,15 @@ class Item extends Model
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgItemCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgItemFilter';
+    public const SERVICE = 'App\Services\BoardGame\ItemService';
+
+    public const OBSERVER = 'App\Observers\BoardGame\BgItemObserver';
+
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\ItemController';
+    public const REQUEST = 'App\Http\Requests\BoardGame\BgItemRequest';
+
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgItem\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgItem\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\ItemService';
 
     const TYPES = [
         0 => 'positive',
@@ -39,6 +44,7 @@ class Item extends Model
         'actions',
         'type',
         'drop_chance',
+        'price',
         'board_game_id',
         'active',
         'sort',
@@ -49,26 +55,17 @@ class Item extends Model
     ];
 
     protected $casts = [
+        'actions' => 'array',
         'active' => 'boolean',
     ];
-
-    public function scopeActive(Builder $query): Builder
-    {
-        return $query->where('active', true);
-    }
-
-    public function titleImage()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
-    }
-
-    public function media()
-    {
-        return $this->morphToMany(Media::class, 'media_bind');
-    }
 
     public function authorUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author');
+    }
+
+    public function itemBinds(): HasMany
+    {
+        return $this->hasMany(ItemBind::class);
     }
 }

@@ -5,7 +5,7 @@ namespace App\Http\Resources\BoardGame;
 use App\Http\Resources\MediaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardPositionEffectResource extends JsonResource
+class BoardPositionEffectResource extends JsonResource // TODO устравший ресурс, новый BgBoardPositionEffectResource
 {
     /**
      * Transform the resource into an array.

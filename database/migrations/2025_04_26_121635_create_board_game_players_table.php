@@ -18,12 +18,20 @@ class CreateBoardGamePlayersTable extends Migration
             $table->foreignId('user_id')->nullable();
             $table->foreignId('board_game_id')->nullable();
             $table->bigInteger('points')->default(0);
+            $table->integer('points_per_hour')->default(0)->comment('Очков в час');
+            $table->unsignedSmallInteger('place')->nullable()->default(null);
             $table->integer('item_roll_count')->default(0);
             $table->integer('step_count')->default(0);
             $table->integer('streak')->default(0);
+            $table
+                ->unsignedTinyInteger('rerolled_game_count')
+                ->default(0)
+                ->comment('Количество рерольнутых игр подряд');
             $table->integer('rerolled_own_game_count')->default(0);
             $table->boolean('active')->default(true);
             $table->text('not_active_reason')->nullable();
+            $table->boolean('added_games')->nullable();
+            $table->json('settings')->nullable();
             $table->boolean('premium')->default(false);
             $table->integer('sort')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();

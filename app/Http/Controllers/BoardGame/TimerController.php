@@ -5,6 +5,7 @@ namespace App\Http\Controllers\BoardGame;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\TimerResource;
 use App\Models\BoardGame\BoardGame;
+use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardGamePlayerTimer;
 use App\Models\BoardGame\Timer;
 use App\Models\User;
@@ -91,7 +92,9 @@ class TimerController extends Controller
                 ];
 
                 if (BoardGamePlayerTimer::create($fields)) {
-                    return $this->status($request);
+                    $status = $this->status($request);
+                    if ($request->slug === 'main') $this->setPointsPerHour($request, $user, $status);
+                    return $status;
                 }
             }
         }
@@ -105,12 +108,39 @@ class TimerController extends Controller
                 ];
 
                 if ($BoardGamePlayerTimer->update($fields)) {
-                    return $this->status($request);
+                    $status = $this->status($request);
+                    if ($request->slug === 'main') $this->setPointsPerHour($request, $user, $status);
+                    return $status;
                 }
             } else {
                 return response()->json(['error' => 'Таймер уже остановлен'])->setStatusCode(Response::HTTP_OK);
             }
         }
+    }
+
+    private function setPointsPerHour($request, $user, $status)
+    {
+        $boardGameId = BoardGame::where('slug', $request->boardGameSlug)->value('id');
+        $player = BoardGamePlayer::query()
+            ->where('user_id', $user->id)
+            ->where('board_game_id', $boardGameId)
+            ->with([
+                'positions' => function ($query) {
+                    $query->orderBy('id', 'desc');
+                },
+            ])
+            ->first();
+
+        $fullPoints = $player->points;
+
+        $positions = $player->positions->first();
+
+        if ($positions && $positions->first()->position) {
+            $fullPoints += $player->positions->first()->position;
+        }
+
+        $player->points_per_hour = $status['time'] ? round(($fullPoints / $status['time']) * 3600) : 0;
+        $player->save();
     }
 
     public function status(Request $request)
@@ -138,7 +168,7 @@ class TimerController extends Controller
 
             // Получаем только один нужный таймер + связанные таймеры игрока
             $timer = Timer::with('playerTimer')
-                ->select(['id', 'name', 'limit', 'user_id', 'board_game_id', 'slug', 'settings']) // только нужные поля
+                ->select(['id', 'name', 'limit', 'user_id', 'board_game_id', 'slug', 'settings', 'elapsed_seconds']) // только нужные поля
                 ->where([
                     ['user_id', '=', $user->id],
                     ['board_game_id', '=', $boardGameId],
@@ -148,7 +178,18 @@ class TimerController extends Controller
                 ->latest('id')
                 ->first();
 
-            return TimerService::getTimerStatus($timer);
+            $statusData = TimerService::getTimerStatus($timer);
+
+            if (
+                $statusData
+                && isset($statusData['time'])
+                && $timer->elapsed_seconds !== $statusData['time']
+            ) {
+                $timer->elapsed_seconds = $statusData['time'];
+                $timer->saveQuietly();
+            }
+
+            return $statusData;
         });
     }
 

@@ -10,81 +10,98 @@ class DefaultObserverService
     public function created(
         $entity,
         $cacheServiceClass,
-        $service
+        $service,
+        $createVersion = true
     )
     {
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
         $entityCacheService->clearDetailCacheAllTypes($entity);
+        $entityCacheService->clearDependentCache($entity);
 
-        $version = $service::getById($entity->id, true)->toArray(request());
-        VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_CREATE);
+        if ($createVersion) {
+            $version = $service::getById($entity->id, true)->toArray(request());
+            VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_CREATE);
+        }
     }
 
     public function updated(
         $entity,
         $cacheServiceClass,
         $service,
-        $withTrashed = true
+        $withTrashed = true,
+        $createVersion = true
     )
     {
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
         $entityCacheService->clearDetailCacheAllTypes($entity);
+        $entityCacheService->clearDependentCache($entity);
 
-        $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
-        VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_UPDATE);
+        if ($createVersion) {
+            $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
+            VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_UPDATE);
+        }
     }
 
     public function deleted(
         $entity,
         $cacheServiceClass,
         $service,
-        $withTrashed = true
+        $withTrashed = true,
+        $createVersion = true
     )
     {
-        $hasSoftDeletes = in_array(
-            \Illuminate\Database\Eloquent\SoftDeletes::class,
-            class_uses_recursive($entity)
-        );
+        if ($createVersion) {
+            $hasSoftDeletes = in_array(
+                \Illuminate\Database\Eloquent\SoftDeletes::class,
+                class_uses_recursive($entity)
+            );
 
-        if ($hasSoftDeletes && !$entity->isForceDeleting()) {
-            $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
-            VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_SOFT_DELETE);
-        } else {
-            $lastVersion = Version::query()
-                ->where('entity_type', $entity->model)
-                ->where('entity_id', $entity->id)
-                ->latest()
-                ->first();
+            if ($hasSoftDeletes && !$entity->isForceDeleting()) {
+                $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
+                VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_SOFT_DELETE);
+            } else {
+                $lastVersion = Version::query()
+                    ->where('entity_type', $entity->model)
+                    ->where('entity_id', $entity->id)
+                    ->latest()
+                    ->first();
 
-            if ($lastVersion) {
-                VersionService::set($lastVersion->data, $entity->model, $entity->id, $entity->name, Version::TYPE_DELETE);
-            }
+                if ($lastVersion) {
+                    VersionService::set($lastVersion->data, $entity->model, $entity->id, $entity->name,
+                        Version::TYPE_DELETE);
+                }
 
-            if (!$hasSoftDeletes) {
-                $this->detachRelation($entity);
+                if (!$hasSoftDeletes) {
+                    $this->detachRelation($entity);
+                }
             }
         }
 
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
         $entityCacheService->clearDetailCacheAllTypes($entity);
+        $entityCacheService->clearDependentCache($entity);
     }
 
     public function restored(
         $entity,
         $cacheServiceClass,
         $service,
-        $withTrashed = true
+        $withTrashed = true,
+        $createVersion = true
     )
     {
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
         $entityCacheService->clearDetailCacheAllTypes($entity);
+        $entityCacheService->clearDependentCache($entity);
 
-        $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
-        VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_RECOVERY);
+        if ($createVersion) {
+            $version = $service::getById($entity->id, true, $withTrashed)->toArray(request());
+            VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_RECOVERY);
+        }
     }
 
     public function forceDeleted(
@@ -94,6 +111,7 @@ class DefaultObserverService
     {
         $entityCacheService = app($cacheServiceClass);
         $entityCacheService->clearListCache();
+        $entityCacheService->clearDependentCache($entity);
 
         $this->detachRelation($entity);
     }

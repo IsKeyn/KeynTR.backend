@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 
 class PlayerStatusEffectController extends Controller
 {
-    public function use(Request $request) {
+    public function use(Request $request)
+    {
         $statusEffectService = new StatusEffectService();
         return $statusEffectService->useStatusEffect($request);
     }

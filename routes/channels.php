@@ -27,5 +27,7 @@ Broadcast::channel('bgPlayer.{bgSlug}.{userId}', function ($user, $bgSlug, $user
 
 /* Публичные каналы */
 Broadcast::channel('timer.${bgSlug}.${userId}.${slug}', function () { return true; });
+Broadcast::channel('playerInfoForObs.${playerId}', function () { return true; });
+Broadcast::channel('logs.${bgSlug}', function () { return true; });
 Broadcast::channel('TwitchOnlineStreamers', function () { return true; });
-Broadcast::channel('public.{roomId}', function () { return true; });
+Broadcast::channel('MovePlayer', function () { return true; });

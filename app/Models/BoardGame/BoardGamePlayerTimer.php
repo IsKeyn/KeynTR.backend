@@ -6,6 +6,7 @@ use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+// TODO переименовать в timerLog
 class BoardGamePlayerTimer extends Model
 {
     use HasFactory, ExtendModelTrait;

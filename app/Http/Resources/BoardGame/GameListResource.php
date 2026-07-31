@@ -7,7 +7,7 @@ use App\Http\Resources\UserPublicResource;
 use App\Services\BoardGame\GameService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class GameListResource extends JsonResource
+class GameListResource extends JsonResource // TODO устаревший
 {
     /**
      * Transform the resource into an array.

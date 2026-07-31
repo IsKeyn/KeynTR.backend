@@ -3,12 +3,9 @@
 namespace App\Services\BoardGame;
 
 use App\Models\BoardGame\BoardGameInventory;
-use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
 use App\Services\ErrorService;
-use Google\Service\Genomics\Action;
-use Illuminate\Support\Facades\Auth;
 
 class UseItemService
 {
@@ -31,89 +28,98 @@ class UseItemService
 
         if (isset($this->conditionData['status']) && $this->conditionData['status'] === 'error') {
             return $this->conditionData;
-        } else {
-            $result = null;
+        }
 
-            if (!$data->id) {
-                return ErrorService::message('Не получен ID предмета инвентаря');
-            }
+        if (!$data->id) {
+            return ErrorService::message('Не получен ID предмета инвентаря');
+        }
 
-            /* Получаем информацию из инветаря пользователя о предмете, предмет должен участвовать в текущей настольной игре */
-            $usedInventoryItem = BoardGameInventory::query()
-                ->where('id', $data->id)
-                ->where('user_id', $this->conditionData['user']->id)
-                ->where('board_game_id', $this->conditionData['boardGame']->id)
-                ->where('has_used', false)
-                ->first();
+        $result = null;
 
-            if ($usedInventoryItem && $usedInventoryItem->board_game_item_id) {
-                /* Получаем сущность самого предмета с его данными */
-                $this->item = ItemBind::query()->where('id', $usedInventoryItem->board_game_item_id)->first();
+        /*
+         * Получаем информацию из инветаря пользователя о предмете,
+         * предмет должен участвовать в текущей настольной игре
+         */
+        $usedInventoryItem = BoardGameInventory::query()
+            ->where('id', $data->id)
+            ->where('user_id', $this->conditionData['user']->id)
+            ->where('board_game_id', $this->conditionData['boardGame']->id)
+            ->where('has_used', false)
+            ->with([
+                'item',
+                'item.item',
+            ])
+            ->first();
 
-                if (!$this->item) {
-                    return ErrorService::message('Предмета не найден');
-                }
-            } else {
-                return ErrorService::message('Предмета нет в инвентаре или он был использован');
-            }
+        if (!$usedInventoryItem || !$usedInventoryItem->board_game_item_id) {
+            return ErrorService::message('Предмета нет в инвентаре или он был использован');
+        }
 
-            /* Предмет должен иметь JSON действий, если его нет, то предмет предназначен для "ручного" использования */
-            if ($this->item->item->actions) {
-                $this->actionService = new ActionsService($this->conditionData, 'item', $this->item);
+        if (!$usedInventoryItem->item) {
+            return ErrorService::message('Предмета не найден');
+        }
 
-                foreach (json_decode($this->item->item->actions) as $action) {
-                    if (isset($action->type) && $action->type) {
-                        if ($action->type === 'customItem') {
-                            $result = $this->customItem($data, $action, $this->conditionData['user']);
-                        } else {
-                            $result = $this->actionService->activateAction($data, $action);
-                        }
-                    } elseif (isset($action->target) && $action->target) {
-                        $players = $this->actionService->target($data, $action);
+        $this->item = $usedInventoryItem->item;
 
-                        foreach ($players as $player) {
-                            $this->actionService->notificationHandler($data, $player, $action);
-                        }
+        /* Предмет должен иметь JSON действий, если его нет, то предмет предназначен для "ручного" использования */
+        if ($this->item->item->actions) {
+            $this->actionService = new ActionsService($this->conditionData, 'item', $this->item);
+
+            foreach ($this->item->item->actions as $action) {
+                $action = (object) $action; // Для корректной работы легаси кода
+
+                if (isset($action->type) && $action->type) {
+                    if ($action->type === 'customItem') {
+                        $result = $this->customItem($data, $action, $this->conditionData['user']);
+                    } else {
+                        $result = $this->actionService->activateAction($data, $action);
+                    }
+                } elseif (isset($action->target) && $action->target) {
+                    $players = $this->actionService->target($data, $action);
+
+                    foreach ($players as $player) {
+                        $this->actionService->notificationHandler($data, $player, $action);
                     }
                 }
             }
+        }
 
-            if ($result['error'] ?? null) {
-                return $result;
-            }
+        if ($result['error'] ?? null) {
+            return $result;
+        }
 
-            $usedItemsFields = ['has_used' => true];
+        $usedItemsFields = ['has_used' => true];
 
-            if ($this->useResult) {
-                $usedItemsFields['use_result'] = $this->useResult;
-            }
+        if ($this->useResult) {
+            $usedItemsFields['use_result'] = $this->useResult;
+        }
 
-            if ($result && isset($result['logMessage']) && is_string($result['logMessage'])) {
-                $logMessage = $result;
-            } else if (isset($data->additionalParams['logMessage'])) {
-                $logMessage = $data->additionalParams['logMessage'];
+        if ($result && isset($result['logMessage']) && is_string($result['logMessage'])) {
+            $logMessage = $result;
+        } else if (isset($data->additionalParams['logMessage'])) {
+            $logMessage = $data->additionalParams['logMessage'];
+        } else {
+            $logMessage = 'использовал предмет ' . $this->item->item->name;
+        }
+
+        LogService::addLog(
+            $this->conditionData['user']->id,
+            $this->conditionData['boardGame']->id,
+            is_string($logMessage) ? $logMessage : $logMessage['logMessage'] ?? null,
+            $this->conditionData['player']->id,
+        );
+
+        if ($usedInventoryItem->update($usedItemsFields)) {
+            if ($result && is_string($result)) {
+                return [
+                    'message' => $result,
+                ];
+            } elseif ($result && isset($result['returnMessage']) && is_string($result['returnMessage'])) {
+                return [
+                    'message' => $result['returnMessage'],
+                ];
             } else {
-                $logMessage = 'использовал предмет ' . $this->item->item->name;
-            }
-
-            LogService::addLog(
-                $this->conditionData['user']->id,
-                $this->conditionData['boardGame']->id,
-                is_string($logMessage) ? $logMessage : $logMessage['logMessage'] ?? null,
-            );
-
-            if ($usedInventoryItem->update($usedItemsFields)) {
-                if ($result && is_string($result)) {
-                    return [
-                        'message' => $result,
-                    ];
-                } elseif ($result && isset($result['returnMessage']) && is_string($result['returnMessage'])) {
-                    return [
-                        'message' => $result['returnMessage'],
-                    ];
-                } else {
-                    return true;
-                }
+                return true;
             }
         }
     }
@@ -201,7 +207,8 @@ class UseItemService
                             LogService::addLog(
                                 $this->conditionData['user']->id,
                                 $this->conditionData['boardGame']->id,
-                                $logMessage
+                                $logMessage,
+                                $this->conditionData['player']->id,
                             );
                         }
 
@@ -329,7 +336,8 @@ class UseItemService
                                 LogService::addLog(
                                     $this->conditionData['user']->id,
                                     $this->conditionData['boardGame']->id,
-                                    $logMessage
+                                    $logMessage,
+                                    $this->conditionData['player']->id,
                                 );
                             }
 
@@ -489,7 +497,8 @@ class UseItemService
                             LogService::addLog(
                                 $this->conditionData['user']->id,
                                 $this->conditionData['boardGame']->id,
-                                $logMessage
+                                $logMessage,
+                                $this->conditionData['player']->id,
                             );
                         }
 
@@ -543,7 +552,8 @@ class UseItemService
                         LogService::addLog(
                             $this->conditionData['user']->id,
                             $this->conditionData['boardGame']->id,
-                            $logMessage
+                            $logMessage,
+                            $player->id,
                         );
                     }
 

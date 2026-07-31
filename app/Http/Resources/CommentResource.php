@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Services\CommentService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CommentResource extends JsonResource

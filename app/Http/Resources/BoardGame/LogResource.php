@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\BoardGame;
 
-use App\Http\Resources\UserPublicResource;
+use App\Http\Resources\User\UserPublicResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class LogResource extends JsonResource
@@ -19,7 +19,7 @@ class LogResource extends JsonResource
             'id' => $this->id,
             'message' => $this->message,
             'board_game_id' => $this->board_game_id,
-            'user' => UserPublicResource::make($this->user),
+            'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

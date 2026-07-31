@@ -17,7 +17,7 @@ class BoardGameShortResource extends JsonResource
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
 
-    public function __construct($resource, $additionalData = null)
+    public function __construct($resource, $additionalData = null) // TODO устаревший, используем BgShortResource
     {
         parent::__construct($resource);
         $this->additionalData = $additionalData;

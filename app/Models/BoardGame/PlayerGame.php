@@ -20,9 +20,15 @@ class PlayerGame extends Model
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgPlayerGameCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgPlayerGameFilter';
+    public const SERVICE = 'App\Services\BoardGame\BgPlayerGameService';
+    public const OBSERVER = 'App\Observers\BoardGame\BgPlayerGameObserver';
+
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\BgPlayerGameController';
+    public const REQUEST = 'App\Http\Requests\BoardGame\BgPlayerGameRequest';
+
+    /* Resource for admin panel */
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerGame\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerGame\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\BgPlayerGameService';
 
     /* Статусы */
     // TODO в будущем добавить префикс STATUS_ , пример STATUS_CURRENT
@@ -38,6 +44,7 @@ class PlayerGame extends Model
 
     protected $fillable = [
         'user_id',
+        'bg_player_id',
         'board_game_game_list_id',
         'status',
         'board_game_id',
@@ -45,14 +52,26 @@ class PlayerGame extends Model
         'from_user_id',
         'comment_id',
         'time',
+        'points',
         'sort',
         'active',
+        'finished_at',
         'created_by',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function fromUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'from_user_id');
+    }
+
+    public function player()
+    {
+        return $this->belongsTo(BoardGamePlayer::class, 'bg_player_id');
     }
 
     public function game(): BelongsTo

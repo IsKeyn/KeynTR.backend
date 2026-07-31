@@ -16,6 +16,7 @@ class DetailResource extends JsonResource
             ...$this->commonLoadedFields(),
 
             'user_id' => $this->user_id,
+            'bg_player_id' => $this->bg_player_id,
             'board_game_game_list_id' => $this->board_game_game_list_id,
             'status' => $this->status,
             'board_game_id' => $this->board_game_id,
@@ -23,6 +24,8 @@ class DetailResource extends JsonResource
             'from_user_id' => $this->from_user_id,
             'comment_id' => $this->comment_id,
             'time' => $this->time,
+            'points' => $this->points,
+            'finished_at' => $this->finished_at,
         ];
     }
 }

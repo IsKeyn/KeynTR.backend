@@ -201,7 +201,9 @@ class GameService
             $item = Game::findById($id)
                 ->with([
                     'titleImage',
-                    'cover',
+                    'cover' => function ($query) {
+                        $query->orderByPivot('sort');
+                    },
                     'gamePlatform',
                     'dates',
                     'dates.gamePlatform',
@@ -209,6 +211,7 @@ class GameService
                     'tags',
                     'series',
                     'people',
+                    'characters',
                     'groups',
                     'genres',
                     'company',

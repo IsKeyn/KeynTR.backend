@@ -38,6 +38,7 @@ class GameRequest extends FormRequest
             'groups' => 'sometimes|nullable',
             'series' => 'sometimes|nullable',
             'people' => 'sometimes|nullable',
+            'characters' => 'sometimes|nullable',
             'genres' => 'sometimes|nullable',
             'companies' => 'sometimes|nullable',
             'tags' => 'sometimes|nullable',

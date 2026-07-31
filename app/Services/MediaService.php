@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Http\Resources\Media\MediaDetailResource;
+use App\Http\Resources\Media\ShortMediaResource;
 use App\Http\Resources\MediaResource;
 use App\Models\Media;
 use Illuminate\Support\Facades\Storage;
@@ -122,6 +124,15 @@ class MediaService
         return $entity->cover()->sync($coversData);
     }
 
+    public function setSound($entity, $mediaId)
+    {
+        $media = Media::query()->where('id', $mediaId)->first();
+
+        if ($media) {
+            return $entity->media()->syncWithPivotValues($media->id, ['type' => Media::SOUND]);
+        }
+    }
+
     public function setMediaGroup($entity, $galleryArray)
     {
         $arGalleryIds = [];
@@ -142,7 +153,13 @@ class MediaService
         return $entity->mediaGroup()->sync($arGalleryIds);
     }
 
-    public function getWebp($media)
+    /**
+     * Получение и/или создание webp версий изображений
+     *
+     * @param Media|ShortMediaResource|MediaResource|MediaDetailResource $media
+     * @return false|string
+     */
+    public function getWebp(Media|ShortMediaResource|MediaResource|MediaDetailResource $media)
     {
         if (!$this->isImageMedia($media)) {
             return false;
@@ -151,7 +168,7 @@ class MediaService
         $originalPath = "media/$media->id/$media->file_name";
         $webpPath = str_replace($media->mime_type, 'webp', $originalPath);
 
-        /* Проверяем, что файл, который мы собираемся обрабатывать существует */
+        // Проверяем, что файл, который мы собираемся обрабатывать существует
         if (!Storage::disk('public')->exists($originalPath)) {
             return false;
         }
@@ -164,7 +181,17 @@ class MediaService
         return config('app.url') . "/storage/" . str_replace('\\', '/', $webpPath);
     }
 
-    public function getResizes($media)
+    /**
+     * Получение и/или создание ресайз версий изображений
+     *
+     * @param Media|ShortMediaResource|MediaResource|MediaDetailResource $media
+     * @param array|int[] $arSizes
+     * @return array|false
+     */
+    public function getResizes(
+        Media|ShortMediaResource|MediaResource|MediaDetailResource $media,
+        Array $arSizes = [300, 500, 1000, 1500]
+    )
     {
         if (!$this->isImageMedia($media)) {
             return false;
@@ -172,17 +199,16 @@ class MediaService
 
         $originalPath = "media/$media->id/$media->file_name";
 
-        /* Проверяем, что файл, который мы собираемся обрабатывать существуе */
+        // Проверяем, что файл, который мы собираемся обрабатывать существует
         if (!Storage::disk('public')->exists($originalPath)) {
             return false;
         }
 
-        $resizesList = [
-            300 => [],
-            500 => [],
-            1000 => [],
-            1500 => [],
-        ];
+        $resizesList = [];
+
+        foreach ($arSizes as $size) {
+            $resizesList[$size] = [];
+        }
 
         $returnData = [];
 
@@ -201,10 +227,15 @@ class MediaService
         return $returnData;
     }
 
-    private function isImageMedia($media): bool
+    /**
+     * Проверка, что медиа объект является изображением
+     *
+     * @param Media|ShortMediaResource|MediaResource $media
+     * @return bool
+     */
+    private function isImageMedia(Media|ShortMediaResource|MediaResource|MediaDetailResource $media): bool
     {
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
         return in_array(strtolower($media->mime_type), $imageExtensions);
     }
-
 }

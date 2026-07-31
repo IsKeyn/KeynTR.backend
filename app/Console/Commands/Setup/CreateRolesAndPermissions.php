@@ -14,7 +14,7 @@ class CreateRolesAndPermissions extends Command
      *
      * @var string
      */
-    protected $signature = 'setup:create-role-and-permissions {resetData}';
+    protected $signature = 'setup:create-role-and-permissions {resetData=false}';
 
     /**
      * The console command description.
@@ -233,8 +233,8 @@ class CreateRolesAndPermissions extends Command
                 'active' => true,
             ],
             [
-                'id' => 44,
-                'name' => 'Доступ в админку',
+                'id' => 45,
+                'name' => 'Редактор версий',
                 'system_name' => 'version.edit',
                 'entity_type' => null,
                 'sort' => 35,
@@ -537,6 +537,14 @@ class CreateRolesAndPermissions extends Command
                 'active' => true,
             ],
             [
+                'id' => 46,
+                'name' => 'Модерация добавления игр (ни)',
+                'system_name' => 'bg.add-game.edit',
+                'entity_type' => null,
+                'sort' => 395,
+                'active' => true,
+            ],
+            [
                 'id' => 40,
                 'name' => 'Редактирование таймеров (ни)',
                 'system_name' => 'bg.timer.edit',
@@ -566,6 +574,30 @@ class CreateRolesAndPermissions extends Command
                 'system_name' => 'votes-logs.edit',
                 'entity_type' => null,
                 'sort' => 430,
+                'active' => true,
+            ],
+            [
+                'id' => 44,
+                'name' => 'Редактирование взаимодействий игроков',
+                'system_name' => 'bg.player-interaction.edit',
+                'entity_type' => null,
+                'sort' => 375,
+                'active' => true,
+            ],
+            [
+                'id' => 45,
+                'name' => 'Редактирование предметов в магазине',
+                'system_name' => 'bg.shop-item.edit',
+                'entity_type' => null,
+                'sort' => 335,
+                'active' => true,
+            ],
+            [
+                'id' => 46,
+                'name' => 'Редактирование персонажей',
+                'system_name' => 'character.edit',
+                'entity_type' => null,
+                'sort' => 165,
                 'active' => true,
             ],
         ];

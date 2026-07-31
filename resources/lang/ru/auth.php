@@ -16,5 +16,5 @@ return [
     'failed' => 'Имя пользователя и пароль не совпадают',
     'password' => 'Предоставленный пароль неверный',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
-
+    'you_are_not_auth_user' => 'Вы не авторизованы',
 ];

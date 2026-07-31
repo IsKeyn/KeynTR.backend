@@ -6,6 +6,7 @@ use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\BoardPositionEffectsBind;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerInteractions;
+use App\Services\Entity\EntityService;
 use App\Services\ErrorService;
 use App\Services\NotificationService;
 
@@ -74,7 +75,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->conditionData['user']->id, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->conditionData['user']->id,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
             }
 
@@ -118,6 +124,7 @@ class InteractionsService
                 ];
 
                 PlayerGame::create($newGameFieldsForSecondPlayer);
+                $this->checkInteractionAfterActionWithGame($this->interaction->type, $this->conditionData);
             }
 
             if ($this->interaction->type === 'battleForPoints' || $this->interaction->type === 'inviteToCoop') {
@@ -175,7 +182,7 @@ class InteractionsService
         }
         if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE) {
             if ($this->interaction->created_by) {
-                $message =  $this->interaction->withPlayerData->name . 'Отказался от предложения "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
+                $message =  $this->interaction->withPlayerData->name . ' отказался от предложения "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '"';
 
                 $fields = [
                     'user_id' => $this->interaction->created_by,
@@ -190,7 +197,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->conditionData['user']->id, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->conditionData['user']->id,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
             }
 
@@ -233,7 +245,12 @@ class InteractionsService
 
             // Устанавливаем логи
             if ($this->conditionData['boardGame']->id) {
-                LogService::addLog($this->conditionData['user']->id, $this->conditionData['boardGame']->id, $message);
+                LogService::addLog(
+                    $this->conditionData['user']->id,
+                    $this->conditionData['boardGame']->id,
+                    $message,
+                    $this->conditionData['player']->id,
+                );
             }
         }
 
@@ -262,7 +279,10 @@ class InteractionsService
             return ErrorService::message('Вы не можете отозвать взаимодействие, которое создано не вами');
         }
 
-        if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE || $forced) {
+        if ($this->interaction->status === PlayerInteractions::STATUS_ACTIVE
+            || $this->interaction->status === PlayerInteractions::STATUS_ACCEPTED
+            || $forced
+        ) {
             if ($this->interaction->with_player) {
                 $message = 'Отозвал предложение "' . PlayerInteractions::TYPE_NAME['ru'][$this->interaction->type] . '" отправленное ' . $this->interaction->withPlayerData->name;
 
@@ -279,7 +299,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->conditionData['user']->id, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->conditionData['user']->id,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
             }
 
@@ -333,7 +358,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->interaction->created_by, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->interaction->created_by,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
 
                 // Действия
@@ -353,7 +383,8 @@ class InteractionsService
                                         $boardPositionEffectBind->position
                                     );
 
-                                    foreach (json_decode($boardPositionEffectBind->boardPositionEffect->actions) as $action) {
+                                    foreach ($boardPositionEffectBind->boardPositionEffect->actions as $action) {
+                                        $action = (object) $action;
                                         $player = BoardGamePlayer::query()
                                             ->findByBoardGame($this->conditionData['boardGame']->id)
                                             ->findByUserId($this->conditionData['user']->id)
@@ -433,8 +464,8 @@ class InteractionsService
                                         $boardPositionEffectBind->position
                                     );
 
-                                    foreach (json_decode($boardPositionEffectBind->boardPositionEffect->actions) as $action) {
-
+                                    foreach ($boardPositionEffectBind->boardPositionEffect->actions as $action) {
+                                        $action = (object) $action;
                                         $player = BoardGamePlayer::query()
                                             ->findByBoardGame($this->conditionData['boardGame']->id)
                                             ->findByUserId($this->interaction->with_player)
@@ -504,11 +535,19 @@ class InteractionsService
     {
         $this->conditionData = $conditionData;
 
-        if ($type === PlayerGame::REROLLED || $type === PlayerGame::COMPLETED) {
+        if (
+            $type === PlayerGame::REROLLED
+            || $type === PlayerGame::COMPLETED
+            || $type === 'switchGame'
+        ) {
             $playerInteractions = PlayerInteractions::where('board_game_id', $conditionData['boardGame']->id)
                 ->where(function($query) use ($conditionData) {
-                    $query->where('created_by', '=', $conditionData['user']->id)->orWhere('with_player', '=', $conditionData['user']->id);
-                })->active()->orderByDesc('id')
+                    $query
+                        ->where('created_by', '=', $conditionData['user']->id)
+                        ->orWhere('with_player', '=', $conditionData['user']->id);
+                })
+                ->active()
+                ->orderByDesc('id')
                 ->get();
 
             foreach ($playerInteractions as $interaction) {
@@ -533,5 +572,28 @@ class InteractionsService
                 }
             }
         }
+    }
+
+    public static function getById($id, $forceRefresh = false, $withTrashed = false)
+    {
+        return EntityService::getById(
+            PlayerInteractions::class,
+            PlayerInteractions::CACHE_SERVICE,
+            PlayerInteractions::DETAIL_RESOURCE,
+            $id,
+            [
+                'tags',
+                'additionalFields',
+                'media',
+                'seo',
+                'seo.entity',
+                'seo.entity.tags',
+                'menu',
+                'menu.elements',
+                'blocks',
+            ],
+            $forceRefresh,
+            $withTrashed,
+        );
     }
 }

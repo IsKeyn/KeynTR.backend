@@ -14,83 +14,8 @@ use Illuminate\Support\Facades\Auth;
 class PlayerGameService
 {
     // TODO Грязный сервайс, разнести методы по BgPlayerService и BgPlayerGameService и удалить
-    public static function joinTheGame($user, $slug)
-    {
-        if ($user && $slug) {
-            $boardGame = BoardGame::findBySlug($slug)->first();
 
-            $player = BoardGamePlayer::findByBoardGame($boardGame->id)->findByUserId($user->id)->first();
-
-            if ($player) {
-                return ErrorService::message('Данный пользователь уже участвует в ивенте');
-            }
-
-            $itemRollCountSetting = $boardGame->settings->where('code', '=', 'item_roll_default_count')->first();
-            $stepCountSetting = $boardGame->settings->where('code', '=', 'step_default_count')->first();
-            $typeSettings = $boardGame->settings->where('code', '=', 'type')->first();
-
-            if ($boardGame) {
-                if ($typeSettings === 'registrationIsClose') {
-                    return [
-                        'status' => 'error',
-                        'status_message' => 'Регистрация на ивент закрыта',
-                    ];
-                }
-
-                // Ставим игрока на игровое поле
-                $positionFields = [
-                    'user_id' => $user->id,
-                    'position' => 1,
-                    'board_game_id' => $boardGame->id,
-                    'created_by' => $user->id,
-                ];
-                BoardGamePlayerPosition::create($positionFields);
-
-                // Устанавливаем таймер для игрока
-                TimerService::createTimer($boardGame->id, $user, 'main');
-
-                $fields = [
-                    'user_id' => $user->id,
-                    'board_game_id' => $boardGame->id,
-                    'item_roll_count' => $itemRollCountSetting ? $itemRollCountSetting->value : 2,
-                    'step_count' => $stepCountSetting ? $stepCountSetting->value : 1,
-                    'active' => $typeSettings ? ($typeSettings->value === 'upon-request' ? false : true) : true,
-                    'not_active_reason' => $typeSettings ? ($typeSettings->value === 'upon-request' ? 'Ожидает одобрения модератора' : null) : null,
-                    'created_by' => $user->id,
-                ];
-
-                if (BoardGamePlayer::create($fields)) {
-                    switch ($typeSettings->value ?? null) {
-                        case 'upon-request':
-                            $returnMessage = 'Заявка на участие успешно отправлена и рассматривается модераторами';
-                            $logMessage = 'подал заявку на участие в ивенте';
-                            break;
-                        default:
-                            $returnMessage = 'Вы успешно зарегистрированы в ивенте';
-                            $logMessage = 'присоединился к ивенту';
-                            break;
-                    }
-
-                    LogService::addLog(
-                        $user->id,
-                        $boardGame->id,
-                        $logMessage
-                    );
-
-                    return [
-                        'status' => 'success',
-                        'status_message' => $returnMessage,
-                    ];
-                }
-            } else {
-                return [
-                    'status' => 'error',
-                    'status_message' => 'Ивент не найден',
-                ];
-            }
-        }
-    }
-
+    /* TODO устаревший метод, удалить когда не будет более использоваться, новый метод BgPlayerGameService::actionsWithGame */
     public static function actionsWithGame($gameListGameId, $boardGameId)
     {
         $playerGame = PlayerGame::query()
@@ -127,6 +52,12 @@ class PlayerGameService
         return $playerGame;
     }
 
+    /**
+     * Метод проверяет может ли игрок производить действия в ивенте
+     *
+     * @param $slug
+     * @return array|string[]
+     */
     public static function checkConditions($slug)
     {
         $user = Auth::user();
@@ -156,7 +87,7 @@ class PlayerGameService
 
         $player = BoardGamePlayer::where('user_id', $user->id)
             ->where('board_game_id', $boardGame->id)
-            ->with('mainTimers')
+            ->with('mainTimers') // TODO Зачем здесь with
             ->first();
 
         if (!$player) {

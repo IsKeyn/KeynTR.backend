@@ -2,21 +2,37 @@
 
 namespace App\Models\BoardGame;
 
-use App\Models\Media;
 use App\Models\Traits\ExtendModelForBoardGameTrait;
 use App\Models\Traits\ExtendModelTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PlayerStatusEffect extends Model
 {
-    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait, SoftDeletes;
+
+    public const CACHE_NAME = 'player-status-effects';
+    public const TABLE_NAME = 'player_status_effects';
+
+    public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService';
+    public const FILTER = 'App\Filters\BoardGame\BgPlayerStatusEffectFilter';
+    public const SERVICE = 'App\Services\BoardGame\PlayerStatusEffectService';
+
+    /* Resource for admin panel */
+    public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerStatusEffect\DetailResource';
+    public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerStatusEffect\ListResource';
+
+    /* Resource for public */
+    public const PUBLIC_RESOURCES = [];
 
     protected $fillable = [
         'user_id',
+        'bg_player_id',
         'board_game_id',
-        'status_effect_id',
+        'status_effect_id', // TODO se_refactoring устаревшее
+        'status_effect_bind_id',
         'active',
         'created_by',
     ];
@@ -25,18 +41,13 @@ class PlayerStatusEffect extends Model
         'active' => 'boolean',
     ];
 
-    public function statusEffect(): BelongsTo
+    public function statusEffect(): BelongsTo // TODO se_refactoring устаревшее
     {
         return $this->belongsTo(StatusEffect::class, 'status_effect_id');
     }
 
-    public function titleImage()
+    public function statusEffectBind()
     {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type');
-    }
-
-    public function media()
-    {
-        return $this->morphToMany(Media::class, 'media_bind');
+        return $this->belongsTo(StatusEffectBind::class, 'status_effect_bind_id', 'id');
     }
 }

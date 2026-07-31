@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\CharacterController;
 use App\Http\Controllers\CommentsController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ErrorController;
@@ -176,6 +177,12 @@ Route::name('api.')->group(function() {
         Route::get('list', 'getList')->name('list');
         Route::get('filters', 'getListFilters')->name('filters');
         Route::get('{person:slug}', 'get')->name('get');
+    });
+
+    Route::prefix('character/')->controller(CharacterController::class)->name('.character')->group(function() {
+        Route::get('list', 'getList')->name('list');
+        Route::get('filters', 'getListFilters')->name('filters');
+        Route::get('{character:slug}', 'get')->name('get');
     });
 
     // Работа с сущностью company

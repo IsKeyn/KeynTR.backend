@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BoardGame;
 
+use App\Models\BoardGame\BoardPositionEffect;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +16,7 @@ class BoardPositionEffectRequest extends FormRequest
 
     public function rules()
     {
-        $id = $this->route('BoardPositionEffect')?->id ?? $this->route('id') ?? $this->get('id');
+        $id = $this->route('boardPositionEffect')?->id ?? $this->route('id') ?? $this->get('id');
 
         return [
             'name' => 'required|string|sometimes',
@@ -23,10 +24,11 @@ class BoardPositionEffectRequest extends FormRequest
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('games', 'slug')->ignore($id),
+                Rule::unique(BoardPositionEffect::TABLE_NAME, 'slug')->ignore($id),
             ],
             'description' => 'sometimes|string|nullable',
-            'actions' => 'sometimes|string|nullable',
+            'actions' => 'nullable|array',
+            'title_image' => 'nullable|integer|exists:media,id',
             'sort' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean|nullable',
             'created_by' => 'sometimes|integer|nullable',

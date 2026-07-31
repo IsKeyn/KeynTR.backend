@@ -16,6 +16,7 @@ class CreateBoardGameInventoriesTable extends Migration
         Schema::create('board_game_inventories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable();
+            $table->foreignId('bg_player_id');
             $table->foreignId('board_game_id')->nullable();
             $table->foreignId('board_game_item_id')->nullable();
             $table->boolean('has_used')->default(false);

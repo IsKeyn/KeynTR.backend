@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BoardGame;
 
+use App\Models\BoardGame\StatusEffect;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,25 +16,26 @@ class BgStatusEffectRequest extends FormRequest
 
     public function rules()
     {
-        $id = $this->route('StatusEffect')?->id ?? $this->route('id') ?? $this->get('id');
+        $id = $this->route('statusEffect')?->id ?? $this->route('id') ?? $this->get('id');
 
         return [
+            'type' => 'sometimes|integer|nullable',
             'name' => 'required|string|sometimes',
             'slug' => [
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('games', 'slug')->ignore($id),
+                Rule::unique(StatusEffect::TABLE_NAME, 'slug')->ignore($id),
             ],
-            'short_description' => 'sometimes|string|nullable',
-            'full_description' => 'sometimes|string|nullable',
-            'actions' => 'sometimes|string|nullable',
-            'type' => 'sometimes|string|nullable',
-            'active' => 'sometimes|boolean|nullable',
-            'drop_chance' => 'sometimes|integer|nullable',
-            'author' => 'sometimes|integer|nullable',
-            'image' => 'sometimes|integer|nullable',
+            'description' => 'sometimes|string|nullable',
+            'board_game_player_id' => 'sometimes|integer|nullable',
+            'board_game_id' => 'sometimes|integer|nullable',
+            'actions' => 'nullable|array',
+            'debuff' => 'sometimes|boolean|nullable',
+            'title_image' => 'sometimes|integer|nullable',
             'sound' => 'sometimes|integer|nullable',
+            'sort' => 'sometimes|integer|nullable',
+            'active' => 'sometimes|boolean|nullable',
             'created_by' => 'sometimes|integer|nullable',
             'created_at' => 'sometimes|nullable|date',
         ];

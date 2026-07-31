@@ -19,9 +19,11 @@ class BoardPositionEffectsBind extends Model
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgBoardPositionEffectBindCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgBoardPositionEffectBindFilter';
+    public const SERVICE = 'App\Services\BoardGame\BgBoardPositionEffectBindService';
+
+    /* Admin resource */
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgBoardPositionEffectBind\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgBoardPositionEffectBind\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\BgBoardPositionEffectBindService';
 
     protected $fillable = [
         'position_effect_id',

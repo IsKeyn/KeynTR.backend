@@ -15,6 +15,7 @@ class BgPlayerPositionRequest extends FormRequest
     public function rules()
     {
         return [
+            'bg_player_id' => 'required|integer',
             'user_id' => 'required|integer|sometimes',
             'position' => 'required|integer|sometimes',
             'board_game_id' => 'required|integer|sometimes',

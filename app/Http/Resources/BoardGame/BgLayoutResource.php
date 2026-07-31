@@ -24,14 +24,13 @@ class BgLayoutResource extends JsonResource
             ...$this->commonLoadedFields(),
 
             'entity_type' => $this->model ?? null,
-            'description' => $this->description,
             'is_close' => $this->is_close,
             'status' => $this->status,
             'started_at' => $this->started_at,
             'ended_at' => $this->ended_at,
 
-            'settings' => $this->whenLoaded('settings', SettingResource::collection($this->settings)),
-            'media' => $this->whenLoaded('media', ShortMediaResource::make($this->media()->first())),
+            'settings' => $this->whenLoaded('settings', fn() => SettingResource::collection($this->settings)),
+            'media' => $this->whenLoaded('media', fn() => ShortMediaResource::make($this->media->first())),
         ];
     }
 }

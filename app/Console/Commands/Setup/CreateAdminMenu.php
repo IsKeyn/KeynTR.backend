@@ -171,6 +171,16 @@ class CreateAdminMenu extends Command
                 'active' => true,
             ],
             [
+                'name' => 'Персонажи',
+                'url' => '/admin/character/',
+                'target' => null,
+                'menu_type_id' => 35,
+                'link_type' => 'route',
+                'icon' => null,
+                'sort' => 35,
+                'active' => true,
+            ],
+            [
                 'name' => 'Игры',
                 'url' => '/admin/games/',
                 'target' => null,
@@ -211,6 +221,16 @@ class CreateAdminMenu extends Command
                 'active' => true,
             ],
             [
+                'name' => 'Предметы магазина',
+                'url' => '/admin/board-game-shop-item/',
+                'target' => null,
+                'menu_type_id' => 34,
+                'link_type' => 'route',
+                'icon' => null,
+                'sort' => 55,
+                'active' => true,
+            ],
+            [
                 'name' => 'Привязка статус эффектов',
                 'url' => '/admin/board-game-status-effect-bind/',
                 'target' => null,
@@ -218,6 +238,26 @@ class CreateAdminMenu extends Command
                 'link_type' => 'route',
                 'icon' => null,
                 'sort' => 45,
+                'active' => true,
+            ],
+            [
+                'name' => 'Взаимодействия игроков',
+                'url' => '/admin/board-game-player-interaction',
+                'target' => null,
+                'menu_type_id' => 34,
+                'link_type' => 'route',
+                'icon' => null,
+                'sort' => 65,
+                'active' => true,
+            ],
+            [
+                'name' => 'Игры добавляемые игроками',
+                'url' => '/admin/board-game-add-game',
+                'target' => null,
+                'menu_type_id' => 34,
+                'link_type' => 'route',
+                'icon' => null,
+                'sort' => 85,
                 'active' => true,
             ],
         ];
@@ -306,6 +346,10 @@ class CreateAdminMenu extends Command
                 'permissions' => ['person.edit'],
             ],
             [
+                'url' => '/admin/character/',
+                'permissions' => ['character.edit'],
+            ],
+            [
                 'url' => '/admin/articles/',
                 'permissions' => ['article.edit'],
             ],
@@ -390,8 +434,16 @@ class CreateAdminMenu extends Command
                 'permissions' => ['bg.board-position-effects-bind.edit'],
             ],
             [
+                'url' => '/admin/board-game-shop-item/',
+                'permissions' => ['bg.shop-item.edit'],
+            ],
+            [
                 'url' => '/admin/board-game-player-position',
                 'permissions' => ['bg.player-position.edit'],
+            ],
+            [
+                'url' => '/admin/board-game-player-interaction',
+                'permissions' => ['bg.player-interaction.edit'],
             ],
             [
                 'url' => '/admin/board-game-game-list',
@@ -400,6 +452,10 @@ class CreateAdminMenu extends Command
             [
                 'url' => '/admin/board-game-player-game',
                 'permissions' => ['bg.player-game.edit'],
+            ],
+            [
+                'url' => '/admin/board-game-add-game',
+                'permissions' => ['bg.add-game.edit'],
             ],
             [
                 'url' => '/admin/board-game-timer',

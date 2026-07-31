@@ -75,7 +75,12 @@ class UnsetPlayersStreakCommand extends Command
                             ]
                         );
 
-                        LogService::addLog(1, $boardGame->id, 'Игрок ' . $player->user->name . ' потерял стрик, так как не прошел не одной игры за неделю');
+                        LogService::addLog(
+                            1,
+                            $boardGame->id,
+                            'Игрок ' . $player->user->name . ' потерял стрик, так как не прошел не одной игры за неделю',
+                            $player->id
+                        );
                     } else {
                         $this->line('Игрок ' . $player->user->name . ' стрик НЕ сброшен в ' . $boardGame->name);
                         Log::channel('streak')->info(

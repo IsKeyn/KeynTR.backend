@@ -9,7 +9,6 @@ use App\Http\Resources\Game\GameListResource;
 use App\Http\Resources\Game\GameRollListResource;
 use App\Http\Resources\UserActions\UserActionsResource;
 use App\Models\Game;
-use App\Models\Media;
 use App\Services\Cache\GameCacheService;
 use App\Services\Filter\FilterService;
 use App\Services\ViewsLogService;
@@ -38,17 +37,22 @@ class GameController extends Controller
             $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
             $time = GameCacheService::FILTER_TIME;
         }
-
         return Cache::remember($cacheKey, $time, function () use ($request) {
+            $decodedFilters = json_decode($request->filters, true);
+
             $filter = new GameFilter($request);
             $games = $filter->apply(Game::query())
                 ->with([
-                    'media' => function ($query) {
-                        $query->wherePivot('type', '=', Media::COVER_TYPE);
+                    'cover' => function ($query) {
+                        $query->orderByPivot('sort');
                     },
                     'genres',
                     'dates',
-                    'groups'
+                    'bgGamesList' => function ($query) use ($decodedFilters) {
+                        if (isset($decodedFilters['events'])) {
+                            $query->whereIn('board_game_id', $decodedFilters['events']);
+                        }
+                    },
                 ])
                 ->where('show_in_list', true)
                 ->active();
@@ -103,13 +107,25 @@ class GameController extends Controller
 
         $time = GameCacheService::TIME;
 
-        if ($request->filters) {
-            $cacheToken = Cache::rememberForever(
-                GameCacheService::LIST_FILTER_TOKEN,
-                fn() => Str::random(10)
-            );
+        if ($request->defaultFilters || $request->filters) {
+            if ($request->defaultFilters) {
+                $cacheToken = Cache::rememberForever(
+                    GameCacheService::LIST_FILTER_TOKEN,
+                    fn() => Str::random(10)
+                );
 
-            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+                $cacheKey .= '_' . md5(json_encode($request->defaultFilters, 16)) . '_' . $cacheToken;
+            }
+
+            if ($request->filters) {
+                $cacheToken = Cache::rememberForever(
+                    GameCacheService::LIST_FILTER_TOKEN,
+                    fn() => Str::random(10)
+                );
+
+                $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            }
+
             $time = GameCacheService::FILTER_TIME;
         }
 
@@ -133,7 +149,8 @@ class GameController extends Controller
                 }
 
                 // Получаем список всех игр
-                $games = Game::query()
+                $filter = new GameFilter($request, 'defaultFilters');
+                $games = $filter->apply(Game::query())
                     ->with($with)
                     ->where('show_in_list', true);
 
@@ -203,6 +220,9 @@ class GameController extends Controller
                         'series.games',
                         'series.games.media',
                         'people',
+                        'people.cover',
+                        'characters',
+                        'characters.cover',
                         'people.group',
                         'people.group.cover' => function ($query) {
                             $query->orderByPivot('sort');

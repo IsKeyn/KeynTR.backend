@@ -13,7 +13,27 @@ class PlayerInteractions extends Model
 {
     protected $table = 'bg_player_interactions';
 
-    use HasFactory, ExtendModelTrait, ExtendModelForBoardGameTrait;
+    use HasFactory,
+        ExtendModelTrait,
+        ExtendModelForBoardGameTrait;
+
+    public const CACHE_NAME = 'bg-player-interaction';
+    public const TABLE_NAME = 'bg_players_interactions';
+
+    public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgPlayerInteractionCacheService';
+    public const FILTER = 'App\Filters\BoardGame\BgPlayerInteractionFilter';
+    public const SERVICE = 'App\Services\BoardGame\InteractionsService';
+
+    public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\BoardGame\BgPlayerInteractionController';
+
+    public const OBSERVER = 'App\Observers\BoardGame\BgPlayerInteractionsObserver';
+
+    // Resource for admin panel
+    public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerInteraction\DetailResource';
+    public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgPlayerInteraction\ListResource';
+
+    // Resource for public
+    public const PUBLIC_RESOURCES = [];
 
     public const STATUS_ACTIVE = 1;
     public const STATUS_ACCEPTED = 2;
@@ -43,6 +63,7 @@ class PlayerInteractions extends Model
         'status',
         'description',
         'board_game_id',
+        'bg_player_id',
         'with_player',
         'created_by',
         'entity_id',
@@ -62,5 +83,15 @@ class PlayerInteractions extends Model
     public function createdByData(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function player()
+    {
+        return $this->belongsTo(BoardGamePlayer::class, 'bg_player_id');
+    }
+
+    public function entity()
+    {
+        return $this->morphTo();
     }
 }

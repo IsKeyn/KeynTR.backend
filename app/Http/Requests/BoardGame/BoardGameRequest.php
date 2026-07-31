@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BoardGame;
 
+use App\Models\BoardGame\BoardGame;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,10 +24,11 @@ class BoardGameRequest extends FormRequest
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('games', 'slug')->ignore($id),
+                Rule::unique(BoardGame::TABLE_NAME, 'slug')->ignore($id),
             ],
             'description' => 'sometimes|string|nullable',
             'is_close' => 'sometimes|boolean|nullable',
+            'is_test' => 'sometimes|boolean|nullable',
             'started_at' => 'sometimes|date|nullable',
             'ended_at' => 'sometimes|date|nullable',
 

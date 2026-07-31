@@ -80,15 +80,15 @@ Route::get('/get_google_access_token', [App\Http\Controllers\YouTubeController::
 Route::get('/googleOAuth', [App\Http\Controllers\YouTubeController::class, 'googleOAuthAuth'])->name('ga');
 
 
-Route::get('/artisan/migrate', function () {
-    $exitCode = Artisan::call('migrate');
-
-    dump($exitCode);
-});
-
-
-Route::get('/artisan/config/clear', function () {
-    $exitCode = Artisan::call('config:clear');
-
-    dump($exitCode);
-});
+//Route::get('/artisan/migrate', function () {
+//    $exitCode = Artisan::call('migrate');
+//
+//    dump($exitCode);
+//});
+//
+//
+//Route::get('/artisan/config/clear', function () {
+//    $exitCode = Artisan::call('config:clear');
+//
+//    dump($exitCode);
+//});

@@ -26,6 +26,7 @@ class Timer extends Model
         'slug',
         'description',
         'limit',
+        'elapsed_seconds',
         'settings',
         'active',
         'user_id',

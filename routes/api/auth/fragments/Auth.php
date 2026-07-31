@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\Messenger\MessageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\User\NotificationController;
-use App\Http\Controllers\User\MessageController;
 use App\Http\Controllers\User\AllNotifications;
 
 /* Действия авторизированного пользователя */
@@ -32,10 +32,11 @@ Route::controller(NotificationController::class)->prefix('notification/')->name(
 });
 
 Route::controller(MessageController::class)->prefix('message/')->name('message')->group(function () {
-    Route::get('get', 'getCurrentUserMessages')->name('getCurrentUserMessages');
-//        Route::get('getCount', 'GetCountUserNotifications')->name('GetCountUserNotifications');
-//        Route::post('set', 'set')->name('set');
-//        Route::post('set-viewed', 'SetViewed')->name('set-viewed');
+    Route::get('get-chats', 'getChats')->name('getChats');
+    Route::get('get-messages', 'getMessages')->name('getMessages');
+    Route::post('typing', 'typing')->name('typing');
+    Route::post('store', 'store')->name('store');
+    Route::post('set-message-as-read', 'setMessageAsRead')->name('setMessageAsRead');
 });
 
 Route::controller(AllNotifications::class)->prefix('allNotifications/')->name('allNotifications')->group(function () {

@@ -3,6 +3,7 @@
 namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\BoardPositionEffectsBind;
+use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgPositionEffectBindObserver
@@ -19,6 +20,8 @@ class BgPositionEffectBindObserver
 
     public function created(BoardPositionEffectsBind $boardPositionEffectsBind)
     {
+        $this->additionalActions($boardPositionEffectsBind);
+
         $this->defaultObserverService->created(
             $boardPositionEffectsBind,
             self::CACHE_SERVICE,
@@ -28,6 +31,8 @@ class BgPositionEffectBindObserver
 
     public function updated(BoardPositionEffectsBind $boardPositionEffectsBind)
     {
+        $this->additionalActions($boardPositionEffectsBind);
+
         $this->defaultObserverService->updated(
             $boardPositionEffectsBind,
             self::CACHE_SERVICE,
@@ -37,6 +42,8 @@ class BgPositionEffectBindObserver
 
     public function deleted(BoardPositionEffectsBind $boardPositionEffectsBind)
     {
+        $this->additionalActions($boardPositionEffectsBind);
+
         $this->defaultObserverService->deleted(
             $boardPositionEffectsBind,
             self::CACHE_SERVICE,
@@ -46,6 +53,8 @@ class BgPositionEffectBindObserver
 
     public function restored(BoardPositionEffectsBind $boardPositionEffectsBind)
     {
+        $this->additionalActions($boardPositionEffectsBind);
+
         $this->defaultObserverService->restored(
             $boardPositionEffectsBind,
             self::CACHE_SERVICE,
@@ -55,9 +64,26 @@ class BgPositionEffectBindObserver
 
     public function forceDeleted(BoardPositionEffectsBind $boardPositionEffectsBind)
     {
+        $this->additionalActions($boardPositionEffectsBind);
+
         $this->defaultObserverService->forceDeleted(
             $boardPositionEffectsBind,
             self::CACHE_SERVICE
         );
+    }
+
+    private function additionalActions($boardPositionEffectsBind)
+    {
+        /* Сбрасываем кеш зависимых сущностей */
+        $this->clearRelatedCache($boardPositionEffectsBind);
+    }
+
+    private function clearRelatedCache($boardPositionEffectsBind)
+    {
+        $boardPositionEffectsBind->load(['boardGame']);
+
+        $boardGameCacheService = app(BoardGameCacheService::class);
+
+        $boardGameCacheService->clearDetailCacheAllTypes($boardPositionEffectsBind->boardGame);
     }
 }

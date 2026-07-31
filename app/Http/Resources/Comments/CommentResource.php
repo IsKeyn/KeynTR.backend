@@ -4,10 +4,13 @@ namespace App\Http\Resources\Comments;
 
 use App\Http\Resources\BoardGame\BoardGameShortestResource;
 use App\Http\Resources\User\UserWithAvatarResource;
+use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class CommentResource extends JsonResource
 {
+    use CommonResourceFields;
+
     /**
      * Transform the resource into an array.
      *
@@ -17,13 +20,12 @@ class CommentResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name ? $this->name : $this->name,
+            ...$this->commonFields(),
+
             'message' => $this->message,
             'answers' => $this->answers ? CommentResource::collection($this->answers) : null,
             'user' => $this->whenLoaded('user', UserWithAvatarResource::make($this->user)),
             'board_game' => $this->getBoardGameWhenLoaded(),
-            'created_at' => $this->created_at ? $this->created_at->format('Y-m-d H:i') : '',
         ];
     }
 

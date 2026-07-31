@@ -33,5 +33,7 @@ class AdditionalFieldsService
                 $entity->additionalFields()->create($field);
             }
         }
+
+        $entity->touch();
     }
 }
