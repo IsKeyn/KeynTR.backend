@@ -7,6 +7,7 @@ use App\Models\BoardGame\PlayerInteractions;
 use App\Services\Entity\EntityService;
 use App\Services\ErrorService;
 use App\Models\BoardGame\BoardGamePlayerPosition;
+use Illuminate\Support\Facades\DB;
 
 class BoardService
 {
@@ -33,11 +34,18 @@ class BoardService
         );
     }
 
+    /**
+     * @param $params
+     * @param $conditionData
+     * @param bool $setLogs
+     * @param bool $useStepCount Учитывать количество доступных ходов
+     * @return array
+     */
     public static function setPosition(
         $params,
         $conditionData,
         $setLogs = true,
-        $useStepCount = true // Boolean: Учитывать количество доступных ходов
+        $useStepCount = true
     )
     {
         if (
@@ -78,18 +86,18 @@ class BoardService
                     'position' => $position,
                     'board_game_id' => $conditionData['boardGame']->id,
                     'user_id' => $params['player']->user_id,
+                    'bg_player_id' => $params['player']->id,
                     'created_by' => $conditionData['user']->id,
                 ];
 
                 if ($entry = BoardGamePlayerPosition::create($newPosition)) {
                     // Записываем логи
                     if ($setLogs) {
-                        $logMessage = "перешел с $oldPosition->position ячейки на ячейку $entry->position";
-
                         LogService::addLog(
                             $params['player']->user_id,
                             $conditionData['boardGame']->id,
-                            $logMessage
+                            "перешел с $oldPosition->position ячейки на ячейку $entry->position",
+                            $params['player']->id
                         );
                     }
 
@@ -176,30 +184,34 @@ class BoardService
 
                     $result = null;
 
-                    foreach (json_decode($boardPositionEffectBind->boardPositionEffect->actions) as $action) {
-                        $activateEffect = true;
+                    $result = DB::transaction(function () use ($boardPositionEffectBind, $onlyAutoUse, $actionService, $data, $userId, $conditionData) {
+                        foreach ($boardPositionEffectBind->boardPositionEffect->actions as $action) {
+                            $action = (object) $action;
 
-                        if ($onlyAutoUse && (!isset($action->autoUse) || !$action->autoUse)) {
-                            $activateEffect = false;
-                        }
+                            $activateEffect = true;
 
-                        if ($activateEffect) {
-                            $result = $actionService->activateAction($data, $action, $userId);
+                            if ($onlyAutoUse && (!isset($action->autoUse) || !$action->autoUse)) {
+                                $activateEffect = false;
+                            }
 
-                            if ($result
-                                && (
-                                    (isset($data) && (($data->type ?? null) === 'fightWithBoss-win'))
-                                    || (isset($action->autoUse) && $action->autoUse)
-                                )
-                            ) {
-                                BoardService::setUsePositionEffect(
-                                    $userId,
-                                    $conditionData['boardGame']->id,
-                                    $boardPositionEffectBind->position
-                                );
+                            if ($activateEffect) {
+                                $result = $actionService->activateAction($data, $action, $userId);
+
+                                if ($result) {
+                                    if ((isset($data) && (($data->type ?? null) === 'activate-effect')) || (isset($action->autoUse) && $action->autoUse))
+                                    {
+                                        BoardService::setUsePositionEffect(
+                                            $userId,
+                                            $conditionData['boardGame']->id,
+                                            $boardPositionEffectBind->position
+                                        );
+                                    }
+
+                                    return $result;
+                                }
                             }
                         }
-                    }
+                    });
 
                     return $result;
                 } else {

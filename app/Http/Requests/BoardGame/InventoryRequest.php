@@ -16,6 +16,7 @@ class InventoryRequest extends FormRequest
     {
         return [
             'user_id' => 'required|integer',
+            'bg_player_id' => 'sometimes|integer|nullable',
             'board_game_id' => 'required|integer',
             'board_game_item_id' => 'required|integer',
             'has_used' => 'sometimes|boolean|nullable',

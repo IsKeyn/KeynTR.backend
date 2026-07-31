@@ -14,10 +14,15 @@ trait HasFilters
     protected Builder $query;
 
     protected string $searchColumn = 'name';
+    protected string $filterKey = 'filters';
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, string $filterKey = null)
     {
         $this->request = $request;
+
+        if ($filterKey !== null) {
+            $this->filterKey = $filterKey;
+        }
     }
 
     public function apply(Builder $query): Builder
@@ -35,7 +40,7 @@ trait HasFilters
 
     public function filters(): array
     {
-        return (array) json_decode($this->request->filters);
+        return (array) json_decode($this->request->input($this->filterKey));
     }
 
     protected function category($value): void

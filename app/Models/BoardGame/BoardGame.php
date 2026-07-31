@@ -8,20 +8,37 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BoardGame extends Model
 {
-    use HasFactory, ExtendModelTrait, SoftDeletes;
+    use HasFactory,
+        ExtendModelTrait,
+        SoftDeletes;
 
     /*
      * Настройки BoardGame
-     * type: upon-request - закрытая игра, registrationIsClose - регистрация закрыта
-     * item_roll_default_count - достуное количество круток рулетки предметов, для нового игрока
-     * step_default_count - доступное количество шагов по игровой доске, для нового игрока
-     * board_type - тип доски, который используется в настольной игре
-     * subtract_points - количество очков, которое отнимается при рероле
-     * time_limit (в минутах, максимальное количество времени для челенджа, используется в таймере)
+     * type String upon-request - закрытая игра, registrationIsClose - регистрация закрыта
+     * item_roll_default_count Int Достуное количество круток рулетки предметов, для нового игрока
+     * step_default_count Int Доступное количество шагов по игровой доске, для нового игрока
+     * board_type String Тип доски, который используется в настольной игре
+     * subtract_points Int Количество очков, которое отнимается при рероле
+     * time_limit Int В часах, максимальное количество времени для челенджа, используется в таймере
+     * event_type String Тип окончания ивента для игрока null - лимит времени, board-last-cell - достижение последней клетки игры
+     * max_negative_points_for_roll_game Int Минимальное количество очков, при котором игрок более не может крутить рулетку игр
+     * eventGamePlatforms Json Игровые платформы в ивенте
+     * Пример eventGamePlatforms: [{"id":25,"name":"Nintendo Entertainment System (NES)","active":true,"difficult":80,"minCountForAdd":2}]
+     * hasExceptionPlatforms Boolean Могут ли игроки исключать платформы из пула рулетки
+     * factorHours Int Количество часов, после которого дается 1 очков за еденицу сложности (в остальных случаях 0.5)
+     * usePlatformDifficultInCalc Int Использовать сложность платформы в расчете очков за игру
+     * addingGamesConditions Json Условия добавления игр
+     * Пример {"position":30,"finishedGames":3}
+     * last_players_with_every_day_status_effect Int Количество игроков, которое ислючаются для поиска нового игрока для предмета
+     * bonus_for_coop Json Бонус начисляемый после прохождения игры в коопе, для игрока, пригласившего в кооп
+     * rerolled_own_game_count_for_rerolled_list Int Необходимое количество рерольнутых своих (добавленных игроков) игр для списка рерольнутых игры
+     * rerolled_game_count_for_gold_list Int Необходимое количество рерольнутых игр для золотого списка игры
      */
 
     public const CACHE_NAME = 'board-game';
@@ -31,6 +48,8 @@ class BoardGame extends Model
     const OPEN_STATUS = 1;
     const COMING_SOON = 2;
 
+    public const PUBLIC_CONTROLLER = 'App\Http\Controllers\BoardGame\BoardController';
+
     protected $fillable = [
         'name',
         'slug',
@@ -38,6 +57,7 @@ class BoardGame extends Model
         'active',
         'sort',
         'is_close',
+        'is_test',
         'started_at',
         'ended_at',
         'created_by',
@@ -46,17 +66,13 @@ class BoardGame extends Model
     protected $casts = [
         'active' => 'boolean',
         'is_close' => 'boolean',
+        'is_test' => 'boolean',
         'deleted_at' => 'datetime',
     ];
 
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('is_close', false);
-    }
-
-    public function players()
-    {
-        return $this->hasMany(BoardGamePlayer::class, 'board_game_id');
     }
 
     public function getStatusAttribute()
@@ -77,5 +93,37 @@ class BoardGame extends Model
     public function settings()
     {
         return $this->morphMany(Setting::class, 'entity');
+    }
+
+    public function players()
+    {
+        return $this->hasMany(BoardGamePlayer::class, 'board_game_id');
+    }
+
+    public function statusEffectBinds(): HasMany
+    {
+        return $this->hasMany(StatusEffectBind::class, 'board_game_id');
+    }
+
+    public function boardPositionEffectsBinds(): HasMany
+    {
+        return $this->hasMany(BoardPositionEffectsBind::class, 'board_game_id');
+    }
+
+    public function statusEffects(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            StatusEffect::class,
+            'bg_status_effects_binds',
+            'board_game_id',
+            'status_effect_id'
+        )
+            ->withPivot('active', 'created_by')
+            ->withTimestamps();
+    }
+
+    public function games(): HasMany
+    {
+        return $this->hasMany(BoardGameGameList::class, 'board_game_id');
     }
 }

@@ -15,6 +15,8 @@ class ShortMediaResource extends JsonResource
      */
     public function toArray($request)
     {
+        if (!$this->resource) return null;
+
         $mediaService = new MediaService();
 
         return [

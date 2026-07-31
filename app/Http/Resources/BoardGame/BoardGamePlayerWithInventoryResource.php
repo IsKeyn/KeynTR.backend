@@ -6,7 +6,7 @@ use App\Http\Resources\UserPublicResource;
 use App\Services\BoardGame\TimerService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class BoardGamePlayerWithInventoryResource extends JsonResource
+class BoardGamePlayerWithInventoryResource extends JsonResource // TODO устаревший метод BgPlayerWithInventoryResource
 {
     /**
      * Transform the resource into an array.

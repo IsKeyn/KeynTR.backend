@@ -4,6 +4,7 @@ namespace App\Services\Cache\BoardGame;
 
 use App\Models\BoardGame\BoardGame;
 use App\Services\Cache\BaseCacheService;
+use Illuminate\Support\Facades\Cache;
 
 class BoardGameCacheService extends BaseCacheService
 {
@@ -22,4 +23,40 @@ class BoardGameCacheService extends BaseCacheService
     public const LIST_TOKEN = self::NAME . '_list_token';
     public const LIST_FILTER_TOKEN = self::NAME . '_list_filter_token';
     public const ADMIN_LIST_TOKEN = self::NAME . '_list_token';
+
+    public function clearClientPlayerListByBgCache($boardGame)
+    {
+        foreach ($boardGame->players as $player) {
+            $this->clearClientPlayerListCacheFn($boardGame->slug, $player->user_id);
+        }
+    }
+
+    public function clearClientPlayerListCache($player)
+    {
+        $this->clearClientPlayerListCacheFn($player->boardGame->slug, $player->user_id);
+    }
+
+    public function clearClientPlayerListCacheFn($slug, $userID)
+    {
+        $cacheKey = static::LIST_PREFIX . '_' . $slug . '_' . $userID;
+        Cache::forget($cacheKey);
+    }
+
+    public function clearDetailCacheAllTypes($element)
+    {
+        $this->clearClientDetailCache($element);
+        $this->clearDetailCacheBySlug($element->slug);
+        $this->clearAdminDetailCacheById($element->id);
+    }
+
+    public function clearDetailCacheBySlug($slug, $showMessage = false)
+    {
+        $cacheKey = static::DETAIL_PREFIX . '_' . $slug;
+        Cache::forget($cacheKey);
+
+        $cacheKey = static::DETAIL_PREFIX . '_' . $slug . '_board';
+        Cache::forget($cacheKey);
+
+        if ($showMessage) echo $cacheKey . PHP_EOL;
+    }
 }

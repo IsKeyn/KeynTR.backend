@@ -3,7 +3,6 @@
 namespace App\Http\Resources\BoardGame\Player;
 
 use App\Http\Resources\User\UserPublicResource;
-use App\Services\BoardGame\TimerService;
 use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,34 +23,28 @@ class BgPlayerLayoutResource extends JsonResource
         });
 
         $fullPoints = $this->points;
-
-        if ($position) {
-            $fullPoints += $position->position;
-        }
-
-        $status = $this->whenLoaded('mainTimers', function() {
-            $timer = $this->mainTimers->first();
-            return TimerService::getTimerStatus($timer);
-        });
+        if ($position) $fullPoints += $position->position;
 
         return [
             ...$this->commonFields(),
             ...$this->commonLoadedFields(),
 
             'user_id' => $this->user_id,
-            'user' => $this->whenLoaded('user', UserPublicResource::make($this->user)),
+            'user' => $this->whenLoaded('user', fn() => UserPublicResource::make($this->user)),
+            'premium' => $this->premium,
             'board_game_id' => $this->board_game_id,
             'points' => $this->points,
+            'full_points' => $fullPoints,
+            'points_per_hour' => $this->points_per_hour,
             'streak' => $this->streak,
             'item_roll_count' => $this->item_roll_count,
             'step_count' => $this->step_count,
             'finishBoard' => $this->finishBoard,
             'position' => $position ?? null,
-            'full_points' => $fullPoints,
-            'timer_status' => $status ?? null,
-            'seconds' => isset($status['time']) ? $status['time'] : null,
+            'place' => $this->place,
             'not_active_reason' => $this->not_active_reason,
-            'has_current_game' => $this->whenLoaded('currentGames', $this->currentGames->first() ?? false),
+            'settings' => $this->settings,
+            'has_current_game' => $this->whenLoaded('currentGames', fn() => $this->currentGames->first() ?? false),
         ];
     }
 }

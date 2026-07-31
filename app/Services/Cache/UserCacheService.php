@@ -63,13 +63,33 @@ class UserCacheService extends BaseCacheService
 
         foreach ($data as $element) {
             self::clearDetailCacheBySlug($element->slug);
+            self::clearClientDetailCacheById($element->id);
             self::clearAdminDetailCacheById($element->id);
         }
+    }
+
+    public function clearDetailCacheAllTypes($element)
+    {
+        $this->clearClientDetailCache($element);
+        $this->clearDetailCacheBySlug($element->slug);
+        $this->clearClientDetailCacheById($element->id);
+        $this->clearAdminDetailCacheById($element->id);
     }
 
     public function clearDetailCacheBySlug($slug, $showMessage = false)
     {
         $cacheKey = self::DETAIL_PREFIX . '_' . $slug;
+
+        Cache::forget($cacheKey);
+
+        if ($showMessage) {
+            echo $cacheKey . PHP_EOL;
+        }
+    }
+
+    public function clearClientDetailCacheById($id, $showMessage = false)
+    {
+        $cacheKey = self::DETAIL_PREFIX . '_' . $id;
 
         Cache::forget($cacheKey);
 

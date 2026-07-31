@@ -18,7 +18,7 @@ class CreateSettingsTable extends Migration
             $table->foreignId('site_id')->constrained()->cascadeOnDelete();
             $table->string('name')->nullable();
             $table->string('code');
-            $table->string('value')->nullable();
+            $table->text('value')->nullable();
             $table->string('entity_type')->nullable();
             $table->integer('entity_id')->nullable();
             $table->integer('sort')->nullable();

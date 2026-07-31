@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\BoardGame;
 
+use App\Models\BoardGame\Item;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,21 +19,22 @@ class BgItemRequest extends FormRequest
         $id = $this->route('item')?->id ?? $this->route('id') ?? $this->get('id');
 
         return [
-            'name' => 'required|string|sometimes',
+            'name' => 'required|string',
             'slug' => [
                 'required',
                 'string',
                 'alpha_dash',
-                Rule::unique('games', 'slug')->ignore($id),
+                Rule::unique(Item::TABLE_NAME, 'slug')->ignore($id),
             ],
-            'short_description' => 'sometimes|string|nullable',
-            'full_description' => 'sometimes|string|nullable',
-            'actions' => 'sometimes|string|nullable',
-            'type' => 'sometimes|string|nullable',
+            'short_description' => 'nullable|string',
+            'full_description' => 'nullable|string',
+            'actions' => 'sometimes|array|nullable',
+            'type' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean|nullable',
             'drop_chance' => 'sometimes|integer|nullable',
-            'author' => 'sometimes|integer|nullable',
-            'image' => 'sometimes|integer|nullable',
+            'price' => 'nullable|integer',
+            'author' => 'nullable|integer|exists:users,id',
+            'image'  => 'nullable|integer|exists:media,id',
             'sound' => 'sometimes|integer|nullable',
             'created_by' => 'sometimes|integer|nullable',
             'created_at' => 'sometimes|nullable|date',

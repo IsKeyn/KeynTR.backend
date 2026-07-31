@@ -14,7 +14,7 @@ class StatusEffectResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
-    public function toArray($request)
+    public function toArray($request) // TODO устаревший ресурс, новый BgStatusEffectResource
     {
         $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
 

@@ -24,9 +24,22 @@ class RelatedDataService
             }
         }
 
+        if (isset($validated['sound'])) {
+            $mediaService = new MediaService();
+
+            if (isset($validated['sound'])) {
+                $mediaService->setSound($model, $validated['sound']);
+            }
+        }
+
         if (isset($validated['additional_fields'])) {
             $additionalFieldsService = new AdditionalFieldsService();
             $additionalFieldsService->sync($model, $validated['additional_fields']);
+        }
+
+        if (isset($validated['settings'])) {
+            $settingService = new SettingService();
+            $settingService->sync($model, $validated['settings']);
         }
 
         if (isset($validated['series'])) {
@@ -35,6 +48,10 @@ class RelatedDataService
 
         if (isset($validated['people'])) {
             PersonService::set($model, $validated['people']);
+        }
+
+        if (isset($validated['characters'])) {
+            CharacterService::set($model, $validated['characters']);
         }
 
         if (isset($validated['groups'])) {

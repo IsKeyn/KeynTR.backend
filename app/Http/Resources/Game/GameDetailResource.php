@@ -3,9 +3,11 @@
 namespace App\Http\Resources\Game;
 
 use App\Http\Resources\Admin\ForExtension\AdminLinkResource;
+use App\Http\Resources\Character\ListResource;
 use App\Http\Resources\Company\CompanyWithGroupResource;
 use App\Http\Resources\Date\DateShortResource;
 use App\Http\Resources\Date\DateWithPlatformResource;
+use App\Http\Resources\GamingPlatform\GamingPlatformShortResource;
 use App\Http\Resources\GenreResource;
 use App\Http\Resources\GroupResource;
 use App\Http\Resources\Media\ShortMediaResource;
@@ -33,18 +35,18 @@ class GameDetailResource extends JsonResource
 
             'entity_type' => Game::class,
             'show_in_list' => $this->show_in_list,
-            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage)),
-            'covers' => $this->whenLoaded('cover', ShortMediaResource::collection($this->cover)),
-            'platforms' => $this->whenLoaded('gamePlatform', $this->gamePlatform),
-            'release_dates' => $this->whenLoaded('dates', DateWithPlatformResource::collection($this->dates)),
-            'anons_dates' => $this->whenLoaded('anonsDates', DateShortResource::collection($this->anonsDates)),
-            'groups' => $this->whenLoaded('groups', GroupResource::collection($this->groups)),
-            'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
-            'companies' => $this->whenLoaded('company', CompanyWithGroupResource::collection($this->company)),
-            'links' => $this->whenLoaded('link', AdminLinkResource::collection($this->link)),
-            'additional_fields' => $this->whenLoaded('additionalFields', $this->additionalFields),
-            'series' => $this->whenLoaded('series', SeriesWithGamesResource::collection($this->series)),
-            'people' => $this->whenLoaded('people', PersonListResource::collection($this->people)),
+            'title_image' => $this->whenLoaded('titleImage', fn() => ShortMediaResource::make($this->titleImage)),
+            'covers' => $this->whenLoaded('cover', fn() => ShortMediaResource::collection($this->cover)),
+            'platforms' => $this->whenLoaded('gamePlatform', fn() => GamingPlatformShortResource::collection($this->gamePlatform)),
+            'release_dates' => $this->whenLoaded('dates', fn() => DateWithPlatformResource::collection($this->dates)),
+            'anons_dates' => $this->whenLoaded('anonsDates', fn() => DateShortResource::collection($this->anonsDates)),
+            'groups' => $this->whenLoaded('groups', fn() => GroupResource::collection($this->groups)),
+            'genres' => $this->whenLoaded('genres', fn() => GenreResource::collection($this->genres)),
+            'companies' => $this->whenLoaded('company', fn() => CompanyWithGroupResource::collection($this->company)),
+            'links' => $this->whenLoaded('link', fn() => AdminLinkResource::collection($this->link)),
+            'series' => $this->whenLoaded('series', fn() => SeriesWithGamesResource::collection($this->series)),
+            'people' => $this->whenLoaded('people', fn() => PersonListResource::collection($this->people)),
+            'characters' => $this->whenLoaded('characters', fn() => ListResource::collection($this->characters)),
         ];
     }
 }

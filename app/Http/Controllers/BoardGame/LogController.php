@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BoardGame\LogResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameLog;
-use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\User;
+use App\Services\Cache\BoardGame\BgLogCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class LogController extends Controller
@@ -45,6 +46,10 @@ class LogController extends Controller
         if ($id) {
             $query = BoardGameLog::query()
                 ->where('board_game_id', $id)
+                ->with([
+                    'user',
+                    'user.avatar',
+                ])
                 ->orderByDesc('created_at')
                 ->orderByDesc('id');
 
@@ -54,24 +59,37 @@ class LogController extends Controller
         }
     }
 
-    public function getPlayerLog(Request $request, $slug, $playerName)
+    /*
+     * Получение лога игрока
+     */
+    public function getPlayerLog(
+        Request $request,
+        $slug,
+        $name,
+        BoardGame $BoardGame
+    )
     {
-        $id = BoardGame::findBySlug($slug)->value('id');
-        $user = User::query()->where('name', $playerName)->first();
+        $userId = User::findByName($name)->value('id');
+        if (!$userId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        if ($id) {
-            $player = BoardGamePlayer::where('user_id', $user->id)->where('board_game_id', $id)->first();
+        $bgId = $BoardGame->findBySlug($slug)->value('id');
+        if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-//            dd($player->id);
+        $cacheKey = BgLogCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId;
 
+        if ($request->page && $request->perPage) {
+            $cacheKey .= '_' . $request->page . '_' . $request->perPage;
+        }
+
+        return Cache::remember($cacheKey, BgLogCacheService::TIME, function () use ($request, $userId, $bgId) {
             $query = BoardGameLog::query()
-                ->where('board_game_id', $id)
-                ->where('created_by', $player->user_id)
+                ->where('board_game_id', $bgId)
+                ->where('created_by', $userId)
                 ->orderByDesc('created_at');
 
             $result = $request->perPage ? $query->paginate($request->perPage) : $query->get();
 
             return LogResource::collection($result);
-        }
+        });
     }
 }

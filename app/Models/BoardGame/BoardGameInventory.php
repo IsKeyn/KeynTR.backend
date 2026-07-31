@@ -18,12 +18,15 @@ class BoardGameInventory extends Model
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgInventoryCacheService';
     public const FILTER = 'App\Filters\BoardGame\BgInventoryFilter';
+    public const SERVICE = 'App\Services\BoardGame\BgInventoryService';
+
+    /* Resource for admin panel */
     public const DETAIL_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgInventory\DetailResource';
     public const LIST_RESOURCE = 'App\Http\Resources\Admin\BoardGame\BgInventory\ListResource';
-    public const SERVICE = 'App\Services\BoardGame\BgInventoryService';
 
     protected $fillable = [
         'user_id',
+        'bg_player_id',
         'board_game_id',
         'board_game_item_id',
         'has_used',
@@ -39,8 +42,18 @@ class BoardGameInventory extends Model
         'has_used' => 'boolean',
     ];
 
-    public function item(): BelongsTo
+    public function item(): BelongsTo // TODO удалить, когда будет переведено на itemBind
     {
         return $this->belongsTo(ItemBind::class, 'board_game_item_id');
+    }
+
+    public function itemBind(): BelongsTo
+    {
+        return $this->belongsTo(ItemBind::class, 'board_game_item_id');
+    }
+
+    public function player()
+    {
+        return $this->belongsTo(BoardGamePlayer::class, 'bg_player_id');
     }
 }

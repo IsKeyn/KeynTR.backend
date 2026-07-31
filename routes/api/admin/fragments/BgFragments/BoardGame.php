@@ -9,4 +9,5 @@ Route::prefix('BoardGame/')->controller(BoardGameController::class)->group(funct
     Route::post('{boardGame}/recovery', 'recovery')->name('recovery');
     Route::get('filters', 'getListFilters')->name('filters');
 });
-Route::resource('BoardGame', BoardGameController::class);
+Route::resource('BoardGame', BoardGameController::class)
+    ->parameters(['BoardGame' => 'boardGame']);

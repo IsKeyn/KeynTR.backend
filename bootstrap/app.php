@@ -87,6 +87,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('board-game:stop-limited-timer')->everyFifteenMinutes();
         $schedule->command('version:clear-versions 365')->sundays()->at('23:59');
         $schedule->command('twitch:get-online-list')->everyFiveMinutes();
+        $schedule->command('board-game:set-status-effect-on-player-command')->dailyAt('12:00');
 
         // Закомментированные задачи при необходимости:
         // $schedule->command('log:set')->everyMinute();

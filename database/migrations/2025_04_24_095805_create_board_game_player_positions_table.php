@@ -15,6 +15,7 @@ class CreateBoardGamePlayerPositionsTable extends Migration
     {
         Schema::create('board_game_player_positions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('bg_player_id');
             $table->foreignId('user_id')->nullable();
             $table->integer('position');
             $table->foreignId('board_game_id')->nullable();

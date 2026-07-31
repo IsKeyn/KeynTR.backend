@@ -30,14 +30,35 @@ class LogService
         );
     }
 
-    public static function addLog($userId, $boardGameId, $message)
+    public static function addLog(
+        $userId,
+        $boardGameId,
+        $message,
+        $playerId = null,
+        $important = false,
+        $entityType = null,
+        $entityId = null
+    )
     {
-        $newEntry = [
+        $fields = [
             'board_game_id' => $boardGameId,
             'message' => $message,
             'created_by' => $userId,
+            'bg_player_id' => $playerId,
         ];
 
-        return BoardGameLog::create($newEntry);
+        if ($important) {
+            $fields['important'] = $important;
+        }
+
+        if ($playerId) {
+            $fields['entity_type'] = $entityType;
+        }
+
+        if ($playerId) {
+            $fields['entity_id'] = $entityId;
+        }
+
+        return BoardGameLog::create($fields);
     }
 }

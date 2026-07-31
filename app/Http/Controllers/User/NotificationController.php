@@ -66,6 +66,7 @@ class NotificationController extends Controller
             $list = $notification::where('user_id', $userId)
                 ->active()
                 ->orderBy('created_at', 'desc')
+                ->with(['from'])
                 ->paginate($request->perPage ? $request->perPage : 10);
 
             return NotificationResource::collection($list);

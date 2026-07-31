@@ -25,6 +25,7 @@ abstract class BaseCacheService
     /* КОНЕЦ: ОБЯЗАТЕЛЬНО переопределите эти константы в родительском классе */
 
     public const ARR_PER_PAGE = [24, 28, 96];
+    public const ARR_PER_PAGE_ADMIN = [];
     public const TIME = 6 * 30 * 24 * 60 * 60;
     public const FILTER_TIME = 15 * 24 * 60 * 60;
 
@@ -38,10 +39,12 @@ abstract class BaseCacheService
     {
         $modelClass = static::MODEL;
 
+        // Очистка списочного публичного кеша
         foreach (static::ARR_PER_PAGE as $perPage) {
             $lastPage = $modelClass::query()
                 ->active()
-                ->paginate($perPage)->lastPage();
+                ->paginate($perPage)
+                ->lastPage();
 
             for ($i = 1; $i <= $lastPage; $i++) {
                 $cacheKey = static::LIST_PREFIX . '_' . $i . '_' . $perPage;
@@ -57,6 +60,26 @@ abstract class BaseCacheService
         Cache::forget(static::LIST_PREFIX);
         Cache::forget(static::LIST_TOKEN);
         Cache::forget(static::LIST_FILTER_TOKEN);
+
+        // Очистка списочного админ кеша кеша
+        $adminPerPage = empty(static::ARR_PER_PAGE_ADMIN) ? [15, 30, 60] : static::ARR_PER_PAGE_ADMIN;
+
+        foreach ($adminPerPage as $perPage) {
+            $lastPage = $modelClass::query()
+                ->paginate($perPage)
+                ->lastPage();
+
+            for ($i = 1; $i <= $lastPage; $i++) {
+                $cacheKey = static::LIST_PREFIX . '_' . $i . '_' . $perPage;
+
+                Cache::forget($cacheKey);
+
+                if ($showMessage) {
+                    echo $cacheKey . ' очищен' . PHP_EOL;
+                }
+            }
+        }
+
         Cache::forget(static::ADMIN_LIST_TOKEN);
     }
 
@@ -95,5 +118,10 @@ abstract class BaseCacheService
         Cache::forget($cacheKey);
 
         if ($showMessage) echo $cacheKey . PHP_EOL;
+    }
+
+    public function clearDependentCache($element, $showMessage = false)
+    {
+
     }
 }

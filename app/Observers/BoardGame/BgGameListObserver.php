@@ -3,6 +3,7 @@
 namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\BoardGameGameList;
+use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgGameListObserver
@@ -19,6 +20,8 @@ class BgGameListObserver
 
     public function created(BoardGameGameList $boardGameGameList)
     {
+        $this->additionalActions($boardGameGameList);
+
         $this->defaultObserverService->created(
             $boardGameGameList,
             self::CACHE_SERVICE,
@@ -28,6 +31,8 @@ class BgGameListObserver
 
     public function updated(BoardGameGameList $boardGameGameList)
     {
+        $this->additionalActions($boardGameGameList);
+
         $this->defaultObserverService->updated(
             $boardGameGameList,
             self::CACHE_SERVICE,
@@ -37,6 +42,8 @@ class BgGameListObserver
 
     public function deleted(BoardGameGameList $boardGameGameList)
     {
+        $this->additionalActions($boardGameGameList);
+
         $this->defaultObserverService->deleted(
             $boardGameGameList,
             self::CACHE_SERVICE,
@@ -46,6 +53,8 @@ class BgGameListObserver
 
     public function restored(BoardGameGameList $boardGameGameList)
     {
+        $this->additionalActions($boardGameGameList);
+
         $this->defaultObserverService->restored(
             $boardGameGameList,
             self::CACHE_SERVICE,
@@ -55,9 +64,26 @@ class BgGameListObserver
 
     public function forceDeleted(BoardGameGameList $boardGameGameList)
     {
+        $this->additionalActions($boardGameGameList);
+
         $this->defaultObserverService->forceDeleted(
             $boardGameGameList,
             self::CACHE_SERVICE
         );
+    }
+
+    private function additionalActions($boardGameGameList)
+    {
+        $boardGameGameList->load(['playerGames', 'playerGames.player', 'playerGames.player.boardGame']);
+        $this->clearRelatedCache($boardGameGameList);
+    }
+
+    private function clearRelatedCache($boardGameGameList)
+    {
+        $bgPlayerGameCacheService = app(BgPlayerGameCacheService::class);
+
+        foreach ($boardGameGameList->playerGames as $playerGame) {
+            $bgPlayerGameCacheService->clearPlayerGameHistoryCache($playerGame->player);
+        }
     }
 }

@@ -31,6 +31,7 @@ class NotificationCreated implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
+        $this->notification->load(['from']);
         return NotificationResource::make($this->notification)->toArray(request());
     }
 }

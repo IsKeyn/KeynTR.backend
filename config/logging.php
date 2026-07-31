@@ -123,6 +123,16 @@ return [
                 'format' => "[%datetime%] %channel%.%level_name%: %message% %context%\n"
             ],
         ],
+
+        'statusEffects' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/statusEffects.log'),
+            'level' => 'info',
+            'formatter' => Monolog\Formatter\LineFormatter::class,
+            'formatter_with' => [
+                'format' => "[%datetime%] %channel%.%level_name%: %message% %context%\n"
+            ],
+        ],
     ],
 
 ];

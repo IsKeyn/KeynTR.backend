@@ -12,6 +12,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class BoardGamePlayerWithCurrentGameResource extends JsonResource
 {
+    // TODO устаревший ресурс, удалить когда не будет нигде использоваться, новый BgPlayerWithCurrentGameResource
+
     /**
      * Transform the resource into an array.
      *

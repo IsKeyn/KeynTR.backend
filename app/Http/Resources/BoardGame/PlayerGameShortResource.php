@@ -8,7 +8,7 @@ use App\Http\Resources\UserPublicResource;
 use App\Services\BoardGame\TimerService;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PlayerGameShortResource extends JsonResource
+class PlayerGameShortResource extends JsonResource // TODO устаревший
 {
     /**
      * Transform the resource into an array.

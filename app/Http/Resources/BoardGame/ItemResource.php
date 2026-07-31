@@ -7,7 +7,7 @@ use App\Http\Resources\UserPublicResource;
 use App\Models\Media;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ItemResource extends JsonResource
+class ItemResource extends JsonResource // BgItemResource
 {
     /**
      * Transform the resource into an array.
@@ -15,7 +15,7 @@ class ItemResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
-    public function toArray($request)
+    public function toArray($request) // TODO Устаревший ресурс
     {
         $image = $this->titleImage()->wherePivot('type', '=', Media::TITLE_TYPE)->first();
         $sound = $this->titleImage()->wherePivot('type', '=', Media::SOUND)->first();

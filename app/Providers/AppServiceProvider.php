@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Article;
+use App\Models\BoardGame\AddGame;
 use App\Models\BoardGame\Board;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
@@ -16,6 +17,9 @@ use App\Models\BoardGame\BoardPositionEffectsBind;
 use App\Models\BoardGame\Item;
 use App\Models\BoardGame\ItemBind;
 use App\Models\BoardGame\PlayerGame;
+use App\Models\BoardGame\PlayerInteractions;
+use App\Models\BoardGame\PlayerStatusEffect;
+use App\Models\BoardGame\ShopItem;
 use App\Models\BoardGame\StatusEffect;
 use App\Models\BoardGame\StatusEffectBind;
 use App\Models\BoardGame\Timer;
@@ -25,6 +29,8 @@ use App\Models\GamingPlatform;
 use App\Models\Genre;
 use App\Models\Group;
 use App\Models\Menu;
+use App\Models\Messenger\Chat;
+use App\Models\Messenger\Message;
 use App\Models\Movie;
 use App\Models\Permission;
 use App\Models\Person\Person;
@@ -36,8 +42,11 @@ use App\Models\User;
 use App\Models\User\Notification;
 use App\Models\Version;
 use App\Observers\ArticleObserver;
+use App\Observers\BoardGame\BgAddGameObserver;
 use App\Observers\BoardGame\BgPlayerGameObserver;
+use App\Observers\BoardGame\BgPlayerInteractionsObserver;
 use App\Observers\BoardGame\BgPlayerObserver;
+use App\Observers\BoardGame\BgPlayerStatusEffectObserver;
 use App\Observers\BoardGame\BgPlayerTimerObserver;
 use App\Observers\BoardGame\BgBoardObserver;
 use App\Observers\BoardGame\BgGameListObserver;
@@ -48,6 +57,7 @@ use App\Observers\BoardGame\BgLogObserver;
 use App\Observers\BoardGame\BgPlayerPositionObserver;
 use App\Observers\BoardGame\BgPositionEffectBindObserver;
 use App\Observers\BoardGame\BgPositionEffectObserver;
+use App\Observers\BoardGame\BgShopItemObserver;
 use App\Observers\BoardGame\BgStatusEffectBindObserver;
 use App\Observers\BoardGame\BgStatusEffectObserver;
 use App\Observers\BoardGame\BoardGameObserver;
@@ -57,6 +67,8 @@ use App\Observers\GamingPlatformObserver;
 use App\Observers\GenreObserver;
 use App\Observers\GroupObserver;
 use App\Observers\MenuObserver;
+use App\Observers\Messenger\ChatObserver;
+use App\Observers\Messenger\MessageObserver;
 use App\Observers\MovieObserver;
 use App\Observers\NotificationObserver;
 use App\Observers\PermissionObserver;
@@ -69,6 +81,10 @@ use App\Observers\BoardGame\TimerObserver;
 use App\Observers\UserObserver;
 use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\VKontakte\VKontakteExtendSocialite;
+use SocialiteProviders\Yandex\YandexExtendSocialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -93,6 +109,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        Event::listen(
+            SocialiteWasCalled::class,
+            [YandexExtendSocialite::class, 'handle']
+        );
+
+        Event::listen(
+            SocialiteWasCalled::class,
+            [VKontakteExtendSocialite::class, 'handle']
+        );
+
         Game::observe(GameObserver::class);
         Movie::observe(MovieObserver::class);
         Series::observe(SeriesObserver::class);
@@ -115,17 +141,23 @@ class AppServiceProvider extends ServiceProvider
         BoardGamePlayer::observe(BgPlayerObserver::class);
         Item::observe(BgItemObserver::class);
         ItemBind::observe(BgItemBindObserver::class);
+        ShopItem::observe(BgShopItemObserver::class);
         BoardGameInventory::observe(BgInventoryObserver::class);
         StatusEffect::observe(BgStatusEffectObserver::class);
         StatusEffectBind::observe(BgStatusEffectBindObserver::class);
+        PlayerStatusEffect::observe(BgPlayerStatusEffectObserver::class);
         Board::observe(BgBoardObserver::class);
         BoardPositionEffect::observe(BgPositionEffectObserver::class);
         BoardPositionEffectsBind::observe(BgPositionEffectBindObserver::class);
         BoardGamePlayerPosition::observe(BgPlayerPositionObserver::class);
+        PlayerInteractions::observe(BgPlayerInteractionsObserver::class);
         BoardGameGameList::observe(BgGameListObserver::class);
         PlayerGame::observe(BgPlayerGameObserver::class);
+        AddGame::observe(BgAddGameObserver::class);
         Timer::observe(TimerObserver::class);
         BoardGamePlayerTimer::observe(BgPlayerTimerObserver::class);
         BoardGameLog::observe(BgLogObserver::class);
+        Message::observe(MessageObserver::class);
+        Chat::observe(ChatObserver::class);
     }
 }

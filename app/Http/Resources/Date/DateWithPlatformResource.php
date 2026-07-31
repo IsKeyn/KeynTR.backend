@@ -16,7 +16,7 @@ class DateWithPlatformResource extends JsonResource
     public function toArray($request)
     {
         $gamePlatform = $this->whenLoaded('gamePlatform', function() {
-            return $this->gamePlatform()->first();
+            return $this->gamePlatform->first();
         });
 
         return [

@@ -37,19 +37,24 @@ trait ExtendModelTrait
         return $query->where('active', true);
     }
 
-    public function cover()
-    {
-        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::COVER_TYPE)->withTimestamps();
-    }
-
     public function media()
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->withTimestamps();
     }
 
+    public function cover()
+    {
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::COVER_TYPE)->withTimestamps();
+    }
+
     public function titleImage()
     {
         return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::TITLE_TYPE)->withTimestamps();
+    }
+
+    public function sound()
+    {
+        return $this->morphToMany(Media::class, 'media_bind')->withPivot('type', 'sort')->wherePivot('type', '=', Media::SOUND)->withTimestamps();
     }
 
     public function tags()
@@ -69,9 +74,19 @@ trait ExtendModelTrait
 
     public function getTitleImageAttribute()
     {
-        return $this->titleImage()
-            ->wherePivot('type', '=', Media::TITLE_TYPE)
-            ->first();
+        if ($this->relationLoaded('titleImage')) {
+            return $this->getRelationValue('titleImage')->first();
+        }
+
+        return $this->titleImage()->first();
+    }
+
+    public function getSoundAttribute()
+    {
+        if ($this->relationLoaded('sound')) {
+            return $this->getRelationValue('sound')->first();
+        }
+        return $this->sound()->first();
     }
 
     public function comments()

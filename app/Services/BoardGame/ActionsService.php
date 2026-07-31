@@ -2,6 +2,7 @@
 
 namespace App\Services\BoardGame;
 
+use App\Filters\BoardGame\BgPlayerFilter;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGamePlayer;
@@ -155,6 +156,20 @@ class ActionsService
                     $action,
                 );
                 break;
+
+            case 'random':
+                $result = $this->randomAction(
+                    $data,
+                    $action,
+                );
+                break;
+
+            case 'game':
+                $result = $this->gameAction(
+                    $data,
+                    $action,
+                );
+                break;
         }
 
         return $result;
@@ -172,6 +187,7 @@ class ActionsService
         if (gettype($players) === 'array') {
             foreach ($players as $player) {
                 $playerFields = $this->setFieldsWithPoints($player, $action);
+
                 $player->update($playerFields);
 
                 $this->notificationHandler($data, $player, $action);
@@ -271,7 +287,8 @@ class ActionsService
             LogService::addLog(
                 $this->conditionData['user']->id,
                 $this->conditionData['boardGame']->id,
-                $logMessage
+                $logMessage,
+                $player->id
             );
         }
 
@@ -323,7 +340,8 @@ class ActionsService
                 LogService::addLog(
                     $this->conditionData['user']->id,
                     $this->conditionData['boardGame']->id,
-                    $logMessage
+                    $logMessage,
+                    $player->id
                 );
             }
 
@@ -677,104 +695,116 @@ class ActionsService
 
     private function actionsWithPlayerInteractions($request, $action)
     {
-        if ($action->value) {
-            $players = $this->target($request, $action);
-
-            foreach ($players as $player) {
-                switch ($action->value) {
-                    case 'switchGame':
-                        // 1. Проверяем игру текущего игрока и может ли он её передать
-                        $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
-                            ->where('user_id', $this->conditionData['user']->id)
-                            ->where('status', PlayerGame::CURRENT)->first();
-
-                        if ($currentUserCurrentGame) {
-                            // Проверяем, что текущая игра не ультра мошна и не переданная игра
-                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
-                                return ErrorService::message('Вы не можете это сделать, так как текущую игру, вы получили от другого игрока');
-                            }
-
-                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
-                                return ErrorService::message('Вы не можете это сделать, так как текуая игра - это ультра мошна');
-                            }
-                        } else if (!$currentUserCurrentGame) {
-                            return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
-                        }
-
-                        // 2. Проверяем, что у игрока обмена есть текущая игра
-                        $playerCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
-                            ->where('user_id', $player->user_id)
-                            ->where('status', PlayerGame::CURRENT)->first();
-
-                        if ($playerCurrentGame) {
-                            // Проверяем, что текущая игра не ультра мошна и не переданная игра
-                            if ($playerCurrentGame->type === PlayerGame::TYPE_TAKEN) {
-                                return ErrorService::message('Текущая игра участника, которого вы выбрали является переданной игрой');
-                            }
-
-                            if ($playerCurrentGame->type === PlayerGame::TYPE_PURSE) {
-                                return ErrorService::message('Текущая игра участника, которого вы выбрали является ультра мошной');
-                            }
-                        } else if (!$playerCurrentGame) {
-                            return ErrorService::message('У данного игрока отсуствует текущая игра');
-                        }
-
-                        // 3. Проверяем, что у игрока этой игры не было
-                        $playerGameCheck = PlayerGame::query()->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
-                            ->findByBoardGame($this->conditionData['boardGame']->id)->findByUserId($player->user_id)->first();
-
-                        if ($playerGameCheck) {
-                            return ErrorService::message('У данного игрока уже была игра, которой вы хотите обменяться');
-                        }
-
-                        // 4. Проверяем, что у  вас не было игры, на которую вы хотите обмениваетесь
-                        $userGameCheck = PlayerGame::query()->where('board_game_game_list_id', $playerCurrentGame->board_game_game_list_id)
-                            ->findByBoardGame($this->conditionData['boardGame']->id)->findByUserId($this->conditionData['user']->id)->first();
-
-                        if ($userGameCheck) {
-                            return ErrorService::message('У вас уже была игра, на которую вы хотите обменяться');
-                        }
-
-                        return $this->createInteraction($request, $action, $player);
-                    case 'playForMe':
-                        $currentUserCurrentGame = PlayerGame::where('board_game_id', $this->conditionData['boardGame']->id)
-                            ->where('user_id', $this->conditionData['user']->id)
-                            ->where('status', PlayerGame::CURRENT)->first();
-
-                        if ($currentUserCurrentGame) {
-                            // Проверяем, что текущая игра не ультра мошна и не переданная игра
-                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
-                                return ErrorService::message('Вы не можете это сделать, так текущую игру, вы получили от другого игрока');
-                            }
-
-                            if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
-                                return ErrorService::message('Вы не можете это сделать, так как текущая игра - это ультра мошна');
-                            }
-                        } else if (!$currentUserCurrentGame) {
-                            return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
-                        }
-
-                        // 3. Проверяем, что у игрока этой игры не было
-                        $playerGame = PlayerGame::query()->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
-                            ->findByBoardGame($this->conditionData['boardGame']->id)->findByUserId($player->user_id)->first();
-
-                        if ($playerGame) {
-                            return ErrorService::message('У данного игрока уже была игра, которую вы предлагаете');
-                        }
-
-                        if ($action->description) {
-                            $action->description = str_replace('*name*', $currentUserCurrentGame->game->game->name, $action->description);
-                        }
-
-                        return $this->createInteraction($request, $action, $player);
-
-                    case 'battleForPoints':
-                    case 'inviteToCoop':
-                        return $this->createInteraction($request, $action, $player);
-                }
-            }
-        } else {
+        if (!$action->value) {
             return ErrorService::message('Отсутствует тип взаимодействия $action->value');
+        }
+
+        $players = $this->target($request, $action);
+
+        $this->conditionData['player']->load([
+            'currentGames',
+        ]);
+
+        foreach ($players as $player) {
+            $player->load([
+                'currentGames',
+            ]);
+
+            switch ($action->value) {
+                case 'switchGame':
+
+                    // 1. Проверяем игру текущего игрока и может ли он её передать
+                    $currentUserCurrentGame = $this->conditionData['player']->currentGames->first();
+
+                    if (!$currentUserCurrentGame) {
+                        return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
+                    }
+
+                    // Проверяем, что текущая игра не ультра мошна и не переданная игра
+                    if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
+                        return ErrorService::message('Вы не можете это сделать, так как текущую игру, вы получили от другого игрока');
+                    }
+
+                    if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
+                        return ErrorService::message('Вы не можете это сделать, так как текуая игра - это ультра мошна');
+                    }
+
+                    // 2. Проверяем, что у игрока обмена есть текущая игра
+                    $playerCurrentGame = $player->currentGames->first();
+
+                    if (!$playerCurrentGame) {
+                        return ErrorService::message('У данного игрока отсуствует текущая игра');
+                    }
+
+                    // Проверяем, что текущая игра не ультра мошна и не переданная игра
+                    if ($playerCurrentGame->type === PlayerGame::TYPE_TAKEN) {
+                        return ErrorService::message('Текущая игра участника, которого вы выбрали является переданной игрой');
+                    }
+
+                    if ($playerCurrentGame->type === PlayerGame::TYPE_PURSE) {
+                        return ErrorService::message('Текущая игра участника, которого вы выбрали является ультра мошной');
+                    }
+
+                    // 3. Проверяем, что у игрока этой игры не было
+                    $playerGameCheck = PlayerGame::query()
+                        ->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
+                        ->findByBoardGame($this->conditionData['boardGame']->id)
+                        ->findByUserId($player->user_id)
+                        ->first();
+
+                    if ($playerGameCheck) {
+                        return ErrorService::message('У данного игрока уже была игра, которой вы хотите обменяться');
+                    }
+
+                    // 4. Проверяем, что у вас не было игры, на которую вы хотите обмениваетесь
+                    $userGameCheck = PlayerGame::query()
+                        ->where('board_game_game_list_id', $playerCurrentGame->board_game_game_list_id)
+                        ->findByBoardGame($this->conditionData['boardGame']->id)
+                        ->findByUserId($this->conditionData['user']->id)
+                        ->first();
+
+                    if ($userGameCheck) {
+                        return ErrorService::message('У вас уже была игра, на которую вы хотите обменяться');
+                    }
+
+                    return $this->createInteraction($request, $action, $player);
+                case 'playForMe':
+                    $currentUserCurrentGame = $this->conditionData['player']->currentGames->first();
+
+                    if (!$currentUserCurrentGame) {
+                        return ErrorService::message('Вы не можете это сделать, так как у вас нет текущей игры');
+                    }
+
+                    // Проверяем, что текущая игра не ультра мошна и не переданная игра
+                    if ($currentUserCurrentGame->type === PlayerGame::TYPE_TAKEN) {
+                        return ErrorService::message('Вы не можете это сделать, так текущую игру, вы получили от другого игрока');
+                    }
+
+                    if ($currentUserCurrentGame->type === PlayerGame::TYPE_PURSE) {
+                        return ErrorService::message('Вы не можете это сделать, так как текущая игра - это ультра мошна');
+                    }
+
+                    // 3. Проверяем, что у игрока этой игры не было
+                    $playerGame = PlayerGame::query()
+                        ->where('board_game_game_list_id', $currentUserCurrentGame->board_game_game_list_id)
+                        ->findByBoardGame($this->conditionData['boardGame']->id)
+                        ->findByUserId($player->user_id)
+                        ->first();
+
+                    if ($playerGame) {
+                        return ErrorService::message('У данного игрока уже была игра, которую вы предлагаете');
+                    }
+
+                    if ($action->description) {
+                        $action->description = str_replace('*name*', $currentUserCurrentGame->game->game->name, $action->description);
+                    }
+
+                    return $this->createInteraction($request, $action, $player);
+
+                case 'battleForPoints':
+                case 'inviteToCoop':
+                    return $this->createInteraction($request, $action, $player);
+            }
         }
     }
 
@@ -784,6 +814,7 @@ class ActionsService
             'type' => $action->value,
             'status' => PlayerInteractions::STATUS_ACTIVE,
             'board_game_id' => $this->conditionData['boardGame']->id,
+            'bg_player_id' => $this->conditionData['player']->id,
             'created_by' => $this->conditionData['user']->id,
             'with_player' => $player->user_id,
             'active' => true,
@@ -837,42 +868,60 @@ class ActionsService
     {
         /* Функция выполняет действия связанные с эффектами игрока */
         if ($action->value) {
-            $statusEffectObj = $this->statusEffect::query()
+            $conditionData = $this->conditionData;
+
+            $boardGameId = $conditionData['boardGame']->id ?? null;
+
+            if (!$boardGameId) {
+                throw new \InvalidArgumentException('Board game is not defined in condition data.');
+            }
+
+            $bindFilter = fn ($query) => $query->where('board_game_id', $boardGameId);
+
+            $statusEffectObj = StatusEffect::query()
                 ->where('slug', $action->value)
-                ->where('board_game_id', $this->conditionData['boardGame']->id)
+                ->whereHas('statusEffectBinds', $bindFilter)
+                ->with(['statusEffectBinds' => $bindFilter])
+                ->active()
                 ->first();
 
-            if ($statusEffectObj) {
-                $players = $this->target($request, $action);
+            if (!$statusEffectObj) {
+                return $this->error('Статус эффект отсутствует');
+            }
 
-                if (gettype($players) === 'array') {
-                    foreach ($players as $player) {
-                        $PlayerStatusEffectFields = [
-                            'user_id' => $player->user_id,
-                            'board_game_id' => $this->conditionData['boardGame']->id,
-                            'status_effect_id' => $statusEffectObj->id,
-                            'created_by' => $this->conditionData['user']->id,
-                        ];
+            if (!$statusEffectObj->statusEffectBinds || $statusEffectObj->statusEffectBinds->isEmpty()) {
+                return $this->error('Статус эффект не привязан к данному ивенту');
+            }
 
-                        $this->PlayerStatusEffect::create($PlayerStatusEffectFields);
+            $players = $this->target($request, $action);
 
-                        $logMessage = 'Получил статус эффект ' . $statusEffectObj->name;
+            if (gettype($players) === 'array') {
+                foreach ($players as $player) {
+                    $PlayerStatusEffectFields = [
+                        'user_id' => $player->user_id,
+                        'bg_player_id' => $player->id,
+                        'board_game_id' => $this->conditionData['boardGame']->id,
+                        'status_effect_bind_id' => $statusEffectObj->statusEffectBinds->first()->id,
+                        'created_by' => $this->conditionData['user']->id,
+                    ];
 
-                        if (isset($logMessage)) {
-                            LogService::addLog(
-                                $this->conditionData['user']->id,
-                                $this->conditionData['boardGame']->id,
-                                $logMessage
-                            );
-                        }
+                    $this->PlayerStatusEffect::create($PlayerStatusEffectFields);
 
-                        $this->notificationHandler($request, $player, $action);
+                    $logMessage = 'Получил статус эффект ' . $statusEffectObj->name;
+
+                    if (isset($logMessage)) {
+                        LogService::addLog(
+                            $this->conditionData['user']->id,
+                            $this->conditionData['boardGame']->id,
+                            $logMessage,
+                            $player->id
+                        );
                     }
 
-                    return true;
+                    $this->notificationHandler($request, $player, $action);
                 }
-            } else {
-                return $this->error('Действие отсутствует');
+
+                return true;
             }
         } else {
             return $this->error('Действие отсутствует');
@@ -968,6 +1017,62 @@ class ActionsService
         }
     }
 
+    private function randomAction($data, $action)
+    {
+        $players = $this->target($data, $action);
+
+        if (isset($players['error'])) {
+            return $players['error'];
+        }
+
+        if (gettype($players) !== 'array') {
+            return false;
+        }
+
+        $resultByPlayers = [];
+
+        foreach ($players as $player) {
+            if ($action->actionsForRandom) {
+                $randomKey = array_rand($action->actionsForRandom);
+                $randomAction = $action->actionsForRandom[$randomKey];
+
+                if ($this->activateAction($data, (object) $randomAction, $player->user_id)) {
+                    $resultByPlayers[$player->id] = $randomAction;
+                }
+            }
+        }
+
+        return $resultByPlayers;
+    }
+
+    private function gameAction($data, $action)
+    {
+        $players = $this->target($data, $action);
+
+        if (isset($players['error'])) {
+            return $players['error'];
+        }
+
+        if (gettype($players) !== 'array') {
+            return false;
+        }
+
+        $resultByPlayers = [];
+
+        foreach ($players as $player) {
+            if ($action->actionsForRandom) {
+                $randomKey = array_rand($action->actionsForRandom);
+                $randomAction = $action->actionsForRandom[$randomKey];
+
+                if ($this->activateAction($data, (object) $randomAction, $player->user_id)) {
+                    $resultByPlayers[$player->id] = $randomAction;
+                }
+            }
+        }
+
+        return $resultByPlayers;
+    }
+
     private function getValueAndSetLog($action, $player, $columnName, $fieldHumanName)
     {
         if (!isset($action->changeType) || !$action->changeType) {
@@ -1012,7 +1117,8 @@ class ActionsService
             LogService::addLog(
                 $this->conditionData['user']->id,
                 $this->conditionData['boardGame']->id,
-                $logMessage
+                $logMessage,
+                $player->id
             );
         }
 
@@ -1037,62 +1143,148 @@ class ActionsService
         }
     }
 
-    public function target($request, $action)
+    public function target($request, $action): array
     {
         $players = [];
 
-        /* Функция, которое определяет, на кого действует предмет */
+        /* Функция определяющая игроков, которые являются целью */
         switch ($action->target) {
             case 'current':
-                $userId = $this->userId ? $this->userId : $this->conditionData['user']->id;
-
-                $players[] = $this->BoardGamePlayer::query()
-                    ->where('user_id', $userId)
-                    ->where('board_game_id', $this->conditionData['boardGame']->id)
-                    ->first();
+                $players[] = $this->conditionData['player'];
                 break;
 
             case 'other':
-            case 'nearestPlayer':
             case 'fromTo':
-            case str_contains($action->target, 'noFurther'):
-                /* TODO ближащий игрок выбрается на фронте, проверять его тут на беке */
-                if (isset($request->additionalParams['player']) && $request->additionalParams['player']) {
-                    $players[] = $this->BoardGamePlayer::query()
-                        ->where('id', $request->additionalParams['player'])
-                        ->where('board_game_id', $this->conditionData['boardGame']->id)
-                        ->first();
-                } else {
-                    return ['error' => 'Игрок не выбран'];
+                if (!isset($request->additionalParams['player']) || !$request->additionalParams['player']) {
+                    return $this->error('Игрок не выбран');
                 }
+
+                $query = $this->BoardGamePlayer::query()
+                    ->findByBoardGame($this->conditionData['boardGame']->id)
+                    ->active();
+
+                if ($request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
+                break;
+
+            case 'notPlayBattleForPoints':
+                $filters = [
+                    'notPlayBattleForPoints' => [
+                        'user_id' => $this->conditionData['user']->id,
+                        'bg_slug' => $this->conditionData['boardGame']->slug,
+                    ]
+                ];
+
+                $filterRequest = new \Illuminate\Http\Request(['filters' => json_encode($filters)]);
+                $filter = new BgPlayerFilter($filterRequest);
+
+                $query = $filter
+                    ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                if ($request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
+                break;
+
+            case 'notInvitedToCoop':
+                $filters = [
+                    'notInvitedToCoop' => [
+                        'user_id' => $this->conditionData['user']->id,
+                        'bg_slug' => $this->conditionData['boardGame']->slug,
+                    ]
+                ];
+
+                $filterRequest = new \Illuminate\Http\Request(['filters' => json_encode($filters)]);
+                $filter = new BgPlayerFilter($filterRequest);
+
+                $query = $filter
+                    ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                if (!isset($request->additionalParams['player']) || $request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
+                break;
+
+            case 'nearestPlayer':
+                $filters = [
+                    'nearestOnly' => [
+                        'user_id' => $this->conditionData['user']->id,
+                        'bg_slug' => $this->conditionData['boardGame']->slug,
+                    ]
+                ];
+
+                $filterRequest = new \Illuminate\Http\Request(['filters' => json_encode($filters)]);
+                $filter = new BgPlayerFilter($filterRequest);
+
+                $query = $filter
+                    ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                if ($request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
+                break;
+
+            case str_contains($action->target, 'noFurther'):
+                $parts = explode('_', $action->target);
+                $result = $parts[1];
+
+                $filters = [
+                    'distance' => [
+                        'user_id' => $this->conditionData['user']->id,
+                        'max_distance' => $result,
+                    ]
+                ];
+
+                $filterRequest = new \Illuminate\Http\Request(['filters' => json_encode($filters)]);
+                $filter = new BgPlayerFilter($filterRequest);
+
+                $query = $filter->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                if ($request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
                 break;
 
             case 'allExpectMe':
-                $playersSelection = $this->BoardGamePlayer::query()
-                    ->where('board_game_id', $this->conditionData['boardGame']->id)
+                $players = $this->BoardGamePlayer::query()
+                    ->findByBoardGame($this->conditionData['boardGame']->id)
                     ->where('user_id', '!=', $this->conditionData['user']->id)
-                    ->get();
-
-                foreach ($playersSelection as $player) {
-                    $players[] = $player;
-                }
+                    ->get()->all();
                 break;
 
             case 'positionLeader':
-                $playersWithPositions = $this->BoardGamePlayerPosition::all()->sortByDesc('created_at')->unique('user_id');
+                $playersWithPositions = $this->BoardGamePlayerPosition::all()
+                    ->where('board_game_id', $this->conditionData['boardGame']->id)
+                    ->sortByDesc('created_at')
+                    ->unique('user_id');
 
-                $playersByPositions = [];
+                $modelWithMaxPosition = $playersWithPositions->sortByDesc('position')->first();
 
-                foreach ($playersWithPositions as $playerWithPosition) {
-                    $playersByPositions[$playerWithPosition->position][] = $playerWithPosition;
-                }
-
-                foreach ($playersByPositions[max(array_keys($playersByPositions))] as $playerByPosition) {
-                    $players[] = $this->BoardGamePlayer::query()
-                        ->where('user_id', $playerByPosition->user_id)
-                        ->where('board_game_id', $this->conditionData['boardGame']->id)
-                        ->first();
-                }
+                $players[] = $this->BoardGamePlayer::query()
+                    ->where('user_id', $modelWithMaxPosition->user_id)
+                    ->where('board_game_id', $this->conditionData['boardGame']->id)
+                    ->first();
                 break;
         }
 

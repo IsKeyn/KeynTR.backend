@@ -24,9 +24,11 @@ class NotificationService
         );
     }
 
-    public static function getCount()
+    public static function getCount($userId = null)
     {
-        $userId = Auth::id();
+        if (!$userId) {
+            $userId = Auth::id();
+        }
 
         if (!$userId) return [];
 
@@ -36,13 +38,22 @@ class NotificationService
             $row = DB::table('notifications')
                 ->selectRaw('(SELECT COUNT(*) FROM notifications WHERE user_id = ? AND viewed = 0 AND active = 1) as notification_count',
                     [$userId])
-                ->selectRaw('(SELECT COUNT(*) FROM messages WHERE user_id = ? AND viewed = 0 AND active = 1) as message_count',
-                    [$userId])
                 ->first();
+
+            // Один оптимизированный SQL-запрос без создания Eloquent-моделей
+            $totalUnread = DB::table('ms_messages')
+                ->join('ms_chat_user', function ($join) use ($userId) {
+                    $join->on('ms_chat_user.chat_id', '=', 'ms_messages.chat_id')
+                        ->where('ms_chat_user.user_id', '=', $userId);
+                })
+                ->where('ms_messages.user_id', '!=', $userId) // Не считаем свои сообщения
+                // COALESCE нужен, чтобы считать null (в новых чатах) как 0
+                ->whereRaw('ms_messages.id > COALESCE(ms_chat_user.last_read_message_id, 0)')
+                ->count(); // Возвращает целое число (int)
 
             return $row ? [
                 'notification_count' => $row->notification_count,
-                'message_count' => $row->message_count,
+                'message_count' => $totalUnread,
             ] : [];
         });
     }

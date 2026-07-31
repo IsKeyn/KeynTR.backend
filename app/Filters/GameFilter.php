@@ -3,6 +3,7 @@
 namespace App\Filters;
 
 use App\Filters\Concerns\HasFilters;
+use App\Models\BoardGame\BoardGameGameList;
 use App\Models\Game;
 use App\Models\ViewsCount;
 use App\Models\VotesCount;
@@ -21,6 +22,21 @@ class GameFilter
                 ->with('gamePlatform')
                 ->whereHas('gamePlatform', function($query) use ($gamePlatformsIds) {
                     $query->whereIn('gaming_platforms.id', $gamePlatformsIds);
+                });
+        }
+    }
+
+    protected function eventGamePlatforms($value): void
+    {
+        if ($value) {
+            if (is_string($value)) {
+                $value = json_decode($value, true);
+            }
+
+            $this->query
+                ->with('bgGamesList')
+                ->whereHas('bgGamesList', function($query) use ($value) {
+                    $query->whereIn('board_game_game_lists.gaming_platform_id', $value);
                 });
         }
     }
@@ -67,6 +83,20 @@ class GameFilter
                     $query_0->whereHas('boardGame', function($query_1) use ($value) {
                         $query_1->whereIn('board_games.id', $value);
                     });
+                });
+        }
+    }
+
+    protected function onlyGold($value): void
+    {
+        $decodedFilters = $this->filters();
+
+        if ($value && isset($decodedFilters['events'])) {
+            $this->query
+                ->with('bgGamesList')
+                ->whereHas('bgGamesList', function($query) use ($decodedFilters) {
+                    $query->whereIn('board_game_id', $decodedFilters['events']);
+                    $query->where('list_type', BoardGameGameList::GOLDEN_LIST);
                 });
         }
     }

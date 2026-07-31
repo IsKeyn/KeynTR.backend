@@ -12,6 +12,8 @@ class PlayerStatusEffectResource extends JsonResource
      * @param  \Illuminate\Http\Request  $request
      * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
      */
+
+    // TODO устаревший метод
     public function toArray($request)
     {
         return [
