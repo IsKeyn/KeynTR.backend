@@ -433,7 +433,7 @@ class PlayerGameController extends Controller
                         // Добавляем ролл предметы и добавляем ходы
                         $eventType = $conditionData['boardGame']->settings->where('code', '=', 'event_type')->first();
 
-                        if ($eventType->value === 'board-last-cell') {
+                        if ($eventType && $eventType->value === 'board-last-cell') {
                             $itemRollCountForAdd = 1;
                             $stepCountForAdd = 1;
 
@@ -707,7 +707,7 @@ class PlayerGameController extends Controller
         // Проверяем не выполнил ли игрок условия окончания ивента
         $eventType = $conditionData['boardGame']->settings->where('code', '=', 'event_type')->first();
 
-        if ($eventType->value === 'board-last-cell') {
+        if ($eventType && $eventType->value === 'board-last-cell') {
             // Проверяем не достиг ли игрок последней клетки игрового поля
             if ($conditionData['player']->finishBoard) {
                 return [
@@ -778,7 +778,8 @@ class PlayerGameController extends Controller
             $platformId = $request->platform_id ? $request->platform_id : null;
         }
 
-        $gameListFiltered = $this->getFilteredGameList($platformId, $conditionData);
+        $bgPlayerGameService = app(BgPlayerGameService::class);
+        $gameListFiltered = $bgPlayerGameService->getFilteredGameList($platformId, $conditionData);
 
         if (isset($gameListFiltered['gameList']) && $gameListFiltered['gameList']->count() === 0) {
             return ErrorService::message(__('boardGame.player_game.dont_have_game_for_roll'));
@@ -841,7 +842,7 @@ class PlayerGameController extends Controller
         );
 
         // Если тип ивента board-last-cell (достижение последней клетки ивента), то сбрасываем основной таймер и меняем его название
-        if ($eventType->value === 'board-last-cell') {
+        if ($eventType && $eventType->value === 'board-last-cell') {
             $timer = $conditionData['player']->mainTimers->first();
             $timer->name = $randomGame->game->name;
             $timer->save();
