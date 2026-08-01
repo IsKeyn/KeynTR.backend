@@ -129,7 +129,7 @@ class MediaService
         $media = Media::query()->where('id', $mediaId)->first();
 
         if ($media) {
-            return $entity->media()->syncWithPivotValues($media->id, ['type' => Media::SOUND]);
+            return $entity->sound()->syncWithPivotValues($media->id, ['type' => Media::SOUND]);
         }
     }
 
