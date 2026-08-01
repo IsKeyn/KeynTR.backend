@@ -12,16 +12,21 @@ class RelatedDataService
             || isset($validated['covers'])
             || isset($validated['avatar'])
             || isset($validated['media'])
+            || isset($validated['image'])
         ) {
             $mediaService = new MediaService();
 
-            if (isset($validated['title_image']) || isset($validated['media'])) {
+            if (isset($validated['title_image']) || isset($validated['media']) || isset($validated['image'])) {
                 if (isset($validated['title_image'])) {
                     $media = $validated['title_image'];
                 }
 
                 if (isset($validated['media'])) {
                     $media = $validated['media'];
+                }
+
+                if (isset($validated['image'])) {
+                    $media = $validated['image'];
                 }
 
                 $mediaService->setTitleImage($model, $media);
