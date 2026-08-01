@@ -4,6 +4,7 @@ namespace App\Observers\BoardGame;
 
 use App\Models\BoardGame\BoardGameGameList;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
+use App\Services\Cache\GameCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgGameListObserver
@@ -72,18 +73,21 @@ class BgGameListObserver
         );
     }
 
-    private function additionalActions($boardGameGameList)
+    private function additionalActions(BoardGameGameList $boardGameGameList)
     {
         $boardGameGameList->load(['playerGames', 'playerGames.player', 'playerGames.player.boardGame']);
         $this->clearRelatedCache($boardGameGameList);
     }
 
-    private function clearRelatedCache($boardGameGameList)
+    private function clearRelatedCache(BoardGameGameList $boardGameGameList)
     {
         $bgPlayerGameCacheService = app(BgPlayerGameCacheService::class);
 
         foreach ($boardGameGameList->playerGames as $playerGame) {
             $bgPlayerGameCacheService->clearPlayerGameHistoryCache($playerGame->player);
         }
+
+        $gameCacheService = app(GameCacheService::class);
+        $gameCacheService->clearGameListCache();
     }
 }

@@ -37,6 +37,7 @@ class GameController extends Controller
             $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
             $time = GameCacheService::FILTER_TIME;
         }
+
         return Cache::remember($cacheKey, $time, function () use ($request) {
             $decodedFilters = json_decode($request->filters, true);
 
