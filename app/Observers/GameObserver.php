@@ -191,15 +191,25 @@ class GameObserver
         BoardGameGameList::where('game_id', $game->id)->delete();
     }
 
-    private function clearRelatedCache($game)
+    private function clearRelatedCache(Game $game)
     {
-        $game->load('bgGamesList', 'bgGamesList.boardGame', 'bgGamesList.game');
+        $game->load([
+            'bgGamesList',
+            'bgGamesList.boardGame',
+            'bgGamesList.game',
+            'bgGamesList.playerGames',
+            'bgGamesList.playerGames.player',
+            'bgGamesList.playerGames.player.boardGame',
+            'bgGamesList.playerGames.player.user',
+        ]);
 
         $bgPlayerCacheService = app(BgPlayerGameCacheService::class);
 
         foreach ($game->bgGamesList as $bgGamesList) {
-            $bgPlayerCacheService->clearClientDetailCache($bgGamesList);
-            $bgPlayerCacheService->clearActionsWithGameList($bgGamesList);
+            foreach ($bgGamesList->playerGames as $playerGame) {
+                $bgPlayerCacheService->clearClientDetailCache($playerGame);
+                $bgPlayerCacheService->clearActionsWithGameList($playerGame);
+            }
         }
     }
 }

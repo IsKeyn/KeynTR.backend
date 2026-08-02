@@ -29,6 +29,10 @@ class BgPlayerGameCacheService extends BaseCacheService
 
     public function clearClientDetailCache($element)
     {
+        if (!$element->boardGame || !$element->user || !$element->game) {
+            return;
+        }
+
         $currentGameCacheKey = BgPlayerGameCacheService::DETAIL_PREFIX . '_current_' . $element->boardGame->slug . '_' . $element->user->id;
         Cache::forget($currentGameCacheKey);
 
