@@ -9,5 +9,5 @@ Route::prefix('AddGame/')->controller(BgAddGameController::class)->group(functio
     Route::post('{addGame}/recovery', 'recovery')->name('recovery');
     Route::get('filters', 'getListFilters')->name('filters');
 });
-Route::resource('PlayerGame', BgAddGameController::class)
+Route::resource('AddGame', BgAddGameController::class)
     ->parameters(['AddGame' => 'addGame']);

@@ -23,6 +23,7 @@ use App\Models\BoardGame\ShopItem;
 use App\Models\BoardGame\StatusEffect;
 use App\Models\BoardGame\StatusEffectBind;
 use App\Models\BoardGame\Timer;
+use App\Models\Character;
 use App\Models\Company;
 use App\Models\Game;
 use App\Models\GamingPlatform;
@@ -61,6 +62,7 @@ use App\Observers\BoardGame\BgShopItemObserver;
 use App\Observers\BoardGame\BgStatusEffectBindObserver;
 use App\Observers\BoardGame\BgStatusEffectObserver;
 use App\Observers\BoardGame\BoardGameObserver;
+use App\Observers\CharacterObserver;
 use App\Observers\CompanyObserver;
 use App\Observers\GameObserver;
 use App\Observers\GamingPlatformObserver;
@@ -159,5 +161,6 @@ class AppServiceProvider extends ServiceProvider
         BoardGameLog::observe(BgLogObserver::class);
         Message::observe(MessageObserver::class);
         Chat::observe(ChatObserver::class);
+        Character::observe(CharacterObserver::class);
     }
 }

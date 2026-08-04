@@ -32,9 +32,9 @@ class StatusEffect extends Model
     public const PUBLIC_RESOURCES = [];
 
     // Type value
-    const DICE_TYPE = 0;
+    const DICE_TYPE = 0; // Эффекты влиящие на кубик
     const POINTS_TYPE = 1;
-    const GAME_LIST_TYPE = 2;
+    const GAME_LIST_TYPE = 2; // Эффекты влиящие на итоговые очки, за прохождение игры
     const OTHER = 10;
 
     const TYPES = [

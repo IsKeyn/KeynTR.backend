@@ -3,6 +3,7 @@
 namespace App\Services\BoardGame;
 
 use App\Http\Resources\BoardGame\StatusEffects\BgStatusEffectResource;
+use App\Models\BoardGame\BoardGamePlayer;
 use App\Models\BoardGame\PlayerGame;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
@@ -120,13 +121,14 @@ class GameService
     }
 
     /**
-     * @param $player
+     * @param BoardGamePlayer $player
      * @param $currentGame
      * @return float|int
      */
     public static function finishPoints(
-        $player,
-        $currentGame
+        BoardGamePlayer $player,
+        $currentGame,
+        bool $removeSe = false
     )
     {
         if (!$player || !$currentGame) return;
@@ -139,13 +141,15 @@ class GameService
         }
 
 
-        // Добавляем или отничаем очки за статус эффекты
+        /**
+         * Добавляем или отнимаем очки за статус эффекты, деактивируем только статус эффекты,
+         * у которых есть модификатор финальных очков. И только если $removeSe === true
+         */
         foreach ($player->statusEffects as $playerStatusEffect) {
             $statusEffect = $playerStatusEffect->statusEffectBind->statusEffect;
 
             if ((int) $statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
                 $actions = $statusEffect->actions;
-
                 foreach ($actions as $action) {
                     if (
                         is_array($action) &&
@@ -153,7 +157,11 @@ class GameService
                         $action['type'] === 'finalPointsMod' &&
                         isset($action['value'])
                     ) {
-                        $pointsForGame = $pointsForGame * (1 - $action['value'] / 100);
+                        $pointsForGame = $pointsForGame * (1 + $action['value'] / 100);
+
+                        if ($removeSe && $playerStatusEffect->active === true) {
+                            $playerStatusEffect->update(['active' => false]);
+                        }
                     }
                 }
             }
