@@ -14,7 +14,7 @@ class BoardPositionEffectsBind extends Model
 
     protected $table = 'bg_board_position_effect_binds';
 
-    public const CACHE_NAME = 'bg-board-position-effect';
+    public const CACHE_NAME = 'bg-board-position-effect_binds';
     public const TABLE_NAME = 'bg_board_position_effect_binds';
 
     public const CACHE_SERVICE = 'App\Services\Cache\BoardGame\BgBoardPositionEffectBindCacheService';

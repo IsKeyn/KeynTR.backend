@@ -18,7 +18,7 @@ class Character extends Model
     public const FILTER = 'App\Filters\CharacterFilter';
     public const SERVICE = 'App\Services\CharacterService';
 
-    public const OBSERVER = 'App\Observers\BoardGame\BgPlayerGameObserver';
+    public const OBSERVER = 'App\Observers\CharacterObserver';
 
     public const ADMIN_CONTROLLER = 'App\Http\Controllers\Admin\AdminCharacterController';
     public const REQUEST = 'App\Http\Requests\CharacterRequest';

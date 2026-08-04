@@ -1152,7 +1152,13 @@ class ActionsService
             case 'current':
                 $players[] = $this->conditionData['player'];
                 break;
-
+            case 'all':
+                $players = $this->BoardGamePlayer::query()
+                    ->findByBoardGame($this->conditionData['boardGame']->id)
+                    ->get()
+                    ->all();
+                break;
+            case 'oneOfAll':
             case 'other':
             case 'fromTo':
                 if (!isset($request->additionalParams['player']) || !$request->additionalParams['player']) {

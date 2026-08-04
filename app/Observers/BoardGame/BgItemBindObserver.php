@@ -26,7 +26,8 @@ class BgItemBindObserver
         $this->defaultObserverService->created(
             $itemBind,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false
         );
     }
 
@@ -37,7 +38,8 @@ class BgItemBindObserver
         $this->defaultObserverService->updated(
             $itemBind,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false
         );
     }
 
@@ -48,7 +50,8 @@ class BgItemBindObserver
         $this->defaultObserverService->deleted(
             $itemBind,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false
         );
     }
 
@@ -59,7 +62,8 @@ class BgItemBindObserver
         $this->defaultObserverService->restored(
             $itemBind,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false
         );
     }
 
