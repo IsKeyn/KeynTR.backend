@@ -5,6 +5,7 @@ namespace App\Observers\BoardGame;
 use App\Models\BoardGame\StatusEffect;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService;
+use App\Services\Cache\BoardGame\StatusEffect\BgStatusEffectBindCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgStatusEffectObserver
@@ -88,6 +89,7 @@ class BgStatusEffectObserver
 
     private function clearRelatedCache($statusEffect)
     {
+        $bgStatusEffectBindCacheService = app(BgStatusEffectBindCacheService::class);
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $bgPlayerStatusEffectCacheService = app(BgPlayerStatusEffectCacheService::class);
 
@@ -95,6 +97,8 @@ class BgStatusEffectObserver
 
         if ($statusEffect->statusEffectBind) {
             foreach ($statusEffect->statusEffectBind as $statusEffectBind) {
+                $bgStatusEffectBindCacheService->clearListCacheByBgId($statusEffectBind->boardGame->id);
+
                 foreach ($statusEffectBind->playerStatusEffect as $playerStatusEffect) {
                     $bgPlayerCacheService->clearBgListCache($playerStatusEffect->boardGame);
                     $bgPlayerCacheService->clearDetailCacheAllTypes($playerStatusEffect->player);

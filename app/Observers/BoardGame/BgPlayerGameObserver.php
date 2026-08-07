@@ -73,7 +73,7 @@ class BgPlayerGameObserver
         );
     }
 
-    private function additionalActions($playerGame)
+    private function additionalActions(PlayerGame $playerGame)
     {
         $playerGame->load(['boardGame', 'player', 'user']);
 

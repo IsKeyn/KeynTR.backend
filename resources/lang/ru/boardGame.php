@@ -5,16 +5,28 @@ return [
 
     'not_found' => 'Ивент не найден',
     'not_received_slug' => 'Slug ивента не получен',
-    'not_received_type' => 'Тип не получен',
+    'not_found_or_not_active' => 'Ивент не найден или не активен',
+
     'registration_is_close' => 'Регистрация на ивент закрыта',
+    'is_finish' => 'Ивент закончился',
+    'coming_soon' => 'Ивент скоро начнется',
+
+    'not_received_type' => 'Тип не получен',
     'board_type_not_found' => 'В ивенте отсуствует настройка board_type, указывающая на тип игрового поля',
 
     'timer_not_found' => 'Таймер не найден',
     'timer_settings_not_received' => 'Настройки не получены',
     'timer_settings_updated' => 'Настройки обновлены',
 
+    'setting' => [
+      'debug_disable' => 'Дебаг мод отключен',
+    ],
+
     'player' => [
         'not_found' => 'Игрок не найден',
+        'player_not_received' => 'Игрок не получен',
+        'you_must_participate_in_event' => 'Вы должны участвовать в этом ивенте, чтобы иметь доступ к данному функционалу',
+        'you_must_be_active_player' => 'Вы должны быть активным участником ивента, причина не активности: :message',
         'already_in_event' => 'Данный пользователь уже участвует в ивенте',
         'on_moderate' => 'Ожидает одобрения модератора',
         'request_on_moderate' => 'Заявка на участие успешно отправлена и рассматривается модераторами',
@@ -43,6 +55,13 @@ return [
         ],
         'interactions' => [],
     ],
+
+    'status_effect' => [
+        'dont_received_se_bind_id' => 'Не получен ID привязки статус эффекта',
+        'dont_dont_have_or_inactive' => 'Не привязки не существует или она не активна',
+        'dont_received_slug' => 'Не получен slug',
+    ],
+
     'shop' => [
         'create_failed' => 'Не удалось создать элемент магазина',
         'success_saved' => 'Лот магазина успешно создан',
@@ -59,6 +78,7 @@ return [
 
     'board' => [
         'not_found' => 'Игровое поле не найдено',
+        'position_not_received' => 'Номер позиции не получен',
     ],
 
     'player_game' => [

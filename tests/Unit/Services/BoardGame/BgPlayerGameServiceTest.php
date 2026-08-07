@@ -51,7 +51,7 @@ class BgPlayerGameServiceTest extends TestCase
             'user' => $user,
         ];
 
-        $result = $this->service->getFilteredGameList(null, $conditionData);
+        $result = $this->service->getFilteredGameList($conditionData);
 
         $this->assertEquals('default', $result['listType']);
         $this->assertCount(1, $result['gameList']);
@@ -114,7 +114,7 @@ class BgPlayerGameServiceTest extends TestCase
             'user' => $user,
         ];
 
-        $result = $this->service->getFilteredGameList(null, $conditionData);
+        $result = $this->service->getFilteredGameList($conditionData);
 
         $this->assertEquals(0, $player->fresh()->rerolled_game_count);
         $this->assertEquals('default', $result['listType']);

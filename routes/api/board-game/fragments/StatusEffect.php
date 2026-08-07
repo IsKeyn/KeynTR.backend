@@ -5,7 +5,7 @@ use App\Http\Controllers\BoardGame\PlayerStatusEffectController;
 
 Route::prefix('status-effect/')
     ->controller(PlayerStatusEffectController::class)
-    ->middleware('auth:sanctum')
     ->group(function() {
-        Route::post('use', 'use')->name('use');
+        Route::get('list/{slug}', 'getList')->name('getList');
+        Route::post('use', 'use')->name('use')->middleware('auth:sanctum');
 });

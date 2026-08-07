@@ -17,4 +17,5 @@ return [
     'password' => 'Предоставленный пароль неверный',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
     'you_are_not_auth_user' => 'Вы не авторизованы',
+    'only_for_auth' => 'Функционал доступен только авторизованному пользователю',
 ];

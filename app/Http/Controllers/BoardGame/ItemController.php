@@ -16,7 +16,7 @@ class ItemController extends Controller
     }
 
     public function getList(
-        $slug,
+        String $slug,
         BoardGame $BoardGame
     ) {
         $bgId = $BoardGame->findBySlug($slug)->value('id');

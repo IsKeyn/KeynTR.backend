@@ -6,6 +6,7 @@ use App\Events\BoardGame\PlayerInfoForObs;
 use App\Events\MovePlayer;
 use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
+use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Observer\DefaultObserverService;
 
 class BgPlayerPositionObserver
@@ -89,18 +90,21 @@ class BgPlayerPositionObserver
         );
     }
 
-    private function additionalActions($boardGamePlayerPosition)
+    private function additionalActions(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
         $boardGamePlayerPosition->load(['boardGame', 'boardGame.players', 'player']);
 
+        $this->clearRelatedCache($boardGamePlayerPosition);
+
         // Отправляем данные через WS
         PlayerInfoForObs::dispatch($boardGamePlayerPosition->player);
-
-        $this->clearRelatedCache($boardGamePlayerPosition);
     }
 
-    private function clearRelatedCache($boardGamePlayerPosition)
+    private function clearRelatedCache(BoardGamePlayerPosition $boardGamePlayerPosition)
     {
+        $boardGameCacheService = app(BoardGameCacheService::class);
+        $boardGameCacheService->clearDetailCacheBySlug($boardGamePlayerPosition->boardGame->slug);
+
         $bgPlayerCacheService = app(BgPlayerCacheService::class);
         $bgPlayerCacheService->clearBgListCache($boardGamePlayerPosition->boardGame);
 

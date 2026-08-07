@@ -12,11 +12,20 @@ use Illuminate\Support\Facades\Cache;
 
 class ItemService
 {
+    /**
+     * Добавляем предмет в инвентарь игрока
+     *
+     * @param int $userId
+     * @param int  $boardGameId
+     * @param int $boardGameItemId
+     * @param null $playerId
+     * @return mixed
+     */
     public static function addToInventory(
-        $userId,
-        $boardGameId,
-        $boardGameItemId,
-        $playerId = null
+        int $userId,
+        int $boardGameId,
+        int $boardGameItemId,
+        int $playerId = null
     )
     {
         $fields = [

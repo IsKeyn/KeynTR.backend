@@ -13,6 +13,7 @@ class DetailResource extends JsonResource
             'model' => $this->model,
             'name' => $this->name,
             'slug' => $this->slug,
+            'type' => $this->type,
             'description' => $this->description,
             'entity_type' => $this->entity_type,
             'sort' => $this->sort,
