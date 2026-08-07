@@ -445,6 +445,8 @@ class PlayerGameController extends Controller
                             }
                         }
 
+                        StatusEffectService::activateAdditionalAction($conditionData, $playerStatusEffects, StatusEffect::GAME_LIST_TYPE, 'complite');
+
                         /* Проверяем взаимодействия */
                         $interactionsService = new InteractionsService();
                         $interactionsService->checkInteractionAfterActionWithGame($request->type, $conditionData);

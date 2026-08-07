@@ -149,6 +149,7 @@ Route::name('api.')->group(function() {
     // Работа с сущностью game
     Route::prefix('game/')->controller(GameController::class)->name('.game')->group(function() {
         Route::get('list', 'getList')->name('list');
+        Route::get('getShortList', 'getShortList')->name('get-short-list');
         Route::get('filters', 'getListFilters')->name('list-filters');
         Route::get('{game:slug}', 'getGame')->name('get');
 
