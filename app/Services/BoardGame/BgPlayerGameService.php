@@ -121,15 +121,7 @@ class BgPlayerGameService
             ];
         }
 
-        $platformSlugs = $this->getPlatformIds($conditionData);
-
-        if ($platformSlugs) {
-            $platformIds = GamingPlatform::query()
-                ->whereIn('slug', $platformSlugs)
-                ->pluck('id');
-        }
-
-        $games = $this->getFilteredGameList($platformIds, $conditionData);
+        $games = $this->getFilteredGameList($conditionData);
 
         return [
             'status' => 1,
@@ -178,15 +170,7 @@ class BgPlayerGameService
         }
 
         return DB::transaction(function () use ($conditionData) {
-            $platformSlugs = $this->getPlatformIds($conditionData, true);
-
-            if ($platformSlugs) {
-                $platformIds = GamingPlatform::query()
-                    ->whereIn('slug', $platformSlugs)
-                    ->pluck('id');
-            }
-
-            $gameListFiltered = $this->getFilteredGameList($platformIds, $conditionData, true);
+            $gameListFiltered = $this->getFilteredGameList($conditionData, true);
 
             if (isset($gameListFiltered['gameList']) && $gameListFiltered['gameList']->count() === 0) {
                 return ErrorService::message(__('boardGame.player_game.dont_have_game_for_roll'));
@@ -377,14 +361,13 @@ class BgPlayerGameService
     /**
      * Функция делает выборку игр, доступных для крутки игроку в текущей ситуации
      *
-     * @param $platformIds integer|array ID платформы или массив ID платформ для выборки
      * @param $conditionData array Массив данных проверки игрока и содержащих объекты игрока и настольной игры
      * @return array Массив игр
      */
     public function getFilteredGameList(
-        int|array|null $platformIds,
         array $conditionData,
-         bool $removeSe = false
+        bool $removeSe = false,
+        bool $setGameList = true
     )
     {
         $listType = 'default'; // Тип списка игр
@@ -396,51 +379,61 @@ class BgPlayerGameService
         $user = $conditionData['user'];
         $boardGameId = $boardGame->id;
 
-        // Проверяем, существует ли тип списка, который устанавливается из статус эффекта
-        $listTypeFromSe = $this->getListTypeFromSe($conditionData, $removeSe);
-
-        if ($listTypeFromSe) {
-            $listType = $listTypeFromSe;
-        }
-
         $gameListQuery = BoardGameGameList::query()
             ->where('board_game_id', $boardGameId);
 
-        // Рулетка рерольнутых игр (извлекает все уникальные рерольнутые игры, всех игроков)
-        $rerolledOwnGameCountForRerolledList = $boardGame
-            ->settings
-            ->firstWhere('code', 'rerolled_own_game_count_for_rerolled_list')
-            ?->value('value') ?? 2;
+        if ($setGameList) {
+            // Проверяем, существует ли тип списка, который устанавливается из статус эффекта
+            $listTypeFromSe = $this->getListTypeFromSe($conditionData, $removeSe);
 
-        if ($player->rerolled_own_game_count >= $rerolledOwnGameCountForRerolledList || $listType === 'rerolled') {
-            $rerolledIds = $this->rerolledGamesIds($boardGameId);
-
-            if (!empty($rerolledIds)) {
-                $gameListQuery->whereIn('id', $rerolledIds);
+            if ($listTypeFromSe) {
+                $listType = $listTypeFromSe;
             }
 
-            $gameListQuery->whereNull('list_type');
-            $listType = 'rerolled';
-        }
+            // Рулетка рерольнутых игр (извлекает все уникальные рерольнутые игры, всех игроков)
+            $rerolledOwnGameCountForRerolledList = $boardGame
+                ->settings
+                ->firstWhere('code', 'rerolled_own_game_count_for_rerolled_list')
+                ?->value('value') ?? 2;
 
-        // Рулетка "Золотая коллекция" (только игры, отпечанные как gold)
-        $rerolledGameCountForGoldList = $boardGame
-            ->settings
-            ->firstWhere('code', 'rerolled_game_count_for_gold_list')
-            ?->value('value') ?? 3;
+            if ($player->rerolled_own_game_count >= $rerolledOwnGameCountForRerolledList || $listType === 'rerolled') {
+                $rerolledIds = $this->rerolledGamesIds($boardGameId);
 
-        if (($listType !== 'rerolled' && $player->rerolled_game_count >= $rerolledGameCountForGoldList) || $listType === 'golden') {
-            $gameListQuery->where('list_type', BoardGameGameList::GOLDEN_LIST);
+                if (!empty($rerolledIds)) {
+                    $gameListQuery->whereIn('id', $rerolledIds);
+                }
 
-            $listType = 'golden';
-        }
+                $gameListQuery->whereNull('list_type');
+                $listType = 'rerolled';
+            }
 
-        if ($listType === 'myOwnGame') {
-            $gameListQuery->where('added_by', BoardGameGameList::GOLDEN_LIST);
+            // Рулетка "Золотая коллекция" (только игры, отпечанные как gold)
+            $rerolledGameCountForGoldList = $boardGame
+                ->settings
+                ->firstWhere('code', 'rerolled_game_count_for_gold_list')
+                ?->value('value') ?? 3;
+
+            if (($listType !== 'rerolled' && $player->rerolled_game_count >= $rerolledGameCountForGoldList) || $listType === 'golden') {
+                $gameListQuery->where('list_type', BoardGameGameList::GOLDEN_LIST);
+
+                $listType = 'golden';
+            }
+
+            if ($listType === 'myOwnGame') {
+                $gameListQuery->where('added_by', BoardGameGameList::GOLDEN_LIST);
+            }
         }
 
         if ($listType === 'default') {
             $gameListQuery->where('list_type', null);
+        }
+
+        $platformSlugs = $this->getPlatformIds($conditionData, $removeSe);
+
+        if ($platformSlugs) {
+            $platformIds = GamingPlatform::query()
+                ->whereIn('slug', $platformSlugs)
+                ->pluck('id');
         }
 
         if ($platformIds) {
@@ -449,6 +442,7 @@ class BgPlayerGameService
             $gameListQuery->whereIn('gaming_platform_id', $platformIds);
         } else if (
                 $listType !== 'rerolled'
+                && $listType !== 'myOwnGame'
                 && (bool) $boardGame->settings->firstWhere('code', 'hasExceptionPlatforms')?->value('value')
                 && $player->settings
                 && isset($player->settings['exceptionPlatforms'])
@@ -488,12 +482,15 @@ class BgPlayerGameService
             return !in_array($value->id, $usedGames);
         });
 
-        // Если золотой список игр пуст, то обноляем количество рерольнутых игр игрока и формируем новый список игр
-        if ($listType === 'golden' && count($finalGameList) === 0) {
+        /**
+         * Если золотой список или список реролов игр пуст,
+         * то обноляем количество рерольнутых игр игрока и формируем новый список игр
+         */
+        if (($listType === 'golden' || $listType === 'rerolled') && count($finalGameList) === 0) {
             $player->rerolled_game_count = 0;
             $player->save();
 
-            return $this->getFilteredGameList($platformIds, $conditionData, $removeSe);
+            return $this->getFilteredGameList($conditionData, $removeSe, false);
         }
 
         return [

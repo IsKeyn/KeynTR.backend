@@ -2,10 +2,15 @@
 
 namespace App\Services\BoardGame;
 
+use App\Http\Resources\BoardGame\StatusEffects\BgPlayerStatusEffectBindResource;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
+use App\Models\BoardGame\StatusEffectBind;
+use App\Services\Cache\BoardGame\StatusEffect\BgStatusEffectBindCacheService;
 use App\Services\Entity\EntityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Symfony\Component\HttpFoundation\Response;
 
 class StatusEffectService
 {
@@ -32,6 +37,71 @@ class StatusEffectService
             ],
             $forceRefresh,
             $withTrashed,
+        );
+    }
+
+    /**
+     * Список привязанных к ивенту статус эффекты
+     *
+     * @param int $bgId
+     * @return mixed
+     */
+    public static function statusEffectsInBoardGame(int $bgId)
+    {
+        $cacheKey = BgStatusEffectBindCacheService::LIST_PREFIX . '_' . $bgId;
+
+        return Cache::remember($cacheKey, BgStatusEffectBindCacheService::TIME, function () use ($bgId) {
+            $items = StatusEffectBind::query()
+                ->active()
+                ->findByBoardGame($bgId)
+                ->with([
+                    'statusEffect',
+                    'statusEffect.titleImage',
+                ])
+                ->get()
+                ->values();
+
+            return BgPlayerStatusEffectBindResource::collection($items);
+        });
+    }
+
+    /**
+     * Функция накладывает статус эффект по привязке к ивенту $statusEffectBindId на игрока из $conditionData
+     *
+     * @param array $conditionData
+     * @param int $statusEffectBindId
+     */
+    public function setStatusEffect(
+        array $conditionData,
+        int $statusEffectBindId
+    )
+    {
+        if (!$statusEffectBindId) {
+            abort(Response::HTTP_BAD_REQUEST, __('boardGame.status_effect.dont_received_se_bind_id'));
+        }
+
+        $statusEffectBind = StatusEffectBind::query()
+            ->with('statusEffect:id,slug')
+            ->find($statusEffectBindId);
+
+        if (!$statusEffectBind) {
+            abort(Response::HTTP_BAD_REQUEST, __('boardGame.status_effect.dont_dont_have_or_inactive'));
+        }
+
+        $slug = $statusEffectBind?->statusEffect?->slug;
+
+        if (!$slug) {
+            abort(Response::HTTP_BAD_REQUEST, __('boardGame.status_effect.dont_received_slug'));
+        }
+
+        $actionService = new ActionsService($conditionData, 'statusEffect', $statusEffectBind->statusEffect);
+        return $actionService->activateAction(
+            (Object) [],
+            (Object) [
+                'type' => 'applyStatusEffect',
+                'target' => 'current',
+                'value' => $slug
+            ]
         );
     }
 

@@ -491,6 +491,7 @@ class ActionsService
                             'user_id' => $this->conditionData['user']->id,
                             'board_game_id' => $this->conditionData['boardGame']->id,
                             'board_game_item_id' => $ItemBind->id,
+                            'bg_player_id' => $this->conditionData['player']->id,
                         ];
 
                         $result = null;

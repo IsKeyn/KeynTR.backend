@@ -72,6 +72,8 @@ return Application::configure(basePath: dirname(__DIR__))
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'bg.check.board' => \App\Http\Middleware\BoardGame\CheckConditions::class,
+        'bg.check.debug' => \App\Http\Middleware\BoardGame\CheckDebugMode::class,
     ]);
 })
     ->withSchedule(function (Schedule $schedule) {
