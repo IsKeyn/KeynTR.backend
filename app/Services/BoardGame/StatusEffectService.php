@@ -216,6 +216,43 @@ class StatusEffectService
         }
     }
 
+    public static function activateAdditionalAction(
+        $conditionData,
+        $playerStatusEffects,
+        $type,
+        $additionActionOn
+    )
+    {
+        foreach ($playerStatusEffects as $statusEffect) {
+            if ((int)$statusEffect->statusEffectBind->statusEffect->type === $type) {
+                foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
+                    $action = (Object) $action;
+                    $actionService = new ActionsService($conditionData, 'statusEffect', $statusEffect->statusEffectBind->statusEffect);
+
+                    if (
+                        isset($action->autoActions)
+                    ) {
+                        foreach ($action->autoActions as $autoAction) {
+                            if (
+                                isset($autoAction['type'])
+                                && $autoAction['type'] === $additionActionOn
+                                && isset($autoAction['actions'])
+                            ) {
+                                foreach ($autoAction['actions'] as $action) {
+                                    $actionService->activateAction(
+                                        (Object) [],
+                                        (Object) $action
+                                    );
+                                }
+                                $statusEffect->update(['active' => false]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Функция возврата ошибок действий с предметами
      *

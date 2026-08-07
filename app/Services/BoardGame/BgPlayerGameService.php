@@ -107,7 +107,9 @@ class BgPlayerGameService
                 'mainTimers' => function ($query) use ($conditionData) {
                     $query->where('board_game_id', $conditionData['boardGame']->id)->orderBy('id', 'desc');
                 },
-                'statusEffects',
+                'statusEffects' => function($query) {
+                    $query->active();
+                },
                 'statusEffects.statusEffectBind',
                 'statusEffects.statusEffectBind.statusEffect',
             ]);
@@ -256,9 +258,9 @@ class BgPlayerGameService
      * Проверка, может ли игрок крутить рулетку
      *
      * @param array $conditionData
-     * @return array
+     * @return array|void
      */
-    public function canPlayerRollGame(array $conditionData): array
+    public function canPlayerRollGame(array $conditionData)
     {
         // Проверяем не выполнил ли игрок условия окончания ивента
         $eventType = $conditionData['boardGame']->settings->where('code', '=', 'event_type')->first();
@@ -436,7 +438,7 @@ class BgPlayerGameService
                 ->pluck('id');
         }
 
-        if ($platformIds) {
+        if (isset($platformIds)) {
             // Фильтрация по платформе если она есть
             $platformIds = (array) $platformIds;
             $gameListQuery->whereIn('gaming_platform_id', $platformIds);
@@ -510,7 +512,7 @@ class BgPlayerGameService
     public function getListTypeFromSe(array $conditionData, bool $removeSe = false)
     {
         // Проверяем статус эффекты и при необходимости устанавливаем платформу фильтрации
-        $playerStatusEffects = $conditionData['player']->statusEffects;
+        $playerStatusEffects = $conditionData['player']->statusEffects->where('active', true);
 
         $listType = null;
 

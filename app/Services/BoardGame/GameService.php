@@ -90,7 +90,7 @@ class GameService
                 foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
                     $action = (Object) $action;
 
-                    if ($action->value && $action->value === 'free-reroll') {
+                    if (isset($action->value) && $action->value === 'free-reroll') {
                         $penaltyDefence = true;
                         $data = BgStatusEffectResource::make($statusEffect->statusEffect);
                         break;

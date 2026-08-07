@@ -19,6 +19,7 @@ class GroupRequest extends FormRequest
             'slug' => 'sometimes|string|nullable',
             'description' => 'sometimes|string|nullable',
             'entity_type' => 'sometimes|string|nullable',
+            'type' => 'nullable|integer',
             'sort' => 'sometimes|integer|nullable',
             'active' => 'sometimes|boolean',
             'title_image' => 'sometimes|nullable',

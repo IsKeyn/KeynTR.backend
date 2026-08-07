@@ -18,6 +18,7 @@ use App\Services\BoardGame\GameService;
 use App\Services\BoardGame\InteractionsService;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
+use App\Services\BoardGame\StatusEffectService;
 use App\Services\BoardGame\TimerService;
 use App\Services\CommentService;
 use App\Services\ErrorService;
@@ -169,7 +170,7 @@ class PlayerGameController extends Controller
                                 foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
                                     $action = (Object) $action;
 
-                                    if ($action->value && $action->value === 'free-reroll') {
+                                    if (isset($action->value) && $action->value === 'free-reroll') {
                                         $freeReroll = true;
                                     }
                                 }
@@ -247,6 +248,8 @@ class PlayerGameController extends Controller
                                 );
                             }
                         }
+
+                        StatusEffectService::activateAdditionalAction($conditionData, $playerStatusEffects, StatusEffect::GAME_LIST_TYPE, 'reroll');
 
                         /* Проверяем взаимодействия */
                         $interactionsService = new InteractionsService();
