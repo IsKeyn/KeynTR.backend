@@ -46,17 +46,21 @@ class GameCacheService extends BaseCacheService
                 ->paginate($perPage)->lastPage();
 
             for ($i = 1; $i <= $lastPage; $i++) {
-                $cacheKey = self::LIST_PREFIX . '_' . $i . '_' . $perPage;
+                $cacheKey1 = self::LIST_PREFIX . '_' . $i . '_' . $perPage;
+                $cacheKey2 = self::LIST_PREFIX  . '_short' . '_' . $i . '_' . $perPage;
 
-                Cache::forget($cacheKey);
+                Cache::forget($cacheKey1);
+                Cache::forget($cacheKey2);
 
                 if ($showMessage) {
-                    echo $cacheKey . ' очищен' . PHP_EOL;
+                    echo $cacheKey1 . ' очищен' . PHP_EOL;
+                    echo $cacheKey2 . ' очищен' . PHP_EOL;
                 }
             }
         }
 
         Cache::forget(self::LIST_PREFIX);
+        Cache::forget(self::LIST_PREFIX . '_short');
         Cache::forget(self::LIST_TOKEN);
         Cache::forget(self::LIST_FILTER_TOKEN);
         Cache::forget(self::ADMIN_LIST_TOKEN);

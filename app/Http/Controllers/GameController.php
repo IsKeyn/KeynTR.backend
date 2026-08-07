@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Filters\GameFilter;
 use App\Http\Resources\BoardGame\BoardGameShortestWithImageResource;
 use App\Http\Resources\Game\GameDetailResource;
+use App\Http\Resources\Game\GameForSelectResource;
 use App\Http\Resources\Game\GameListResource;
 use App\Http\Resources\Game\GameRollListResource;
 use App\Http\Resources\UserActions\UserActionsResource;
@@ -65,6 +66,46 @@ class GameController extends Controller
             $result = $request->fullList ? $games->get() : $games->paginate($request->perPage ? $request->perPage : 10);
 
             return GameListResource::collection($result);
+        });
+    }
+
+    /**
+     * Короткий список игр, для выбора игры из селекта
+     *
+     * @param Request $request
+     * @return mixed
+     */
+    public function getShortList(Request $request)
+    {
+        $cacheKey = GameCacheService::LIST_PREFIX . '_short';
+
+        if (!$request->fullList) {
+            $cacheKey .= '_' . $request->page . '_' . $request->perPage;
+        }
+
+        $time = GameCacheService::TIME;
+
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                GameCacheService::LIST_TOKEN,
+                fn() => Str::random(10)
+            );
+
+            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $time = GameCacheService::FILTER_TIME;
+        }
+
+        return Cache::remember($cacheKey, $time, function () use ($request) {
+            $filter = new GameFilter($request);
+            $games = $filter->apply(Game::query())->select('id', 'name')->active();
+
+            if (!isset($request->sort)) {
+                $games->orderByRaw('sort IS NULL, sort ASC');
+            }
+
+            $result = $request->fullList ? $games->get() : $games->paginate($request->perPage ? $request->perPage : 10);
+
+            return GameForSelectResource::collection($result);
         });
     }
 
