@@ -54,6 +54,10 @@ class GameController extends Controller
                         if (isset($decodedFilters['events'])) {
                             $query->whereIn('board_game_id', $decodedFilters['events']);
                         }
+
+                        if (isset($decodedFilters['added_by'])) {
+                            $query->whereIn('added_by', $decodedFilters['added_by']);
+                        }
                     },
                 ])
                 ->where('show_in_list', true)
@@ -140,6 +144,13 @@ class GameController extends Controller
         });
     }
 
+    /**
+     * Получаем список фильтров
+     *
+     * @param Request $request
+     * @param FilterService $filterService
+     * @return mixed
+     */
     public function getListFilters(Request $request, FilterService $filterService) {
         $cacheKey = GameCacheService::FILTER_PREFIX . '_' . $request->filterList;
 
@@ -174,14 +185,20 @@ class GameController extends Controller
         return Cache::remember($cacheKey, $time, function () use ($request, $filterService) {
             if ($request->filterList) {
                 $filterList = json_decode($request->filterList);
+                $decodedFilters = json_decode($request->filters, true);
 
-                $withException = ['minMaxData', 'events', 'companies', 'gamePlatforms'];
+                $withException = ['minMaxData', 'events', 'companies', 'gamePlatforms', 'addedBy'];
                 $with = [
                     'dates',
                     'company',
                     'gamePlatform',
-                    'bgGamesList',
+                    'bgGamesList' => function ($query) use ($decodedFilters) {
+                        if (isset($decodedFilters['events'])) {
+                            $query->whereIn('board_game_id', $decodedFilters['events']);
+                        }
+                    },
                     'bgGamesList.boardGame',
+                    'bgGamesList.addedBy',
                 ];
 
                 foreach ($filterList as $filterName) {

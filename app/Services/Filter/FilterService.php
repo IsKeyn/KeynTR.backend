@@ -6,13 +6,22 @@ use Illuminate\Support\Carbon;
 
 class FilterService
 {
+    /**
+     * Ключ - название из запроса к api
+     */
     const KEYS_FOR_RETURN = [
-        'gamePlatform' => 'gamePlatforms',
-        'company' => 'companies',
-        'dates' => 'minMaxData',
-        'bgGamesList' => 'events',
+        'gamePlatforms' => 'gamePlatform',
+        'companies' => 'company',
+        'minMaxData' => 'dates',
+        'events' => 'bgGamesList',
+        'addedBy' => 'bgGamesList',
     ];
 
+    /**
+     * @param $data
+     * @param array $filterList Список фильтров, приходящих из запроса к api
+     * @return array|mixed
+     */
     public function get($data, $filterList = [])
     {
         $result = [];
@@ -20,7 +29,7 @@ class FilterService
         if ($filterList) {
             foreach ($data as $game) {
                 foreach ($filterList as $filterKey) {
-                    $name = $this->getNameByKey($filterKey);
+                    $name = $this->getNameByValue($filterKey);
 
                     if ($game->{$name} instanceof \Illuminate\Support\Collection) {
                         foreach ($game->{$name} as $element) {
@@ -33,7 +42,7 @@ class FilterService
             }
 
             foreach ($filterList as $filterKey) {
-                $name = $this->getNameByKey($filterKey);
+                $name = $this->getNameByValue($filterKey);
 
                 if ($name === 'dates') {
                     foreach ($result[$filterKey] as &$value) {
@@ -67,6 +76,15 @@ class FilterService
         return $result;
     }
 
+    /**
+     * Обработка одного элемента
+     *
+     * @param Mixed $element Один элемен сущности, например коллекция
+     * @param String $name Наименование ключа\зависимости
+     * @param String $filterKey Наименование ключа, возвращаемых данных
+     * @param $result
+     * @return mixed
+     */
     private function elementHandler($element, $name, $filterKey, $result)
     {
         if ($name === 'dates') {
@@ -86,11 +104,28 @@ class FilterService
                 $result[$filterKey]['max'] = $element->date;
             }
         } else if ($name === 'bgGamesList') {
-            if ($element->relationLoaded('boardGame') && $element->boardGame && $element->boardGame->slug !== 'demo') {
+            if (
+                $element->relationLoaded('boardGame')
+                && $element->boardGame
+                && !$element->boardGame->is_test
+                && $filterKey === 'events'
+            ) {
                 $result[$filterKey][$element->boardGame->id] = [
                     'id' => $element->boardGame->id,
                     'name' => $element->boardGame->name,
                     'sort' => isset($element->boardGame->sort) ? $element->boardGame->sort : null,
+                    'active' => true,
+                ];
+            }
+
+            if (
+                $element->relationLoaded('addedBy')
+                && $element->addedBy
+                && $filterKey === 'addedBy'
+            ) {
+                $result[$filterKey][$element->addedBy->id] = [
+                    'id' => $element->addedBy->id,
+                    'name' => $element->addedBy->public_name ? $element->addedBy->public_name : $element->addedBy->name,
                     'active' => true,
                 ];
             }
@@ -108,6 +143,12 @@ class FilterService
         return $result;
     }
 
+    /**
+     * Получаем ключ, под которым возвращаются данные
+     *
+     * @param $keyForReturn
+     * @return int|mixed|string
+     */
     private function getNameByKey($keyForReturn)
     {
         $name = array_search($keyForReturn, self::KEYS_FOR_RETURN);
@@ -115,9 +156,9 @@ class FilterService
         return $name ? $name : $keyForReturn;
     }
 
-    private function getKeyForReturn($filterKey)
+    private function getNameByValue($filterKey)
     {
-        return self::KEYS_FOR_RETURN[$filterKey] ? self::KEYS_FOR_RETURN[$filterKey] : $filterKey;
+        return isset(self::KEYS_FOR_RETURN[$filterKey]) ? self::KEYS_FOR_RETURN[$filterKey] : $filterKey;
     }
 
     public function compareFilters($firstFilter, $secondFilter)

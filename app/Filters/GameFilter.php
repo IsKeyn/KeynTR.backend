@@ -87,6 +87,25 @@ class GameFilter
         }
     }
 
+    /**
+     * Сортируем по добавившему в ивент
+     *
+     * @param $value
+     */
+    protected function addedBy($value): void
+    {
+        $decodedFilters = $this->filters();
+
+        if ($value && isset($decodedFilters['events'])) {
+            $this->query
+                ->with('bgGamesList', 'bgGamesList.boardGame')
+                ->whereHas('bgGamesList', function($query) use ($decodedFilters) {
+                    $query->whereIn('board_game_id', $decodedFilters['events']);
+                    $query->whereIn('added_by', $decodedFilters['addedBy']);
+                });
+        }
+    }
+
     protected function onlyGold($value): void
     {
         $decodedFilters = $this->filters();
