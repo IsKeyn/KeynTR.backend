@@ -323,8 +323,10 @@ class PlayerGameController extends Controller
                         $conditionData['player']->points = $conditionData['player']->points + $pointsForGame;
 
                         // Добавляем стрик, если он не достиг максимального
-                        $maxStreakSetting = $conditionData['boardGame']->settings->where('code', '=',
-                            'max_string')->first();
+                        $maxStreakSetting = $conditionData['boardGame']
+                            ->settings
+                            ->where('code', '=', 'max_streak')
+                            ->first();
                         $maxStreak = $maxStreakSetting ? $maxStreakSetting->value : 5;
 
                         if ($conditionData['player']->streak < $maxStreak && $conditionData['player']->streak !== $maxStreak) {

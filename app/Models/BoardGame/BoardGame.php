@@ -40,6 +40,8 @@ class BoardGame extends Model
      * rerolled_own_game_count_for_rerolled_list Int Необходимое количество рерольнутых своих (добавленных игроков) игр для списка рерольнутых игры
      * rerolled_game_count_for_gold_list Int Необходимое количество рерольнутых игр для золотого списка игры
      * debug_mode Boolean Включен ли в ивенте дебаг мод
+     * design_theme String Тема оформления ивента
+     * max_streak Int Максимальный стрик, который участник может набрать в ивенте
      */
 
     public const CACHE_NAME = 'board-game';

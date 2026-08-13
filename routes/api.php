@@ -212,18 +212,21 @@ Route::name('api.')->group(function() {
         Route::post('lastVideo', 'getLastVideos')->name('get-last-videos');
     });
 
-    /* Данные для layout */
+    // Данные для layout
     Route::name('layout.')->group(base_path('routes/api/layout/v1.php'));
 
-    /* Работа с настольной игрой */
+    // Работа с настольной игрой
     Route::name('board-game.')->group(base_path('routes/api/board-game/v1.php'));
     Route::name('board-game.')->group(base_path('routes/api/board-game/v2.php'));
 
-    /* Действия в админке */
+    // Действия в админке
     Route::name('admin.')->group(base_path('routes/api/admin/v1.php'));
 
-    /* Работа с сущностями */
+    // Работа с сущностями
     Route::name('entity.')->group(base_path('routes/api/entity/v1.php'));
+
+    // Работа с сохранением состояния
+    Route::name('save-state.')->group(base_path('routes/api/site-game/SaveState.php'));
 });
 
 // Подтверждение email

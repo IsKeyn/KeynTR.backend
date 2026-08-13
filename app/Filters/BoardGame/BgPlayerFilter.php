@@ -262,6 +262,26 @@ class BgPlayerFilter
         }
     }
 
+    protected function streak($value): void
+    {
+        if ($value) {
+            $type = is_array($value) ? ($value['type'] ?? null) : ($value->type ?? null);
+            $typeValue = is_array($value) ? ($value['value'] ?? null) : ($value->value ?? null);
+
+            if (str_contains($type, 'moreThen')) {
+                $this->query->where('streak', '>', $typeValue);
+            } elseif (str_contains($type, 'lessThen')) {
+                $this->query->where('streak', '<', $typeValue);
+            } elseif (str_contains($type, 'moreThenOrEquals')) {
+                $this->query->where('streak', '>=', $typeValue);
+            } elseif (str_contains($type, 'lessThenOrEquals')) {
+                $this->query->where('streak', '<=', $typeValue);
+            } else {
+                $this->query->where('streak', $typeValue);
+            }
+        }
+    }
+
     protected function sort($value): void
     {
        if ($value) {

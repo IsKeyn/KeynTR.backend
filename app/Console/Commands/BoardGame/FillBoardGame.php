@@ -3,7 +3,7 @@
 namespace App\Console\Commands\BoardGame;
 
 use App\Models\BoardGame\BoardPositionEffectsBind;
-use App\Models\BoardGame\StatusEffect;
+use App\Models\BoardGame\StatusEffectBind;
 use App\Models\Setting;
 use Illuminate\Console\Command;
 use App\Models\BoardGame\BoardGameGameList;
@@ -41,9 +41,9 @@ class FillBoardGame extends Command
         }
 
         // Заполнение статус эффектов
-        $statusEffect = StatusEffect::findByBoardGame($this->argument('boardGameIdSource'))->get();
+        $statusEffectBind = StatusEffectBind::findByBoardGame($this->argument('boardGameIdSource'))->get();
 
-        foreach ($statusEffect as $original) {
+        foreach ($statusEffectBind as $original) {
             $copy = $original->replicate()->fill([
                 'board_game_id' => $this->argument('boardGameIdForFill'),
                 'created_at' => now(),
