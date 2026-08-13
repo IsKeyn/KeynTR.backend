@@ -15,6 +15,7 @@ use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\BoardGame\StatusEffect;
 use App\Models\BoardGame\Timer;
+use App\Models\Game\SaveState;
 use App\Models\User\Notification;
 use App\Services\ErrorService;
 
@@ -1061,12 +1062,235 @@ class ActionsService
         $resultByPlayers = [];
 
         foreach ($players as $player) {
-            if ($action->actionsForRandom) {
+            $player->load([
+                'positions' => function ($query) {
+                    $query->active()->orderBy('id', 'desc');
+                }
+            ]);
+
+            if (isset($action->actionsForRandom)) {
                 $randomKey = array_rand($action->actionsForRandom);
                 $randomAction = $action->actionsForRandom[$randomKey];
 
                 if ($this->activateAction($data, (object) $randomAction, $player->user_id)) {
                     $resultByPlayers[$player->id] = $randomAction;
+                }
+            }
+
+            if (isset($action->states)) {
+                $currentStateKey = 0;
+
+                if ($player->positions->first()) {
+                    $saveState = SaveState::query()
+                        ->findByPlayer($player->id)
+                        ->where('entity_type', BoardGamePlayerPosition::class)
+                        ->where('entity_id', $player->positions->first()->id)
+                        ->first();
+
+                    if ($saveState) {
+                        if (isset($saveState->state) && isset($saveState->state['currentState'])) {
+                            $oldResults = [];
+
+                            if (isset($saveState->state['result'])) {
+                                $oldResults = $saveState->state['result'];
+                            }
+
+                            if (isset($action->states[$saveState->state['currentState']])) {
+                                $currentState = $action->states[$saveState->state['currentState']];
+
+                                $resultByPlayers = $this->activateAction($data, (object) $currentState);
+                                $currentStateKey = $saveState->state['currentState'] + 1;
+
+                                $fields = [
+                                    'state' => [
+                                        'currentState' => $saveState->state['currentState'] + 1,
+                                        'result' => array_merge(
+                                            $oldResults,
+                                            [
+                                                $saveState->state['currentState'] + 1 => $resultByPlayers
+                                            ]
+                                        ),
+                                    ]
+                                ];
+                            } else {
+                                $currentStateKey = $saveState->state['currentState'];
+
+                                $fields = [
+                                    'finish' => [
+                                        'currentState' => $saveState->state['currentState'],
+                                        'result' => array_merge(
+                                            $oldResults,
+                                            [
+                                                $saveState->state['currentState'] => $resultByPlayers
+                                            ]
+                                        ),
+                                    ]
+                                ];
+                            }
+
+                            $saveState->update($fields);
+                        }
+                    } else {
+                        $firstState = reset($action->states);
+
+                        $resultByPlayers = $this->activateAction($data, (object) $firstState);
+
+                        $fields = [
+                            'player_id' => $player->id,
+                            'entity_type' => BoardGamePlayerPosition::class,
+                            'entity_id' => $player->positions->first()->id,
+                            'state' => [
+                                'currentState' => $currentStateKey,
+                                'result' => [ $currentStateKey => $resultByPlayers ],
+                            ]
+                        ];
+
+                        SaveState::create($fields);
+                    }
+
+                    $lastKey = array_key_last($action->states);
+
+                    if ($currentStateKey >= $lastKey) {
+                        $resultByPlayers[$player->id]['gameFinished'] = true;
+
+                        BoardService::setUsePositionEffect(
+                            $player->user['id'],
+                            $this->conditionData['boardGame']->id,
+                            $player->positions->first()->position
+                        );
+                    }
+                }
+            }
+
+            if ($action->gameName === 'ThreeOfNine') {
+                $maxTryCount = 6;
+                $needHits = 3;
+                $gameStatus = 0; // 0 - в процессе, 1 - окончена поражением, 2 - окончена победой
+
+                $result = [];
+
+                // Получаем SaveState
+                $saveState = SaveState::query()
+                    ->findByPlayer($player->id)
+                    ->where('entity_type', BoardGamePlayerPosition::class)
+                    ->where('entity_id', $player->positions->first()->id)
+                    ->first();
+
+
+                if ($saveState && isset($saveState->state['cardPositions'])) {
+                    $winnerCards = $saveState->state['cardPositions'];
+                    $result = $saveState->state['result'];
+                } else {
+                    // Если нет SaveState генерируем позиции выигрышных точек
+                    // Проверяем существует ли массив если нет, то создаем
+
+                    // Создаём массив из 9 нулей
+                    $winnerCards = array_fill(0, 9, 0);
+
+                    // Получаем массив индексов от 0 до 8
+                    $indexes = range(0, 8);
+
+                    // Перемешиваем индексы
+                    shuffle($indexes);
+
+                    // Ставим единицы в первые 3 случайных индекса
+                    for ($i = 0; $i < $needHits; $i++) {
+                        $winnerCards[$indexes[$i]] = 1;
+                    }
+                }
+
+                // Проверяем что с cardIndex передан
+                if (isset($data->cardIndex)) {
+                    $indexInResult = array_filter($result, function ($item) use ($data) {
+                        return $item['index'] === $data->cardIndex;
+                    });
+
+                    $tryCount = 0;
+
+                    if (isset($saveState->state['result'])) {
+                        $tryCount = count($saveState->state['result']);
+                    }
+
+                    if ($indexInResult) {
+                        // Повторное использование карты
+                        $resultByPlayers[$player->id]['result'] = $result;
+                        $resultByPlayers[$player->id]['message'] = 'Данная карта уже выбиралась';
+                        $gameStatus = 0;
+                    } elseif ($maxTryCount <= $tryCount) {
+                        // Использовано максимальное количество попыток, проставляем финишь
+                        $resultByPlayers[$player->id]['result'] = $result;
+                        $resultByPlayers[$player->id]['message'] = 'Использовано максимальное количество попыток';
+                        $gameStatus = 1;
+                    } else {
+                        $hit = false;
+
+                        // Проверям попал ли игрок в карту
+                        if ($winnerCards[$data->cardIndex]) {
+                            $hit = true;
+                        }
+
+                        $result[] = [
+                            'index' => $data->cardIndex,
+                            'hit' => $hit,
+                        ];
+
+                        $count = count(array_filter($result, function ($item) {
+                            return $item['hit'] === true;
+                        }));
+
+                        if ($count >= $needHits) {
+                            $resultByPlayers[$player->id]['message'] = 'Вы выиграли!';
+                            $gameStatus = 2;
+                        }
+
+                        $resultByPlayers[$player->id]['result'] = $result;
+
+                        if ($gameStatus === 0 && count($result) >= $maxTryCount) {
+                            $resultByPlayers[$player->id]['message'] = 'Использовано максимальное количество попыток';
+                            $gameStatus = 1;
+                        }
+                    }
+
+                    $resultByPlayers[$player->id]['status'] = $gameStatus;
+
+
+                    if ($saveState) {
+                        $saveState->update([
+                            'state' => array_merge(['cardPositions' => $winnerCards], $resultByPlayers[$player->id])
+                        ]);
+                    } else {
+                        $fields = [
+                            'player_id' => $player->id,
+                            'entity_type' => BoardGamePlayerPosition::class,
+                            'entity_id' => $player->positions->first()->id,
+                            'state' => array_merge(['cardPositions' => $winnerCards], $resultByPlayers[$player->id])
+                        ];
+
+                        SaveState::create($fields);
+                    }
+
+                    if ($gameStatus === 2 && $action->pointsForWin) {
+                        // Начисляем очки
+                        $this->activateAction(
+                            $data,
+                            (object) [
+                                'type' => 'addPoints',
+                                'target' => 'current',
+                                'value' => $action->pointsForWin,
+                                'message' => 'За прохождение игры 3 из 9 вы получаете *value очков',
+                                'logMessage' => 'получил *value очков за прохождение игры 3 из 9'
+                            ]
+                        );
+                    }
+
+                    if ($gameStatus !== 0) {
+                        // Устанавливаем ячейку как использованную
+                        BoardService::setUsePositionEffect(
+                            $player->user['id'],
+                            $this->conditionData['boardGame']->id,
+                            $player->positions->first()->position
+                        );
+                    }
                 }
             }
         }
@@ -1090,7 +1314,7 @@ class ActionsService
                 break;
 
             case 'remove':
-                $value = $player->$columnName + $this->getValue($action->value);
+                $value = $player->$columnName - $this->getValue($action->value);
                 break;
 
             case 'set':
@@ -1292,6 +1516,33 @@ class ActionsService
                     ->where('user_id', $modelWithMaxPosition->user_id)
                     ->where('board_game_id', $this->conditionData['boardGame']->id)
                     ->first();
+                break;
+
+            case str_contains($action->target, 'moreThen'):
+            case str_contains($action->target, 'lessThen'):
+            case str_contains($action->target, 'moreThenOrEquals'):
+            case str_contains($action->target, 'lessThenOrEquals'):
+                $explodedData = explode('_', $action->target);
+
+                $filters = [
+                    $action->type => [
+                        'type' => $explodedData[0],
+                        'value' => $explodedData[1],
+                    ]
+                ];
+
+                $filterRequest = new \Illuminate\Http\Request(['filters' => json_encode($filters)]);
+                $filter = new BgPlayerFilter($filterRequest);
+
+                $query = $filter->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                if ($request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
                 break;
         }
 

@@ -191,6 +191,13 @@ class CreateRolesAndPermissions extends Command
                 'sort' => 190,
                 'active' => true,
             ],
+            [
+                'id' => 20,
+                'name' => 'Тестер ивентов',
+                'system_name' => 'event.tester',
+                'sort' => 190,
+                'active' => true,
+            ],
         ];
 
         foreach ($elements as $element) {
@@ -600,6 +607,14 @@ class CreateRolesAndPermissions extends Command
                 'sort' => 165,
                 'active' => true,
             ],
+            [
+                'id' => 47,
+                'name' => 'Дебаг функции',
+                'system_name' => 'bg.debug.edit',
+                'entity_type' => null,
+                'sort' => 440,
+                'active' => true,
+            ],
         ];
 
         foreach ($elements as $element) {
@@ -794,6 +809,10 @@ class CreateRolesAndPermissions extends Command
             [
                 'permission_id' => 43,
                 'role_id' => 19,
+            ],
+            [
+                'permission_id' => 47,
+                'role_id' => 20,
             ],
         ];
 

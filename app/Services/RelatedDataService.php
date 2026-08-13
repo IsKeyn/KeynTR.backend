@@ -54,7 +54,8 @@ class RelatedDataService
             $additionalFieldsService->sync($model, $validated['additional_fields']);
         }
 
-        if (isset($validated['settings'])) {
+
+        if (isset($validated['settings']) && $model->model !== "App\Models\User") {
             $settingService = new SettingService();
             $settingService->sync($model, $validated['settings']);
         }
