@@ -57,7 +57,7 @@ class UnsetPlayersStreakCommand extends Command
                     $games = PlayerGame::findByBoardGame($boardGame->id)
                         ->findByUserId($player->user_id)
                         ->where('status', PlayerGame::COMPLETED)
-                        ->where('updated_at', '>=', Carbon::now()->subWeek())
+                        ->where('finished_at', '>=', Carbon::now()->subWeek())
                         ->get();
 
                     if ($games->count() === 0) {
@@ -76,7 +76,7 @@ class UnsetPlayersStreakCommand extends Command
                         );
 
                         LogService::addLog(
-                            1,
+                            $player->user->id,
                             $boardGame->id,
                             'Игрок ' . $player->user->name . ' потерял стрик, так как не прошел не одной игры за неделю',
                             $player->id

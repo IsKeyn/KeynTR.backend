@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin/')->name('v1.')->group(function() {
     Route::get('get-server-time', function () {
-        return Date::now();
+        $now = Date::now();
+
+        return  $now->format('Y-m-d H:i:s.u P');
     })->name('get-server-time');
 
     Route::name('setting.')->middleware(['auth:sanctum', 'can:site.edit'])->group(base_path('routes/api/admin/fragments/Setting.php'));

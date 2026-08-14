@@ -4,7 +4,7 @@ namespace App\Models\BoardGame;
 
 use App\Models\Setting;
 use App\Models\Traits\ExtendModelTrait;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -87,9 +87,9 @@ class BoardGame extends Model
 
         if ($this->is_close) {
             $status = self::CLOSE_STATUS;
-        } else if ($this->ended_at && Carbon::now() > $this->ended_at) {
+        } else if ($this->ended_at && Date::now() > $this->ended_at) {
             $status = self::CLOSE_STATUS;
-        } else if ($this->started_at && Carbon::now() < $this->started_at) {
+        } else if ($this->started_at && Date::now() < $this->started_at) {
             $status = self::COMING_SOON;
         }
 
