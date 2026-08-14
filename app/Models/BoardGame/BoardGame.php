@@ -20,7 +20,7 @@ class BoardGame extends Model
 
     /*
      * Настройки BoardGame
-     * type String upon-request - закрытая игра, registrationIsClose - регистрация закрыта
+     * type String upon-request - по запросу, registrationIsClose - регистрация закрыта
      * item_roll_default_count Int Достуное количество круток рулетки предметов, для нового игрока
      * step_default_count Int Доступное количество шагов по игровой доске, для нового игрока
      * board_type String Тип доски, который используется в настольной игре
@@ -34,7 +34,7 @@ class BoardGame extends Model
      * factorHours Int Количество часов, после которого дается 1 очков за еденицу сложности (в остальных случаях 0.5)
      * usePlatformDifficultInCalc Int Использовать сложность платформы в расчете очков за игру
      * addingGamesConditions Json Условия добавления игр
-     * Пример {"position":30,"finishedGames":3}
+     * Пример {"position":15,"finishedGames":3,"maxGames":20}
      * last_players_with_every_day_status_effect Int Количество игроков, которое ислючаются для поиска нового игрока для предмета
      * bonus_for_coop Json Бонус начисляемый после прохождения игры в коопе, для игрока, пригласившего в кооп
      * rerolled_own_game_count_for_rerolled_list Int Необходимое количество рерольнутых своих (добавленных игроков) игр для списка рерольнутых игры
