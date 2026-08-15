@@ -137,6 +137,16 @@ class PlayerGameController extends Controller
             $result = DB::transaction(function () use ($request, $conditionData, $playerCurrentGame, $fields) {
 
                 if ($result = $playerCurrentGame->update($fields)) {
+                    $playerStatusEffects = PlayerStatusEffect::query()
+                        ->findByUserId($conditionData['user']->id)
+                        ->findByBoardGame($conditionData['boardGame']->id)
+                        ->with([
+                            'statusEffectBind.statusEffect',
+                            'statusEffectBind.statusEffect.titleImage',
+                        ])
+                        ->active()
+                        ->get();
+
                     // Рерол игры
                     if ($request->type === PlayerGame::REROLLED) {
                         // Добавление предмета при рероле
@@ -153,15 +163,6 @@ class PlayerGameController extends Controller
 //                    BoardGameInventory::create($fields);
 
                         // Проверяем статус эффекты и при необходимости делем реролл без штрафов
-                        $playerStatusEffects = PlayerStatusEffect::query()
-                            ->findByUserId($conditionData['user']->id)
-                            ->findByBoardGame($conditionData['boardGame']->id)
-                            ->with([
-                                'statusEffectBind.statusEffect',
-                                'statusEffectBind.statusEffect.titleImage',
-                            ])
-                            ->active()
-                            ->get();
 
                         $freeReroll = false;
 

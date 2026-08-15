@@ -608,7 +608,7 @@ class CreateRolesAndPermissions extends Command
                 'active' => true,
             ],
             [
-                'id' => 47,
+                'id' => 50,
                 'name' => 'Дебаг функции',
                 'system_name' => 'bg.debug.edit',
                 'entity_type' => null,
@@ -811,7 +811,7 @@ class CreateRolesAndPermissions extends Command
                 'role_id' => 19,
             ],
             [
-                'permission_id' => 47,
+                'permission_id' => 50,
                 'role_id' => 20,
             ],
         ];
