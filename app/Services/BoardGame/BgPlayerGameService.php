@@ -422,7 +422,7 @@ class BgPlayerGameService
             }
 
             if ($listType === 'myOwnGame') {
-                $gameListQuery->where('added_by', BoardGameGameList::GOLDEN_LIST);
+                $gameListQuery->where('added_by', $user->id);
             }
         }
 
