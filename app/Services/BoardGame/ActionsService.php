@@ -448,6 +448,7 @@ class ActionsService
                                     if ($secondPlayer) {
                                         $playerFields = [
                                             'user_id' => $secondPlayer->user_id,
+                                            'bg_player_id' => $secondPlayer->id,
                                         ];
 
                                         $inventoryItem->update($playerFields);
@@ -550,13 +551,14 @@ class ActionsService
                 if ($data->additionalParams['selectedEffect'] ?? null) {
                     $statusEffect = PlayerStatusEffect::findByUserId($player->user_id)
                         ->where('id', $data->additionalParams['selectedEffect'])
+                        ->with(['statusEffectBind', 'statusEffectBind.statusEffect'])
                         ->active()
                         ->first();
 
                     if (isset($statusEffect)) {
                         switch ($action->type) {
                             case 'removeNegativeEffect':
-                                if ($statusEffect->statusEffect->debuff === true) {
+                                if ($statusEffect->statusEffectBind->statusEffect->debuff === true) {
                                     $statusEffect->delete();
 
                                     $dontSendNotification = false;

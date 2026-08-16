@@ -15,7 +15,7 @@ class TimerService
     {
         $boardGame = BoardGame::query()->where('id', $boardGameId)->first();
 
-        $limit = 100*60*60;
+        $limit = 0;
 
         if ($bgTimeLimit = $boardGame->settings->where('code', '=', 'time_limit')->first()) {
             $limit = $bgTimeLimit->value * 60 * 60;

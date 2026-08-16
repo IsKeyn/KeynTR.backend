@@ -75,6 +75,8 @@ class UserController extends Controller
             $user->avatar()->syncWithPivotValues($avatar->id, ['type' => 1]);
         }
 
+        $user->touch();
+
         return $avatar;
     }
 
