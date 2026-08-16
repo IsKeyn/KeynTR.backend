@@ -127,7 +127,6 @@ class UseItemService
     private function customItem($data, $action, $user)
     {
         /* Функция работает со сложными предметами, которые имеют кастомный код активации */
-
         switch ($action->name) {
             case 'unstable-bomb':
                 /*
@@ -254,6 +253,7 @@ class UseItemService
 
                                     $playerFields = [
                                         'user_id' => $user->id,
+                                        'bg_player_id' => $this->conditionData['player']->id,
                                     ];
 
                                     $inventoryItem->update($playerFields);
@@ -294,6 +294,7 @@ class UseItemService
 
                                     $playerFields = [
                                         'user_id' => $user->id,
+                                        'bg_player_id' => $this->conditionData['player']->id,
                                     ];
 
                                     $inventoryItem->update($playerFields);
