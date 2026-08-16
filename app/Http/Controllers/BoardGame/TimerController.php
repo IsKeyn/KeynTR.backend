@@ -10,6 +10,7 @@ use App\Models\BoardGame\BoardGamePlayerTimer;
 use App\Models\BoardGame\Timer;
 use App\Models\User;
 use App\Services\BoardGame\LogService;
+use App\Services\BoardGame\PlayerGameService;
 use App\Services\BoardGame\TimerService;
 use App\Services\Cache\TimerCacheService;
 use Carbon\Carbon;
@@ -196,95 +197,73 @@ class TimerController extends Controller
     public function edit(Request $request)
     {
         $result = null;
-        $user = $request->user();
 
-        if ($user) {
-            $boardGameId = BoardGame::findBySlug($request->boardGameSlug)->value('id');
+        $conditionData = PlayerGameService::checkConditions($request->slug);
 
-            $timerSlug = $request->slug ? $request->slug : 'main';
+        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
+            return $conditionData;
+        }
 
-            $timer = Timer::query()
-                ->where('user_id', $user->id)
-                ->where('board_game_id', $boardGameId)
-                ->where('slug', $timerSlug)
-                ->where('active', true)
-                ->orderBy('id', 'desc')->first();
+        if (!$conditionData['user']) {
+            return response()->json(['error' => 'Требуется авторизация'])->setStatusCode(\Symfony\Component\HttpFoundation\Response::HTTP_BAD_REQUEST);
+        }
 
-            Cache::forget('bg_game_timer_' . $user->id . '_' . $request->boardGameSlug . '_' . $timerSlug);
+        $user = $conditionData['user'];
+        $boardGameId = $conditionData['boardGame']->id;
+        $player = $conditionData['player'];
 
-            $boardGame = BoardGame::query()->where('id', $boardGameId)->first();
+        $timerSlug = $request->slug ? $request->slug : 'main';
 
-            if ($timer) {
-                $status = TimerService::getTimerStatus($timer);
+        $timer = Timer::query()
+            ->where('user_id', $user->id)
+            ->where('board_game_id', $boardGameId)
+            ->where('slug', $timerSlug)
+            ->where('active', true)
+            ->orderBy('id', 'desc')->first();
 
-                if ($request->slug === 'main' && ($status['reached_the_limit'] ?? null)) {
-                    return response()->json(['error' => 'Вы не можете менять значения основного таймера, когда он достиг лимита'])->setStatusCode(Response::HTTP_OK);
+        Cache::forget('bg_game_timer_' . $user->id . '_' . $request->boardGameSlug . '_' . $timerSlug);
+
+        $boardGame = BoardGame::query()->where('id', $boardGameId)->first();
+
+        if ($timer) {
+            $status = TimerService::getTimerStatus($timer);
+
+            if ($request->slug === 'main' && ($status['reached_the_limit'] ?? null)) {
+                return response()->json(['error' => 'Вы не можете менять значения основного таймера, когда он достиг лимита'])->setStatusCode(Response::HTTP_OK);
+            }
+
+            if (isset($status['time'])) {
+                if ($status['time'] === $request->seconds) {
+                    return true;
                 }
 
-                if (isset($status['time'])) {
-                    if ($status['time'] === $request->seconds) {
-                        return true;
-                    }
+                if ($status['time'] > $request->seconds) {
+                    $secondsForSave = $status['time'] - $request->seconds;
 
-                    if ($status['time'] > $request->seconds) {
-                        $secondsForSave = $status['time'] - $request->seconds;
+                    $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
+                        ->where('timer_id', $timer->id)
+                        ->get();
 
-                        $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
-                            ->where('timer_id', $timer->id)
-                            ->get();
+                    $lastTime = null;
 
-                        $lastTime = null;
+                    foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
+                        $seconds = Carbon::parse($playerTimer->time_start)->diffInSeconds($playerTimer->time_stop);
 
-                        foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
-                            $seconds = Carbon::parse($playerTimer->time_start)->diffInSeconds($playerTimer->time_stop);
-
-                            if ($seconds < $secondsForSave) {
-                                $secondsForSave = $secondsForSave - $seconds;
-                                $playerTimer->delete();
-                            } else {
-                                $lastTime = $playerTimer;
-                            }
-                        }
-
-                        if ($lastTime) {
-                            $lastTime->time_stop = Carbon::parse($lastTime->time_stop)->subSeconds($secondsForSave);
-
-                            if ($lastTime->update()) {
-                                $result = true;
-                            }
-                        } else {
-                            $fields = [
-                                'timer_id' => $timer->id,
-                                'time_start' => Carbon::now()->subSeconds($secondsForSave),
-                                'time_stop' => Carbon::now(),
-                                'created_by' => $user->id,
-                            ];
-
-                            $result = BoardGamePlayerTimer::create($fields);
-                        }
-                    }
-
-                    if ($status['time'] < $request->seconds) {
-                        $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
-                            ->where('timer_id', $timer->id)
-                            ->where('time_start', '>=', Carbon::now()->subSeconds($request->seconds))
-                            ->get();
-
-                        foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
+                        if ($seconds < $secondsForSave) {
+                            $secondsForSave = $secondsForSave - $seconds;
                             $playerTimer->delete();
+                        } else {
+                            $lastTime = $playerTimer;
                         }
+                    }
 
-                        $timer = Timer::query()
-                            ->where('user_id', $user->id)
-                            ->where('board_game_id', $boardGameId)
-                            ->where('slug', $request->slug ? $request->slug : 'main')
-                            ->where('active', true)
-                            ->orderBy('id', 'desc')->first();
+                    if ($lastTime) {
+                        $lastTime->time_stop = Carbon::parse($lastTime->time_stop)->subSeconds($secondsForSave);
 
-                        $statusNew = TimerService::getTimerStatus($timer);
-
-                        $secondsForSave = $request->seconds - $statusNew['time'];
-
+                        if ($lastTime->update()) {
+                            $result = true;
+                        }
+                    } else {
                         $fields = [
                             'timer_id' => $timer->id,
                             'time_start' => Carbon::now()->subSeconds($secondsForSave),
@@ -294,40 +273,74 @@ class TimerController extends Controller
 
                         $result = BoardGamePlayerTimer::create($fields);
                     }
+                }
 
-                    if ($request->slug === 'main') {
-                        $message = 'Изменил таймер с ' .  gmdate("H:i:s", $status['time']) . ' на ' .  gmdate("H:i:s", $request->seconds);
-                        LogService::addLog($user->id, $boardGameId, $message);
+                if ($status['time'] < $request->seconds) {
+                    $BoardGamePlayerTimer = BoardGamePlayerTimer::query()
+                        ->where('timer_id', $timer->id)
+                        ->where('time_start', '>=', Carbon::now()->subSeconds($request->seconds))
+                        ->get();
+
+                    foreach ($BoardGamePlayerTimer as $key => $playerTimer) {
+                        $playerTimer->delete();
                     }
 
-                    return $result;
-                } else {
-                    return response()->json(['error' => 'Ошибка статуса таймера'])->setStatusCode(Response::HTTP_OK);
-                }
-            } else {
-                $timerFields = [
-                    'user_id' => $user->id,
-                    'board_game_id' => $boardGameId,
-                    'name' => $boardGame->name,
-                    'limit' => 100*60*60,
-                    'slug' => $request->slug ? $request->slug : 'main',
-                    'created_by' => $user->id,
-                ];
+                    $timer = Timer::query()
+                        ->where('user_id', $user->id)
+                        ->where('board_game_id', $boardGameId)
+                        ->where('slug', $request->slug ? $request->slug : 'main')
+                        ->where('active', true)
+                        ->orderBy('id', 'desc')->first();
 
-                if ($timer = Timer::create($timerFields)) {
+                    $statusNew = TimerService::getTimerStatus($timer);
+
+                    $secondsForSave = $request->seconds - $statusNew['time'];
+
                     $fields = [
                         'timer_id' => $timer->id,
-                        'time_start' => Carbon::now()->subSeconds($request->seconds),
+                        'time_start' => Carbon::now()->subSeconds($secondsForSave),
                         'time_stop' => Carbon::now(),
                         'created_by' => $user->id,
                     ];
 
-                    return BoardGamePlayerTimer::create($fields);
+                    $result = BoardGamePlayerTimer::create($fields);
                 }
-//                return response()->json(['error' => 'Таймер не найден'])->setStatusCode(Response::HTTP_OK);
+
+                if ($request->slug === 'main') {
+                    $message = 'Изменил таймер с ' .  gmdate("H:i:s", $status['time']) . ' на ' .  gmdate("H:i:s", $request->seconds);
+                    LogService::addLog(
+                        $user->id,
+                        $boardGameId,
+                        $message,
+                        $player->id
+                    );
+                }
+
+                return $result;
+            } else {
+                return response()->json(['error' => 'Ошибка статуса таймера'])->setStatusCode(Response::HTTP_OK);
             }
         } else {
-            return response()->json(['error' => 'Пользователь не найден'])->setStatusCode(Response::HTTP_OK);
+            $timerFields = [
+                'user_id' => $user->id,
+                'board_game_id' => $boardGameId,
+                'name' => $boardGame->name,
+                'limit' => 100*60*60,
+                'slug' => $request->slug ? $request->slug : 'main',
+                'created_by' => $user->id,
+            ];
+
+            if ($timer = Timer::create($timerFields)) {
+                $fields = [
+                    'timer_id' => $timer->id,
+                    'time_start' => Carbon::now()->subSeconds($request->seconds),
+                    'time_stop' => Carbon::now(),
+                    'created_by' => $user->id,
+                ];
+
+                return BoardGamePlayerTimer::create($fields);
+            }
+//                return response()->json(['error' => 'Таймер не найден'])->setStatusCode(Response::HTTP_OK);
         }
     }
 

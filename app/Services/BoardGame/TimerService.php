@@ -268,6 +268,17 @@ class TimerService
                     $result = BoardGamePlayerTimer::create($fields);
                 }
 
+                if (!isset($result)) {
+                    $fields = [
+                        'timer_id' => $timer->id,
+                        'time_start' => Carbon::now(),
+                        'time_stop' => Carbon::now(),
+                        'created_by' => $player->user_id,
+                    ];
+
+                    $result = BoardGamePlayerTimer::create($fields);
+                }
+
                 return $result;
             } else {
                 return response()->json(['error' => 'Ошибка статуса таймера'])->setStatusCode(Response::HTTP_OK);
