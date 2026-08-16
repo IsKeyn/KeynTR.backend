@@ -548,8 +548,8 @@ class BgPlayerGameService
         return PlayerGame::query()
             ->findByBoardGame($boardGameId)
             ->where('status', PlayerGame::REROLLED)
-            ->pluck('board_game_game_list_id')
             ->distinct()
+            ->pluck('board_game_game_list_id')
             ->toArray();
     }
 }
