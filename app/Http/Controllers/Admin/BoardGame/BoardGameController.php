@@ -3,10 +3,12 @@ namespace App\Http\Controllers\Admin\BoardGame;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BoardGame\BoardGameRequest;
+use App\Jobs\BoardGame\BoardGameShortCacheClear;
 use App\Models\BoardGame\BoardGame;
 use App\Services\Entity\DefaultAdminEntityService;
 use App\Traits\HasBaseAdminFunc;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class BoardGameController extends Controller
 {
@@ -41,6 +43,8 @@ class BoardGameController extends Controller
 
     public function store(BoardGameRequest $request)
     {
+        BoardGameShortCacheClear::dispatch($request->slug)->delay(Carbon::parse($request->started_at));
+
         return $this->defaultAdminEntityService->store(
             $request,
             self::MODEL
@@ -49,6 +53,8 @@ class BoardGameController extends Controller
 
     public function update(BoardGameRequest $request, BoardGame $boardGame)
     {
+        BoardGameShortCacheClear::dispatch($boardGame->slug)->delay(Carbon::parse($boardGame->started_at));
+
         return $this->defaultAdminEntityService->update(
             $request,
             $boardGame
