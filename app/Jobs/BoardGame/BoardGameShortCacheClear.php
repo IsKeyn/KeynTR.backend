@@ -2,8 +2,8 @@
 
 namespace App\Jobs\BoardGame;
 
+use App\Services\Cache\BoardGame\BoardGameCacheService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -35,5 +35,8 @@ class BoardGameShortCacheClear implements ShouldQueue
     public function handle()
     {
         Cache::forget('board_game_' . $this->slug . '_short_cache');
+
+        $cacheKey = BoardGameCacheService::DETAIL_PREFIX . '_' . $this->slug;
+        Cache::forget($cacheKey);
     }
 }

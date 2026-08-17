@@ -20,7 +20,7 @@ class DebugController extends Controller
     public function resetBoardCellEffects(Request $request)
     {
        $bgPlayerPositionService = app(BgPlayerPositionService::class);
-       return $bgPlayerPositionService->resetBoardCellEffects($request->player);
+       return $bgPlayerPositionService->resetBoardCellEffects($request->attributes->get('player'));
     }
 
     /**
