@@ -42,6 +42,7 @@ class BoardGame extends Model
      * debug_mode Boolean Включен ли в ивенте дебаг мод
      * design_theme String Тема оформления ивента
      * max_streak Int Максимальный стрик, который участник может набрать в ивенте
+     * event_organizers Json Организторы ивента Пример: [{"user_id": 2,"description": "Программирование"}]
      */
 
     public const CACHE_NAME = 'board-game';
