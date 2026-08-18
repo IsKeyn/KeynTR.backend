@@ -10,7 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 
-class BoardGameShortCacheClear implements ShouldQueue
+class BoardGameCacheClear implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -34,8 +34,6 @@ class BoardGameShortCacheClear implements ShouldQueue
      */
     public function handle()
     {
-        Cache::forget('board_game_' . $this->slug . '_short_cache');
-
         $cacheKey = BoardGameCacheService::DETAIL_PREFIX . '_' . $this->slug;
         Cache::forget($cacheKey);
     }

@@ -2,7 +2,7 @@
 
 namespace App\Services\Cache;
 
-use App\Jobs\BoardGame\BoardGameShortCacheClear;
+use App\Jobs\BoardGame\BoardGameCacheClear;
 use App\Models\BoardGame\BoardGame;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Carbon;
@@ -60,7 +60,7 @@ class CacheService extends ServiceProvider
     {
         if ($entityFolder === 'BoardGame' && $entityName === 'BoardGame' && $slug && $date && $oldDate !== $date) {
             $clearCacheDate = Carbon::create($date);
-            BoardGameShortCacheClear::dispatch($slug)->delay($clearCacheDate);
+            BoardGameCacheClear::dispatch($slug)->delay($clearCacheDate);
         }
     }
 }
