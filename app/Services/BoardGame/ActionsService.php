@@ -286,7 +286,7 @@ class ActionsService
 
         if (isset($logMessage)) {
             LogService::addLog(
-                $this->conditionData['user']->id,
+                $player->user_id,
                 $this->conditionData['boardGame']->id,
                 $logMessage,
                 $player->id

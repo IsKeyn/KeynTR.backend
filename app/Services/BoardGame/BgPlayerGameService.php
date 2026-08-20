@@ -102,13 +102,18 @@ class BgPlayerGameService
                 'currentGames.boardGame',
                 'currentGames.boardGame.settings',
                 'currentGames.player',
+                'currentGames.player.statusEffects' => function($query) {
+                    $query->where('active', true);
+                },
+                'currentGames.player.statusEffects.statusEffectBind',
+                'currentGames.player.statusEffects.statusEffectBind.statusEffect',
                 'user',
                 'user.avatar',
                 'mainTimers' => function ($query) use ($conditionData) {
                     $query->where('board_game_id', $conditionData['boardGame']->id)->orderBy('id', 'desc');
                 },
                 'statusEffects' => function($query) {
-                    $query->active();
+                    $query->where('active', true);
                 },
                 'statusEffects.statusEffectBind',
                 'statusEffects.statusEffectBind.statusEffect',
@@ -321,7 +326,7 @@ class BgPlayerGameService
         $rerolledOwnGameCountForRerolledList = $conditionData['boardGame']
             ->settings
             ->firstWhere('code', 'rerolled_own_game_count_for_rerolled_list')
-            ?->value('value') ?? 2;
+            ?->value ?? 2;
 
         if (
             $gameListFiltered['listType'] === 'rerolled'
@@ -335,7 +340,7 @@ class BgPlayerGameService
         $rerolledGameCountForGoldList = $conditionData['boardGame']
             ->settings
             ->firstWhere('code', 'rerolled_game_count_for_gold_list')
-            ?->value('value') ?? 3;
+            ?->value ?? 3;
 
         if ($gameListFiltered['listType'] === 'golden' && $conditionData['player']->rerolled_game_count >= $rerolledGameCountForGoldList) {
             $conditionData['player']->rerolled_game_count = 0;
@@ -395,10 +400,10 @@ class BgPlayerGameService
             // Рулетка рерольнутых игр (извлекает все уникальные рерольнутые игры, всех игроков)
             $rerolledOwnGameCountForRerolledList = $boardGame
                 ->settings
-                ->firstWhere('code', 'rerolled_own_game_count_for_rerolled_list')
-                ?->value('value') ?? 2;
+                ->firstWhere('code',  'rerolled_own_game_count_for_rerolled_list')
+                ?->value ?? 2;
 
-            if ($player->rerolled_own_game_count >= $rerolledOwnGameCountForRerolledList || $listType === 'rerolled') {
+            if ((int)$player->rerolled_own_game_count >= (int)$rerolledOwnGameCountForRerolledList || $listType === 'rerolled') {
                 $rerolledIds = $this->rerolledGamesIds($boardGameId);
 
                 if (!empty($rerolledIds)) {
@@ -413,7 +418,7 @@ class BgPlayerGameService
             $rerolledGameCountForGoldList = $boardGame
                 ->settings
                 ->firstWhere('code', 'rerolled_game_count_for_gold_list')
-                ?->value('value') ?? 3;
+                ?->value ?? 3;
 
             if (($listType !== 'rerolled' && $player->rerolled_game_count >= $rerolledGameCountForGoldList) || $listType === 'golden') {
                 $gameListQuery->where('list_type', BoardGameGameList::GOLDEN_LIST);

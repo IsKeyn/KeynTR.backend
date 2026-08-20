@@ -37,6 +37,7 @@ class BoardGame extends Model
      * Пример {"position":15,"finishedGames":3,"maxGames":20}
      * last_players_with_every_day_status_effect Int Количество игроков, которое ислючаются для поиска нового игрока для предмета
      * bonus_for_coop Json Бонус начисляемый после прохождения игры в коопе, для игрока, пригласившего в кооп
+     * Пример {"value":[{"type":"addPoints","value":30},{"type":"itemRoll","value":1}], "message": "За приглашение другого игрока в кооп, получил дополнительный бонус: 30 очков и 1 дополнительную крутку рулетки"}
      * rerolled_own_game_count_for_rerolled_list Int Необходимое количество рерольнутых своих (добавленных игроков) игр для списка рерольнутых игры
      * rerolled_game_count_for_gold_list Int Необходимое количество рерольнутых игр для золотого списка игры
      * debug_mode Boolean Включен ли в ивенте дебаг мод

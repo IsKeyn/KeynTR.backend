@@ -444,7 +444,12 @@ class InteractionsService
 
                 // Устанавливаем логи
                 if ($this->conditionData['boardGame']->id) {
-                    LogService::addLog($this->interaction->created_by, $this->conditionData['boardGame']->id, $message);
+                    LogService::addLog(
+                        $this->interaction->created_by,
+                        $this->conditionData['boardGame']->id,
+                        $message,
+                        $this->conditionData['player']->id,
+                    );
                 }
 
                 // Действия

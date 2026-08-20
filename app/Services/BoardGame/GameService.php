@@ -131,7 +131,13 @@ class GameService
         bool $removeSe = false
     )
     {
-        if (!$player || !$currentGame) return;
+        // loadMissing проверит, загружены ли связи, и загрузит только недостающие
+        $player->loadMissing([
+            'statusEffects' => function ($query) {
+                $query->where('active', true)
+                    ->with('statusEffectBind.statusEffect');
+            }
+        ]);
 
         // Рассчитываем количество очков за игру
         $pointsForGame = self::calcPoints($currentGame->game);
@@ -140,51 +146,61 @@ class GameService
             $pointsForGame = round($pointsForGame / 2);
         }
 
+        $dontUseExceptionPlatformsPenalty = false;
 
         /**
          * Добавляем или отнимаем очки за статус эффекты, деактивируем только статус эффекты,
          * у которых есть модификатор финальных очков. И только если $removeSe === true
          */
         foreach ($player->statusEffects as $playerStatusEffect) {
-            $statusEffect = $playerStatusEffect->where('active', true)->statusEffectBind->statusEffect;
+            $statusEffect = $playerStatusEffect->statusEffectBind->statusEffect;
 
             if ((int) $statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
                 $actions = $statusEffect->actions;
                 foreach ($actions as $action) {
                     if (
-                        is_array($action) &&
-                        isset($action['type']) &&
-                        $action['type'] === 'finalPointsMod' &&
-                        isset($action['value'])
+                        is_array($action)
+                        && isset($action['type'])
+                        && isset($action['value'])
                     ) {
-                        $pointsForGame = $pointsForGame * (1 + $action['value'] / 100);
+                        if ($action['type'] === 'finalPointsMod') {
+                            $pointsForGame = $pointsForGame * (1 + $action['value'] / 100);
 
-                        if ($removeSe && $playerStatusEffect->active === true) {
-                            $playerStatusEffect->update(['active' => false]);
+                            if ($removeSe && $playerStatusEffect->active === true) {
+                                $playerStatusEffect->update(['active' => false]);
+                            }
                         }
+
+//                        if ($action['type'] === 'platform') {
+//                            $dontUseExceptionPlatformsPenalty = true;
+//                        }
                     }
                 }
             }
         }
 
-        // Отнимаем очки, за исключенные платформы
-        if ((bool) $currentGame->boardGame->settings->where('code', 'hasExceptionPlatforms')->value('value')) {
-            if ($player->settings
-                && isset($player->settings['exceptionPlatforms'])
-                && $player->settings['exceptionPlatforms']
-            ) {
-                if ($exceptionPlatformsCount = count($player->settings['exceptionPlatforms']) > 1) {
+        // Отнимаем очки за исключенные платформы
+        if (!$dontUseExceptionPlatformsPenalty && (bool) $currentGame->boardGame->settings->where('code', 'hasExceptionPlatforms')->value('value')) {
+            if ($player->settings && !empty($player->settings['exceptionPlatforms'])) {
+                $exceptionPlatformsCount = count($player->settings['exceptionPlatforms']);
+
+                if ($exceptionPlatformsCount > 1) {
                     $percentForEp = ($exceptionPlatformsCount - 1) * 10;
 
                     if ($percentForEp) {
                         $pointsForGame = $pointsForGame * (1 - $percentForEp / 100);
                     }
                 }
+
+
             }
         }
 
         // Добавляем очки за стрик
-        $pointsForGame = round($player->streak > 0 ? $pointsForGame + ($pointsForGame / 100 * ($player->streak * 2)) : $pointsForGame);
+        $pointsForGame = round($player->streak > 0
+            ? $pointsForGame + ($pointsForGame / 100 * ($player->streak * 2))
+            : $pointsForGame
+        );
 
         return $pointsForGame;
     }
