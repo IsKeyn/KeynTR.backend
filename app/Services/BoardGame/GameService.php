@@ -146,7 +146,7 @@ class GameService
          * у которых есть модификатор финальных очков. И только если $removeSe === true
          */
         foreach ($player->statusEffects as $playerStatusEffect) {
-            $statusEffect = $playerStatusEffect->statusEffectBind->statusEffect;
+            $statusEffect = $playerStatusEffect->where('active', true)->statusEffectBind->statusEffect;
 
             if ((int) $statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
                 $actions = $statusEffect->actions;
