@@ -192,7 +192,7 @@ class PlayerGameController extends Controller
                             $conditionData['player']->streak = 0;
 
                             // Если игрок рерольнул свою игру, то обновляем счетчик своих рерольнутых игр
-                            if ($playerCurrentGame->game->addedBy === $conditionData['player']->user_id) {
+                            if ($playerCurrentGame->game->addedBy && $playerCurrentGame->game->addedBy->id === $conditionData['player']->user_id) {
                                 $conditionData['player']->rerolled_own_game_count = $conditionData['player']->rerolled_own_game_count + 1;
                             } else {
                                 $conditionData['player']->rerolled_game_count = $conditionData['player']->rerolled_game_count + 1;
@@ -404,7 +404,7 @@ class PlayerGameController extends Controller
                                     $bonus = json_decode($bonusForCoopSetting->value, true);
 
                                     if ($bonus) {
-                                        if ($bonus['value']) {
+                                        if (isset($bonus['value'])) {
                                             foreach ($bonus['value'] as $bonusElement) {
                                                 if ($bonusElement['type'] === 'addPoints') {
                                                     $conditionData['player']->points += $bonusElement['value'];
@@ -416,7 +416,7 @@ class PlayerGameController extends Controller
                                             }
                                         }
 
-                                        if ($bonus['message']) {
+                                        if (isset($bonus['message'])) {
                                             LogService::addLog(
                                                 $conditionData['player']->user_id,
                                                 $conditionData['boardGame']->id,
