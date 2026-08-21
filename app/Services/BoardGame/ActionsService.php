@@ -974,6 +974,7 @@ class ActionsService
                         }
 
                         $newGameFields = [
+                            'bg_player_id' => $player->id,
                             'user_id' => $player->user_id,
                             'board_game_game_list_id' => $data->additionalParams['selectedGame'],
                             'status' => PlayerGame::CURRENT,

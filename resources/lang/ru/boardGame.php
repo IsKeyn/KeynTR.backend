@@ -74,6 +74,7 @@ return [
         'not_enough_points' => 'Не достаточно очков для приобретения товара',
         'buy_item_log' => 'купил предмет ":name" и потратил на это :points очков',
         'sell_item_log' => 'продал предмет ":name" и получил за него :points очков',
+        'sell_item_notification_message' => 'Вы продали предмет ":name" и получил за него :points очков',
         'successful_purchase' => 'Предмет ":name" был успешно приобретен за :points очков',
         'withdrawn_item' => 'снял с продажи предмет ":name"',
         'successful_withdrawn' => 'Предмет ":name" был успешно снят с продажи и возвращен в ваш инвентарь',
