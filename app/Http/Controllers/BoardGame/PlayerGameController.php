@@ -166,25 +166,15 @@ class PlayerGameController extends Controller
 
                         $freeReroll = false;
 
-                        foreach ($playerStatusEffects as $statusEffect) {
-                            if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
-                                foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
-                                    $action = (Object) $action;
+                        $subtractPointsCount = GameService::rerollPenalty(
+                            $conditionData['boardGame'],
+                            $playerCurrentGame
+                        );
 
-                                    if (isset($action->value) && $action->value === 'free-reroll') {
-                                        $freeReroll = true;
-                                    }
-                                }
-
-                                if ($freeReroll) {
-                                    $statusEffect->update(['active' => false]);
-                                    break;
-                                }
-                            }
+                        if (!empty($subtractPointsCount['data']) && !empty($subtractPointsCount['playerStatusEffect'])) {
+                            $freeReroll = true;
+                            $subtractPointsCount['playerStatusEffect']->update(['active' => false]);
                         }
-
-                        $subtractPointsCount = GameService::rerollPenalty($conditionData['boardGame'],
-                            $playerCurrentGame);
 
                         if (!$freeReroll) {
                             // Отнимает очки при рероле и сбрасываем стрик при рероле
@@ -207,7 +197,7 @@ class PlayerGameController extends Controller
                         $message = 'рерольнул игру ' . $playerCurrentGame->game->game->name . ' и потерял ' . $subtractPointsCount['pointForReroll'] . ' очков';
 
                         if ($freeReroll && isset($subtractPointsCount['data']) && $subtractPointsCount['data']->name) {
-                            $message .= ', так как защищен "' . $subtractPointsCount['data']->name . '"';
+                            $message .= ', так как защищен статус эффектом "' . $subtractPointsCount['data']->name . '"';
                         }
 
                         // Возвращаем предмет, если была рерольнута отданная игра
@@ -229,7 +219,7 @@ class PlayerGameController extends Controller
 
                             $playerInteraction = $conditionData['player']->playerInteractions->first();
 
-                            if ($entity = $playerInteraction->entity) {
+                            if ($playerInteraction && $entity = $playerInteraction->entity) {
                                 $entity->has_used = false;
                                 $entity->save();
 

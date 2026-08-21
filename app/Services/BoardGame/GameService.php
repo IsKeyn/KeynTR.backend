@@ -85,6 +85,8 @@ class GameService
             ->active()
             ->get();
 
+        $playerStatusEffect = null;
+
         foreach ($playerStatusEffects as $statusEffect) {
             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
                 foreach ($statusEffect->statusEffectBind->statusEffect->actions as $action) {
@@ -92,7 +94,8 @@ class GameService
 
                     if (isset($action->value) && $action->value === 'free-reroll') {
                         $penaltyDefence = true;
-                        $data = BgStatusEffectResource::make($statusEffect->statusEffect);
+                        $data = BgStatusEffectResource::make($statusEffect->statusEffectBind->statusEffect);
+                        $playerStatusEffect = $statusEffect;
                         break;
                     }
                 }
@@ -117,6 +120,7 @@ class GameService
             'penaltyDefence' => $penaltyDefence,
             'pointForReroll' => $pointsForReroll,
             'data' => $data ?? null,
+            'playerStatusEffect' => $playerStatusEffect,
         ];
     }
 

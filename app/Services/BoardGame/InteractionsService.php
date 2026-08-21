@@ -55,6 +55,8 @@ class InteractionsService
 
     private function accept()
     {
+        $checkInteraction = false;
+
         if ($this->interaction->with_player !== $this->conditionData['user']->id) {
             return ErrorService::message('Вы не можете принять взаимодействие, которое отправлено не вам');
         }
@@ -147,7 +149,7 @@ class InteractionsService
                 ];
 
                 PlayerGame::create($newGameFieldsForSecondPlayer);
-                $this->checkInteractionAfterActionWithGame($this->interaction->type, $this->conditionData);
+                $checkInteraction = true;
             }
 
             if ($this->interaction->type === 'battleForPoints' || $this->interaction->type === 'inviteToCoop') {
@@ -194,9 +196,14 @@ class InteractionsService
         }
 
         $this->interaction->status = PlayerInteractions::STATUS_ACCEPTED;
-
         $this->interaction->active = $active;
-        return $this->interaction->save();
+        $result = $this->interaction->save();
+
+        if ($checkInteraction) {
+            $this->checkInteractionAfterActionWithGame($this->interaction->type, $this->conditionData);
+        }
+
+        return $result;
     }
 
     private function refuse()

@@ -11,6 +11,7 @@ use App\Models\BoardGame\ShopItem;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
 use App\Services\Cache\BoardGame\BgShopItemCacheService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -214,6 +215,17 @@ class ShopItemController extends Controller
                     'points' => $shopItem->entity->item->price,
                 ]),
                 $shopItem->seller->id,
+            );
+
+            // Уведомляем продавца о покупке его предмета
+            NotificationService::set(
+                [
+                    'user_id' => $shopItem->seller->user_id,
+                    'message' => __('boardGame.shop.sell_item_notification_message', [
+                        'name' => $shopItem->entity->item->name,
+                        'points' => $shopItem->entity->item->price,
+                    ]),
+                ]
             );
 
             return response()
