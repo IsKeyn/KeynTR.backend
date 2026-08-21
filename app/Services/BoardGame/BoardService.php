@@ -206,11 +206,11 @@ class BoardService
                                             $boardPositionEffectBind->position
                                         );
                                     }
-
-                                    return $result;
                                 }
                             }
                         }
+
+                        return $result ?? null;
                     });
 
                     return $result;

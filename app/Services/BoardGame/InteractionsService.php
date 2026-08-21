@@ -9,6 +9,7 @@ use App\Models\BoardGame\PlayerInteractions;
 use App\Services\Entity\EntityService;
 use App\Services\ErrorService;
 use App\Services\NotificationService;
+use Symfony\Component\HttpFoundation\Response;
 
 class InteractionsService
 {
@@ -87,6 +88,26 @@ class InteractionsService
             $active = false;
 
             if ($this->interaction->type === 'switchGame') {
+                $playerToId = BoardGamePlayer::query()
+                    ->active()
+                    ->where('board_game_id', $this->conditionData['boardGame']->id)
+                    ->where('user_id', $this->interaction->with_player)
+                    ->value('id');
+
+                if (!$playerToId) {
+                    abort(Response::HTTP_BAD_REQUEST, __('boardGame.interactions.with_player_not_found'));
+                }
+
+                $playerFromId = BoardGamePlayer::query()
+                    ->active()
+                    ->where('board_game_id', $this->conditionData['boardGame']->id)
+                    ->where('user_id', $this->interaction->created_by)
+                    ->value('id');
+
+                if (!$playerFromId) {
+                    abort(Response::HTTP_BAD_REQUEST, __('boardGame.interactions.created_by_not_found'));
+                }
+
                 $firstPlayerGame = PlayerGame::query()
                     ->where('user_id', $this->interaction->with_player)
                     ->where('board_game_id', $this->conditionData['boardGame']->id)
@@ -106,6 +127,7 @@ class InteractionsService
 
                 // Создаем новые игры
                 $newGameFieldsForFirstPlayer = [
+                    'bg_player_id' => $playerToId,
                     'user_id' => $this->interaction->with_player,
                     'board_game_game_list_id' => $secondPlayerGame->board_game_game_list_id,
                     'status' => PlayerGame::CURRENT,
@@ -116,6 +138,7 @@ class InteractionsService
                 PlayerGame::create($newGameFieldsForFirstPlayer);
 
                 $newGameFieldsForSecondPlayer = [
+                    'bg_player_id' => $playerFromId,
                     'user_id' => $this->interaction->created_by,
                     'board_game_game_list_id' => $firstPlayerGame->board_game_game_list_id,
                     'status' => PlayerGame::CURRENT,
@@ -150,6 +173,7 @@ class InteractionsService
                     }
 
                     $newGameFields = [
+                        'bg_player_id' => $this->conditionData['player']->id,
                         'user_id' => $this->interaction->with_player,
                         'board_game_game_list_id' => $secondPlayerGame->board_game_game_list_id,
                         'status' => $status,
