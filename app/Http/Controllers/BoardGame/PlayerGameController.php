@@ -521,7 +521,8 @@ class PlayerGameController extends Controller
             LogService::addLog(
                 $conditionData['user']->id,
                 $conditionData['boardGame']->id,
-                'Теперь проходит игру ' . $playerCurrentGameInQueue->game->game->name
+                'Теперь проходит игру ' . $playerCurrentGameInQueue->game->game->name,
+                $conditionData['player']->id,
             );
         }
     }

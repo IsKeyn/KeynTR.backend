@@ -187,13 +187,15 @@ class SetStatusEffectOnPlayerCommand extends Command
      * @param int $bindId ID привязки предмета к настольной игре (StatusEffectBind)
      * @param array $excludingPlayers Игроки, которых исключаем из выборки
      * @param int $recursionDepth Глубина рекурсии для предотвращения бесконечного цикла
+     * @param int $maxLastPlayers Количество игроков, которые получали эффект ранее
      * @return BoardGamePlayer|null
      */
     private function getRandomPlayer(
         BoardGame $boardGame,
         int $bindId,
         array $excludingPlayers = [],
-        int $recursionDepth = 0
+        int $recursionDepth = 0,
+        int $maxLastPlayers = null
     ): ?BoardGamePlayer {
         if ($recursionDepth > 1000) {
             Log::warning('Превышена глубина рекурсии в getRandomPlayer', [
@@ -203,12 +205,15 @@ class SetStatusEffectOnPlayerCommand extends Command
             return null;
         }
 
-        $lastPlayersWithEveryDayStatusEffectSetting = $boardGame
-            ->settings
-            ->where('code', '=', 'last_players_with_every_day_status_effect')
-            ->first();
+        if ($maxLastPlayers === null) {
+            $lastPlayersWithEveryDayStatusEffectSetting = $boardGame
+                ->settings
+                ->where('code', '=', 'last_players_with_every_day_status_effect')
+                ->first();
 
-        $maxLastPlayers = $lastPlayersWithEveryDayStatusEffectSetting ? $lastPlayersWithEveryDayStatusEffectSetting->value : 3;
+
+            $maxLastPlayers = $lastPlayersWithEveryDayStatusEffectSetting ? $lastPlayersWithEveryDayStatusEffectSetting->value : 3;
+        }
 
         // Получаем последних игроков со статус-эффектом
         $lastPlayersWithSe = PlayerStatusEffect::query()
@@ -234,7 +239,13 @@ class SetStatusEffectOnPlayerCommand extends Command
 
         // Если игрок не найден - возвращаем null
         if (!$player) {
-            return null;
+            return $this->getRandomPlayer(
+                $boardGame,
+                $bindId,
+                [],
+                $recursionDepth + 1,
+                $maxLastPlayers !== 0 ? $maxLastPlayers - 1 : 0
+            );
         }
 
         // Проверяем условие для рекурсивного поиска

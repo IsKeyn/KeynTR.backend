@@ -158,17 +158,17 @@ class StatusEffectService
 
                 if ($action->type === "choice") {
                     if ($request->type === 'accept' && isset($action->actions[1])) {
-                        $result = $actionService->activateAction($request, $action->actions[1]);
+                        $result = $actionService->activateAction($request, (Object) $action->actions[1]);
                     }
 
                     if ($request->type === 'denied' && isset($action->actions[0])) {
-                        $result = $actionService->activateAction($request, $action->actions[0]);
+                        $result = $actionService->activateAction($request, (Object) $action->actions[0]);
                     }
                 }
 
                 if ($action->type === "onlyAccept") {
                     foreach ($action->actions as $actionForActivate) {
-                        $result = $actionService->activateAction($request, $actionForActivate);
+                        $result = $actionService->activateAction($request, (Object) $actionForActivate);
                     }
                 }
             }

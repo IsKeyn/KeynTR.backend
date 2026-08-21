@@ -53,7 +53,10 @@ return [
             'denied' => 'отказался от статус эффекта :name',
             'successfully_applied' => 'Успешно применено',
         ],
-        'interactions' => [],
+        'interactions' => [
+            'created_by_not_found' => 'Не найден игрок создавший взаимодействие',
+            'with_player_not_found' => 'Не найден игрок для взаимодействия',
+        ],
     ],
 
     'status_effect' => [
