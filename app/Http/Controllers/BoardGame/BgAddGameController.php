@@ -104,6 +104,7 @@ class BgAddGameController extends Controller
 
                     $incomingIds[] = $item['id'];
                 } else {
+                    $item['status'] = AddGame::ADD_STATUS_DRAFT;
                     $toCreate[] = $item;
                 }
             }
