@@ -313,7 +313,7 @@ class GameController extends Controller
 
                 if ($game->relationLoaded('bgGamesList')) {
                     foreach ($game->bgGamesList->sortByDesc('id') as $gameGameList) {
-                        if ($gameGameList->relationLoaded('boardGame') && $gameGameList->boardGame->slug !== 'demo') {
+                        if ($gameGameList->relationLoaded('boardGame') && $gameGameList->boardGame->is_test !== true) {
                             $boardGames['boardGames'][] = BoardGameShortestWithImageResource::make($gameGameList->boardGame);
                         }
                     }
