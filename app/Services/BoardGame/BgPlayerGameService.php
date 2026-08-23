@@ -5,6 +5,7 @@ namespace App\Services\BoardGame;
 use App\Http\Resources\BoardGame\Board\BgPlayerInteractionResource;
 use App\Http\Resources\BoardGame\GameListResource;
 use App\Http\Resources\BoardGame\Games\BgGameRouletteListResource;
+use App\Http\Resources\BoardGame\Games\GameListShortResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerWithCurrentGameResource;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\PlayerGame;
@@ -237,6 +238,7 @@ class BgPlayerGameService
         $playerStatusEffects = $conditionData['player']->statusEffects;
 
         $platformSlugs = [];
+        $statusEffectIds = [];
 
         foreach ($playerStatusEffects as $statusEffect) {
             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
@@ -247,7 +249,7 @@ class BgPlayerGameService
                         $platformSlugs[] = $action->value;
 
                         if ($removeSe && $statusEffect->active === true) {
-                            $statusEffect->update(['active' => false]);
+                            $statusEffectIds[] = $statusEffect->id;
                         }
                     }
                 }
@@ -256,7 +258,10 @@ class BgPlayerGameService
             if ($platformSlugs) break;
         }
 
-        return $platformSlugs;
+        return [
+            'platformSlugs' => $platformSlugs,
+            'statusEffectIds' => $statusEffectIds,
+        ];
     }
 
     /**
@@ -374,10 +379,12 @@ class BgPlayerGameService
     public function getFilteredGameList(
         array $conditionData,
         bool $removeSe = false,
-        bool $setGameList = true
+        bool $setGameList = true,
+        bool $setGamePlatform = true
     )
     {
         $listType = 'default'; // Тип списка игр
+        $statusEffectIdsForUpdate = [];
 
         $conditionData['boardGame']->load(['settings']);
 
@@ -390,11 +397,14 @@ class BgPlayerGameService
             ->where('board_game_id', $boardGameId);
 
         if ($setGameList) {
-            // Проверяем, существует ли тип списка, который устанавливается из статус эффекта
-            $listTypeFromSe = $this->getListTypeFromSe($conditionData, $removeSe);
+            $getListTypeFromSeResult = $this->getListTypeFromSe($conditionData, $removeSe);
 
-            if ($listTypeFromSe) {
-                $listType = $listTypeFromSe;
+            if (!empty($getListTypeFromSeResult['statusEffectIds'])) {
+                $statusEffectIdsForUpdate = array_merge($statusEffectIdsForUpdate, $getListTypeFromSeResult['statusEffectIds']);
+            }
+
+            if (!empty($getListTypeFromSeResult['listType'])) {
+                $listType = $getListTypeFromSeResult['listType'];
             }
 
             // Рулетка рерольнутых игр (извлекает все уникальные рерольнутые игры, всех игроков)
@@ -435,12 +445,18 @@ class BgPlayerGameService
             $gameListQuery->where('list_type', null);
         }
 
-        $platformSlugs = $this->getPlatformIds($conditionData, $removeSe);
+        if ($setGamePlatform) {
+            $getPlatformIdsResult = $this->getPlatformIds($conditionData, $removeSe);
 
-        if ($platformSlugs) {
-            $platformIds = GamingPlatform::query()
-                ->whereIn('slug', $platformSlugs)
-                ->pluck('id');
+            if (!empty($getPlatformIdsResult['statusEffectIds'])) {
+                $statusEffectIdsForUpdate = array_merge($statusEffectIdsForUpdate, $getPlatformIdsResult['statusEffectIds']);
+            }
+
+            if (!empty($getPlatformIdsResult['platformSlugs'])) {
+                $platformIds = GamingPlatform::query()
+                    ->whereIn('slug', $getPlatformIdsResult['platformSlugs'])
+                    ->pluck('id');
+            }
         }
 
         if (isset($platformIds)) {
@@ -489,15 +505,30 @@ class BgPlayerGameService
             return !in_array($value->id, $usedGames);
         });
 
-        /**
-         * Если золотой список или список реролов игр пуст,
-         * то обноляем количество рерольнутых игр игрока и формируем новый список игр
-         */
-        if (($listType === 'golden' || $listType === 'rerolled') && count($finalGameList) === 0) {
-            $player->rerolled_game_count = 0;
-            $player->save();
+        // Если список игр пуст, то ищем вариант списка, в котором будут какие-то игры
+        if (count($finalGameList) === 0) {
+            /**
+             * Если золотой список или список реролов игр пуст,
+             * то обноляем количество рерольнутых игр игрока и формируем новый список игр
+             */
+            if (($listType === 'golden' || $listType === 'rerolled')) {
+                $player->rerolled_game_count = 0;
+                $player->saveQuietly();
 
-            return $this->getFilteredGameList($conditionData, $removeSe, false);
+                return $this->getFilteredGameList($conditionData, $removeSe, false);
+            } elseif ($setGamePlatform) {
+                return $this->getFilteredGameList($conditionData, $removeSe, $setGameList, false);
+            } elseif ($listType === 'myOwnGame') {
+                return $this->getFilteredGameList($conditionData, $removeSe, false, $setGamePlatform);
+            }
+        }
+
+        if ($removeSe && !empty($statusEffectIdsForUpdate)) {
+            $conditionData['player']->statusEffects()
+                ->whereIn('id', $statusEffectIdsForUpdate)
+                ->update(['active' => false]);
+
+            $conditionData['player']->touch();
         }
 
         return [
@@ -520,6 +551,7 @@ class BgPlayerGameService
         $playerStatusEffects = $conditionData['player']->statusEffects->where('active', true);
 
         $listType = null;
+        $statusEffectIds = [];
 
         foreach ($playerStatusEffects as $statusEffect) {
             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
@@ -530,7 +562,7 @@ class BgPlayerGameService
                         $listType = $action->value;
 
                         if ($removeSe && $statusEffect->active === true) {
-                            $statusEffect->update(['active' => false]);
+                            $statusEffectIds[] = $statusEffect->id;
                         }
                     }
                 }
@@ -539,7 +571,10 @@ class BgPlayerGameService
             if ($listType) break;
         }
 
-        return $listType;
+        return [
+            'listType' => $listType,
+            'statusEffectIds' => $statusEffectIds,
+        ];
     }
 
     /**
@@ -556,5 +591,28 @@ class BgPlayerGameService
             ->distinct()
             ->pluck('board_game_game_list_id')
             ->toArray();
+    }
+
+    /**
+     * Возвращает ресурс GameListShortResource, со списком доступных игроку игр
+     *
+     * @param int $boardGameId ID настольной игры
+     * @param int $userId ID пользователя на сайте
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public static function getAvailablePlayerGameList(int $boardGameId, int $userId)
+    {
+        $boardGameGameList = BoardGameGameList::query()
+            ->findByBoardGame($boardGameId)
+            ->whereNull('list_type')
+            ->active()
+            // Исключаем записи, у которых есть связанные playerGames для данного пользователя
+            ->whereDoesntHave('playerGames', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->with(['game', 'game.titleImage'])
+            ->get();
+
+        return GameListShortResource::collection($boardGameGameList);
     }
 }

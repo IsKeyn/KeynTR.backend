@@ -996,6 +996,7 @@ class ActionsService
                 } elseif ($action->type === 'rerollGame') {
                     if ($data->additionalParams['selectedGame'] ?? null) {
                         $newGameFields = [
+                            'bg_player_id' => $player->id,
                             'user_id' => $player->user_id,
                             'board_game_game_list_id' => $data->additionalParams['selectedGame'],
                             'status' => PlayerGame::REROLLED,

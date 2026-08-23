@@ -2,11 +2,15 @@
 
 namespace App\Http\Resources\BoardGame\Games;
 
-use App\Http\Resources\UserPublicResource;
+use App\Http\Resources\Game\GameShortResource;
+use App\Http\Resources\User\UserPublicResource;
+use App\Traits\CommonResourceFields;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class GameListShortResource extends JsonResource
 {
+    use CommonResourceFields;
+
     /**
      * Transform the resource into an array.
      *
@@ -16,10 +20,11 @@ class GameListShortResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
+            ...$this->commonFields(),
+
             'game_id' => $this->game_id,
-            'game' => GameShortResource::make($this->game),
-            'added_by_user' => UserPublicResource::make($this->addedBy),
+            'game' => $this->whenLoaded('game', fn() => GameShortResource::make($this->game)),
+            'added_by_user' => $this->whenLoaded('addedBy', fn() => UserPublicResource::make($this->addedBy)),
             'gaming_platform_id' => $this->gaming_platform_id,
             'platform' => $this->gamePlatform,
             'board_game_id' => $this->board_game_id,
@@ -29,12 +34,8 @@ class GameListShortResource extends JsonResource
             'difficult' => $this->difficult,
             'game_completion_time' => $this->game_completion_time,
             'list_type' => $this->list_type,
-            'active' => $this->active,
             'source' => $this->source,
             'added_by' => $this->added_by,
-            'created_by' => $this->created_by,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -22,17 +22,18 @@ class BgPlayerInteractionsObserver
     public function created(PlayerInteractions $playerInteractions)
     {
         $playerInteractions->load(['boardGame']);
-        $cacheService = app(PlayerInteractions::CACHE_SERVICE);
-        $cacheService->clearClientPlayerListCache($playerInteractions);
-
-        $this->clearRelatedCache($playerInteractions);
-        $this->sendCurrentInteractionsList($playerInteractions);
-
         $this->defaultObserverService->created(
             $playerInteractions,
             self::CACHE_SERVICE,
             self::SERVICE
         );
+
+        $cacheService = app(PlayerInteractions::CACHE_SERVICE);
+        $cacheService->clearClientPlayerListCache($playerInteractions);
+
+        $this->clearRelatedCache($playerInteractions);
+
+        $this->sendCurrentInteractionsList($playerInteractions);
     }
 
     public function updated(PlayerInteractions $playerInteractions)
@@ -42,7 +43,6 @@ class BgPlayerInteractionsObserver
         $cacheService->clearClientPlayerListCache($playerInteractions);
 
         $this->clearRelatedCache($playerInteractions);
-        $this->sendCurrentInteractionsList($playerInteractions);
 
         $this->defaultObserverService->updated(
             $playerInteractions,
@@ -50,6 +50,8 @@ class BgPlayerInteractionsObserver
             self::SERVICE,
             false,
         );
+
+        $this->sendCurrentInteractionsList($playerInteractions);
     }
 
     public function deleted(PlayerInteractions $playerInteractions)
@@ -59,7 +61,6 @@ class BgPlayerInteractionsObserver
         $cacheService->clearClientPlayerListCache($playerInteractions);
 
         $this->clearRelatedCache($playerInteractions);
-        $this->sendCurrentInteractionsList($playerInteractions);
 
         $this->defaultObserverService->deleted(
             $playerInteractions,
@@ -67,6 +68,8 @@ class BgPlayerInteractionsObserver
             self::SERVICE,
             false,
         );
+
+        $this->sendCurrentInteractionsList($playerInteractions);
     }
 
     public function restored(PlayerInteractions $playerInteractions)
@@ -76,7 +79,6 @@ class BgPlayerInteractionsObserver
         $cacheService->clearClientPlayerListCache($playerInteractions);
 
         $this->clearRelatedCache($playerInteractions);
-        $this->sendCurrentInteractionsList($playerInteractions);
 
         $this->defaultObserverService->restored(
             $playerInteractions,
@@ -84,6 +86,8 @@ class BgPlayerInteractionsObserver
             self::SERVICE,
             false,
         );
+
+        $this->sendCurrentInteractionsList($playerInteractions);
     }
 
     public function forceDeleted(PlayerInteractions $playerInteractions)
@@ -93,12 +97,13 @@ class BgPlayerInteractionsObserver
         $cacheService->clearClientPlayerListCache($playerInteractions);
 
         $this->clearRelatedCache($playerInteractions);
-        $this->sendCurrentInteractionsList($playerInteractions);
 
         $this->defaultObserverService->forceDeleted(
             $playerInteractions,
             self::CACHE_SERVICE
         );
+
+        $this->sendCurrentInteractionsList($playerInteractions);
     }
 
     private function clearRelatedCache($playerInteractions)
