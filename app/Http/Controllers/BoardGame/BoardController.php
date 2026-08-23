@@ -95,10 +95,10 @@ class BoardController extends Controller
         $user = Auth::user();
 
         if ($user) {
-            $cacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $slug . '_' . $user->id . '_board';
+            $bgPlayerCacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $slug . '_' . $user->id . '_board';
 
             $returnData2 = Cache::remember(
-                $cacheKey,
+                $bgPlayerCacheKey,
                 BgPlayerCacheService::TIME,
                 function () use ($user, $BoardGame, $slug
             ) {

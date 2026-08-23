@@ -615,6 +615,6 @@ class PlayerGameController extends Controller
             return ErrorService::message('Пользователь не найден');
         }
 
-        return PlayerGameService::getAvailablePlayerGameList($boardGameId, $user);
+        return BgPlayerGameService::getAvailablePlayerGameList($boardGameId, $user);
     }
 }

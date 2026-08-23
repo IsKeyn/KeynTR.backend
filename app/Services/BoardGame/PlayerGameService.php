@@ -2,13 +2,10 @@
 
 namespace App\Services\BoardGame;
 
-use App\Http\Resources\BoardGame\GameListResource;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGamePlayer;
-use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\BoardGame\PlayerGame;
-use App\Services\ErrorService;
 use Illuminate\Support\Facades\Auth;
 
 class PlayerGameService
@@ -109,27 +106,5 @@ class PlayerGameService
             'user' => $user,
             'player' => $player,
         ];
-    }
-
-    public static function getAvailablePlayerGameList($boardGameId, $userId)
-    {
-        $boardGameGameQuery = BoardGameGameList::findByBoardGame($boardGameId);
-        $boardGameGameQuery->where('list_type', null);
-        $boardGameGameList = $boardGameGameQuery->active()->get();
-
-        // Убираем из списка игры, выпадали игроку
-        $playerGameListQuery = PlayerGame::query()
-            ->findByBoardGame($boardGameId)
-            ->findByUserId($userId);
-
-        $playerGameList = $playerGameListQuery->get();
-
-        $usedGames = [];
-
-        foreach ($playerGameList as $game) {
-            $usedGames[] = $game->board_game_game_list_id;
-        }
-
-        return GameListResource::collection($boardGameGameList->filter(function ($value) use ($usedGames) { return !in_array($value->id, $usedGames); }));
     }
 }
