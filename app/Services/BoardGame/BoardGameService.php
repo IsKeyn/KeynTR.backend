@@ -3,14 +3,14 @@
 namespace App\Services\BoardGame;
 
 use App\Http\Resources\BoardGame\BgLayoutResource;
+use App\Http\Resources\BoardGame\BgShortResource;
 use App\Models\BoardGame\BoardGame;
 use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Entity\EntityService;
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
-class BoardGameService extends ServiceProvider
+class BoardGameService
 {
     public static function getById($id, $forceRefresh = false, $withTrashed = false)
     {
@@ -62,5 +62,32 @@ class BoardGameService extends ServiceProvider
                 return BgLayoutResource::make($boardGame);
             });
         }
+    }
+
+    /**
+     * Получение списка ивентов пользователя по его ID, за исключением ивента со $slug
+     *
+     * @param string $slug
+     * @param int $userId
+     * @return mixed
+     */
+    public function getUserBgExceptCurrent(string $slug, int $userId)
+    {
+        $cacheKey = BoardGameCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId;
+
+        return Cache::remember($cacheKey, BoardGameCacheService::TIME, function () use ($slug, $userId) {
+            $boardGameList = BoardGame::query()
+                ->active()
+                ->where('is_test', false)
+                ->where('slug', '!=', $slug)
+                ->with(['players' , 'media'])
+                ->whereHas('players', function($query) use ($userId) {
+                    $query->where('board_game_players.user_id', $userId);
+                })
+                ->orderBy('started_at', 'desc')
+                ->get();
+
+            return BgShortResource::collection($boardGameList);
+        });
     }
 }

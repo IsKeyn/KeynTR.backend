@@ -34,7 +34,11 @@ class BoardGameController extends Controller
 
     public function getList(BoardGame $boardGame)
     {
-        $boardGameList = $boardGame::active()->orderBy('created_at', 'desc')->get();
+        $boardGameList = $boardGame::query()
+            ->active()
+            ->where('is_test', false)
+            ->orderBy('started_at', 'desc')
+            ->get();
 
         return BoardGameShortResource::collection($boardGameList);
     }
