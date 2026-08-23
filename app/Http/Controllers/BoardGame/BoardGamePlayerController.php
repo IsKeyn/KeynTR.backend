@@ -4,7 +4,6 @@ namespace App\Http\Controllers\BoardGame;
 
 use App\Filters\BoardGame\BgPlayerFilter;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BoardGame\BgShortResource;
 use App\Http\Resources\BoardGame\Board\BgPlayerInteractionResource;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Http\Resources\BoardGame\BoardGamePlayerFullResource;
@@ -29,6 +28,7 @@ use App\Models\BoardGame\PlayerInteractions;
 use App\Models\BoardGame\PlayerStatusEffect;
 use App\Models\User;
 use App\Services\BoardGame\BgPlayerService;
+use App\Services\BoardGame\BoardGameService;
 use App\Services\BoardGame\ItemService;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
@@ -37,7 +37,6 @@ use App\Services\Cache\BoardGame\BgInventoryCacheService;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Cache\BoardGame\BgPlayerInteractionCacheService;
-use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService;
 use App\Services\Entity\DefaultEntityService;
 use App\Services\MediaService;
@@ -273,41 +272,27 @@ class BoardGamePlayerController extends Controller
         return BgPlayerDetailResource::collection($players);
     }
 
-    /*
-     * Ивенты игрока
+    /**
+     * Список ивентов польщователя по его имени
+     *
+     * @param string $slug slug ивента
+     * @param string $name User::name
+     * @param BoardGameService $boardGameService
+     * @return \Illuminate\Http\JsonResponse|mixed
      */
     public function getEvents(
-        $slug,
-        $name,
-        BoardGame $BoardGame,
-        BoardGamePlayer $BoardGamePlayer
+        string $slug,
+        string $name,
+        BoardGameService $boardGameService
     )
     {
         $userId = User::findByName($name)->value('id');
-        if (!$userId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+        if (!$userId) return response()->json(['message' => 'Not found'])->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        $bgId = $BoardGame->findBySlug($slug)->value('id');
-        if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+        $bgId = BoardGame::findBySlug($slug)->value('id');
+        if (!$bgId) return response()->json(['message' => 'Not found'])->setStatusCode(Response::HTTP_NOT_FOUND);
 
-        $cacheKey = BoardGameCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId;
-
-        return Cache::remember($cacheKey, BoardGameCacheService::TIME, function () use ($BoardGamePlayer, $userId, $bgId) {
-            $playerInGames = $BoardGamePlayer
-                ->findByUserId($userId)
-                ->where('board_game_id', '!=', $bgId)
-                ->with(['boardGame', 'boardGame.media'])
-                ->get();
-
-            $boardGames = collect([]);
-
-            foreach ($playerInGames as $player) {
-                if ($player->boardGame && !$player->boardGame->is_close) {
-                    $boardGames->push($player->boardGame);
-                }
-            }
-
-            return BgShortResource::collection($boardGames);
-        });
+        return $boardGameService->getUserBgExceptCurrent($slug, $userId);
     }
 
     /**
