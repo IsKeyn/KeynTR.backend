@@ -14,7 +14,7 @@ use App\Http\Resources\Date\DateShortResource;
 use App\Http\Resources\Date\DateWithPlatformResource;
 use App\Http\Resources\GenreResource;
 use App\Http\Resources\GroupResource;
-use App\Http\Resources\Person\ListResource;
+use App\Http\Resources\Person\PersonListResource;
 use App\Http\Resources\Series\SeriesWithGamesResource;
 
 class DetailResource extends JsonResource
@@ -32,7 +32,7 @@ class DetailResource extends JsonResource
             'tags' => $this->whenLoaded('tags', TagResource::collection($this->tags)),
 
             'series' => $this->whenLoaded('series', SeriesWithGamesResource::collection($this->series)),
-            'people' => $this->whenLoaded('people', ListResource::collection($this->people)),
+            'people' => $this->whenLoaded('people', PersonListResource::collection($this->people)),
             'groups' => $this->whenLoaded('groups', GroupResource::collection($this->groups)),
             'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
             'anons_dates' => $this->whenLoaded('anonsDates', DateShortResource::collection($this->anonsDates)),
