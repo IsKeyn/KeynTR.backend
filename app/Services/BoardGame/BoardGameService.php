@@ -50,7 +50,7 @@ class BoardGameService
                 ->with(['settings', 'media', 'seo', 'seo.entity', 'seo.entity.tags', 'blocks'])
                 ->findBySlug($slug)
                 ->active()
-                ->first();
+                ->firstOrFail();
 
             if ($boardGame->started_at && $boardGame->started_at >= Carbon::now()) {
                 $time = $boardGame->started_at;
