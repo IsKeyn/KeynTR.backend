@@ -4,11 +4,11 @@ namespace App\Events\BoardGame;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class PlayerInteractions implements ShouldBroadcastNow
+class PlayerInteractions implements ShouldHandleEventsAfterCommit
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
