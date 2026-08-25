@@ -5,7 +5,6 @@ namespace App\Services\Cache\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
 use App\Services\Cache\BaseCacheService;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class BgPlayerCacheService extends BaseCacheService
 {
@@ -89,9 +88,5 @@ class BgPlayerCacheService extends BaseCacheService
 
         $boardCacheKey = BgPlayerCacheService::DETAIL_PREFIX . '_' . $element->boardGame->slug . '_' . $element->user_id . '_board';
         Cache::forget($boardCacheKey);
-
-        Log::channel('statusEffects')->warning(
-            "{$cacheKey}, {$layoutCacheKey}, {$withInventoryCacheKey}, {$withInventoryCacheKey}, {$boardCacheKey}"
-        );
     }
 }
