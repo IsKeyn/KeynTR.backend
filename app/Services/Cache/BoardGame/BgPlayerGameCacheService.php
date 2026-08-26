@@ -29,15 +29,19 @@ class BgPlayerGameCacheService extends BaseCacheService
 
     public function clearClientDetailCache($element)
     {
-        if (!$element->boardGame || !$element->user || !$element->game) {
+        if (!$element->boardGame || !$element->game) {
+            return;
+        }
+
+        $detailGameCacheKey = BgPlayerGameCacheService::DETAIL_PREFIX . '_' . $element->boardGame->slug . '_' . $element->game->slug;
+        Cache::forget($detailGameCacheKey);
+
+        if (!$element->user) {
             return;
         }
 
         $currentGameCacheKey = BgPlayerGameCacheService::DETAIL_PREFIX . '_current_' . $element->boardGame->slug . '_' . $element->user->id;
         Cache::forget($currentGameCacheKey);
-
-        $detailGameCacheKey = BgPlayerGameCacheService::DETAIL_PREFIX . '_' . $element->boardGame->slug . '_' . $element->game->slug;
-        Cache::forget($detailGameCacheKey);
     }
 
     public function clearAllGameHistoryCache($boardGame, $showMessage = false)
@@ -111,7 +115,7 @@ class BgPlayerGameCacheService extends BaseCacheService
     public function clearActionsWithGameInOtherEventsByGameCache($playerGame, $showMessage = false)
     {
         $modelClass = static::MODEL;
-        $origCacheKey = BgPlayerGameCacheService::LIST_PREFIX . '_' . $playerGame->boardGame->slug . '_' . $playerGame->game->slug . '_in_event';
+        $origCacheKey = BgPlayerGameCacheService::LIST_PREFIX . '_' . $playerGame->boardGame->slug . '_' . $playerGame->game->slug . '_in_other_events';
 
         $gameListIds = BoardGameGameList::query()
             ->where('game_id', $playerGame->game->id)

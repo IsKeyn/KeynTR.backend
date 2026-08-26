@@ -48,11 +48,14 @@ abstract class BaseCacheService
 
             for ($i = 1; $i <= $lastPage; $i++) {
                 $cacheKey = static::LIST_PREFIX . '_' . $i . '_' . $perPage;
+                $cacheKeyShort = static::LIST_PREFIX .'_short' . '_' . $i . '_' . $perPage;
 
                 Cache::forget($cacheKey);
+                Cache::forget($cacheKeyShort);
 
                 if ($showMessage) {
                     echo $cacheKey . ' очищен' . PHP_EOL;
+                    echo $cacheKeyShort . ' очищен' . PHP_EOL;
                 }
             }
         }
