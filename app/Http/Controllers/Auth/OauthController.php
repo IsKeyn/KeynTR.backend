@@ -34,14 +34,21 @@ class OauthController extends Controller
 
     public function apiCallback(Request $request, $oauthName)
     {
-        if ($oauthName === 'vkid') {
-            $provider = Socialite::driver($oauthName)
-                ->setRequest($request);
-        } else {
-            $provider = Socialite::driver($oauthName)
-                ->stateless()
-                ->setRequest($request);
+        $driver = Socialite::driver($oauthName);
+
+        if ($oauthName !== 'vkid') {
+            $driver = $driver->stateless();
         }
+
+        $provider = $driver->setRequest($request);
+
+        \Log::info('VKID callback', [
+            'oauthName' => $oauthName,
+            'code_present' => $request->filled('code'),
+            'state' => $request->input('state'),
+            'device_id' => $request->input('device_id'),
+            'session_id' => session()->getId(),
+        ]);
 
         $oauthUser = $provider->user();
 
