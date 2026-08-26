@@ -19,17 +19,29 @@ class OauthController extends Controller
 {
     public function redirect($oauthName)
     {
-        $redirectResponse = Socialite::driver($oauthName)->stateless()->redirect();
-        $redirectUrl = $redirectResponse->getTargetUrl();
+        $driver = Socialite::driver($oauthName);
 
-        return response()->json(['url' => $redirectUrl]);
+        if ($oauthName !== 'vkid') {
+            $driver->stateless();
+        }
+
+        $redirectResponse = $driver->redirect();
+
+        return response()->json([
+            'url' => $redirectResponse->getTargetUrl(),
+        ]);
     }
 
     public function apiCallback(Request $request, $oauthName)
     {
-        $provider = Socialite::driver($oauthName)
-            ->stateless()
-            ->setRequest($request);
+        if ($oauthName === 'vkid') {
+            $provider = Socialite::driver($oauthName)
+                ->setRequest($request);
+        } else {
+            $provider = Socialite::driver($oauthName)
+                ->stateless()
+                ->setRequest($request);
+        }
 
         $oauthUser = $provider->user();
 
