@@ -34,6 +34,11 @@ class OauthController extends Controller
 
         $provider = $driver->setRequest($request);
 
+        \Log::info('VKID callback', [
+            'state' => $request->input('state'),
+            'code_present' => $request->filled('code'),
+        ]);
+
         $oauthUser = $provider->user();
 
         if (!$oauthUser) {
