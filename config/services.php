@@ -47,10 +47,16 @@ return [
         'redirect' => env('YANDEX_REDIRECT_URI'),
     ],
 
-    'vkontakte' => [
-        'client_id' => env('VK_CLIENT_ID'),
-        'client_secret' => env('VK_CLIENT_SECRET'),
-        'redirect' => env('VK_REDIRECT_URI'),
+    'vkid' => [
+        'client_id' => env('VKID_CLIENT_ID'),
+        'client_secret' => env('VKID_CLIENT_SECRET'),
+        'redirect' => env('VKID_REDIRECT_URI'),
+
+        'scopes' => ['email'],
+        'pkce_ttl' => 10,
+        'cache_store' => env('VKID_CACHE_STORE', 'file'),
+        'cache_prefix' => 'socialite:vkid:pkce:',
+        'api_version' => '5.199',
     ],
 
     'google' => [

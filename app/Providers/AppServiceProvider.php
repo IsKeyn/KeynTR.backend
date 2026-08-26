@@ -85,7 +85,7 @@ use App\Observers\VersionObserver;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use SocialiteProviders\Manager\SocialiteWasCalled;
-use SocialiteProviders\VKontakte\VKontakteExtendSocialite;
+use MoveMoveApp\VKID\VKIDExtendSocialite;
 use SocialiteProviders\Yandex\YandexExtendSocialite;
 
 class AppServiceProvider extends ServiceProvider
@@ -118,7 +118,7 @@ class AppServiceProvider extends ServiceProvider
 
         Event::listen(
             SocialiteWasCalled::class,
-            [VKontakteExtendSocialite::class, 'handle']
+            [VKIDExtendSocialite::class, 'handle']
         );
 
         Game::observe(GameObserver::class);
