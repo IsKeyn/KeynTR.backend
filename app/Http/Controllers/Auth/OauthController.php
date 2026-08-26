@@ -19,20 +19,9 @@ class OauthController extends Controller
 {
     public function redirect($oauthName)
     {
-        $driver = Socialite::driver($oauthName);
-
-        if ($oauthName !== 'vkid') {
-            $driver->stateless();
-        }
+        $driver = Socialite::driver($oauthName)->stateless();
 
         $redirectResponse = $driver->redirect();
-
-        \Log::info('OAuth redirect', [
-            'oauthName' => $oauthName,
-            'session_id' => session()->getId(),
-            'session_data' => session()->all(),
-            'url' => $redirectResponse->getTargetUrl(),
-        ]);
 
         return response()->json([
             'url' => $redirectResponse->getTargetUrl(),
@@ -41,26 +30,9 @@ class OauthController extends Controller
 
     public function apiCallback(Request $request, $oauthName)
     {
-        $driver = Socialite::driver($oauthName);
+        $driver = Socialite::driver($oauthName)->stateless();
 
-        if ($oauthName === 'vkid') {
-            $vkRequest = Request::create(
-                $request->url(),
-                'GET',
-                [
-                    'code' => $request->input('code'),
-                    'state' => $request->input('state'),
-                    'device_id' => $request->input('device_id'),
-                    'expires_in' => $request->input('expires_in'),
-                    'ext_id' => $request->input('ext_id'),
-                    'type' => $request->input('type'),
-                ]
-            );
-
-            $provider = $driver->setRequest($vkRequest);
-        } else {
-            $provider = $driver->setRequest($request);
-        }
+        $provider = $driver->setRequest($request);
 
         $oauthUser = $provider->user();
 
