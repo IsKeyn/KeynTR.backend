@@ -27,8 +27,6 @@ class BgAddGameObserver
             self::CACHE_SERVICE,
             self::SERVICE
         );
-
-        PlayerData::dispatch($addGame);
     }
 
     public function updated(AddGame $addGame)
@@ -40,8 +38,6 @@ class BgAddGameObserver
             self::CACHE_SERVICE,
             self::SERVICE
         );
-
-        PlayerData::dispatch($addGame);
     }
 
     public function deleted(AddGame $addGame)
@@ -53,8 +49,6 @@ class BgAddGameObserver
             self::CACHE_SERVICE,
             self::SERVICE
         );
-
-        PlayerData::dispatch($addGame);
     }
 
     public function restored(AddGame $addGame)
@@ -66,8 +60,6 @@ class BgAddGameObserver
             self::CACHE_SERVICE,
             self::SERVICE
         );
-
-        PlayerData::dispatch($addGame);
     }
 
     public function forceDeleted(AddGame $addGame)

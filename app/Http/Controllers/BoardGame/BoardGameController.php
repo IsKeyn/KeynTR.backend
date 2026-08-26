@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\BoardGame;
 
+use App\Filters\BoardGame\BoardGameFilter;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BoardGame\BoardGameForSelectResource;
 use App\Http\Resources\BoardGame\BoardGameInventoryResource;
 use App\Http\Resources\BoardGame\ItemBindResource;
 use App\Http\Resources\BoardGame\BoardGameResource;
@@ -16,8 +18,11 @@ use App\Models\BoardGame\BoardGamePlayerPosition;
 use App\Models\User;
 use App\Services\BoardGame\BgPlayerService;
 use App\Services\BoardGame\BoardGameService;
+use App\Services\Cache\BoardGame\BoardGameCacheService;
 use App\Services\TwitchService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class BoardGameController extends Controller
 {
@@ -42,6 +47,47 @@ class BoardGameController extends Controller
 
         return BoardGameShortResource::collection($boardGameList);
     }
+
+    /**
+     * Короткий список ивентов, для выбора из селекта
+     *
+     * @param Request $request
+     * @return mixed
+     */
+    public function getShortList(Request $request)
+    {
+        $cacheKey = BoardGameCacheService::LIST_PREFIX . '_short';
+
+        if (!$request->fullList) {
+            $cacheKey .= '_' . $request->page . '_' . $request->perPage;
+        }
+
+        $time = BoardGameCacheService::TIME;
+
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                BoardGameCacheService::LIST_TOKEN,
+                fn() => Str::random(10)
+            );
+
+            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $time = BoardGameCacheService::FILTER_TIME;
+        }
+
+        return Cache::remember($cacheKey, $time, function () use ($request) {
+            $filter = new BoardGameFilter($request);
+            $boardGames = $filter->apply(BoardGame::query())->select('id', 'name')->active();
+
+            if (!isset($request->sort)) {
+                $boardGames->orderByRaw('sort IS NULL, sort ASC');
+            }
+
+            $result = $request->fullList ? $boardGames->get() : $boardGames->paginate($request->perPage ? $request->perPage : 10);
+
+            return BoardGameForSelectResource::collection($result);
+        });
+    }
+
 
     public function getBySlug($slug, Request $request, BoardGame $boardGame)
     {

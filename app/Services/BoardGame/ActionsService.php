@@ -1387,9 +1387,27 @@ class ActionsService
                     ->get()
                     ->all();
                 break;
-            case 'oneOfAll':
-            case 'other':
             case 'fromTo':
+            case 'other':
+                if (!isset($request->additionalParams['player']) || !$request->additionalParams['player']) {
+                    return $this->error('Игрок не выбран');
+                }
+
+                $query = $this->BoardGamePlayer::query()
+                    ->findByBoardGame($this->conditionData['boardGame']->id)
+                    ->where('id', '!=', $this->conditionData['player']->id)
+                    ->active();
+
+                if ($request->additionalParams['player'] === 'randomPlayer') {
+                    $query->inRandomOrder();
+                } else {
+                    $query->where('id', $request->additionalParams['player']);
+                }
+
+                $players[] = $query->first();
+                break;
+
+            case 'oneOfAll':
                 if (!isset($request->additionalParams['player']) || !$request->additionalParams['player']) {
                     return $this->error('Игрок не выбран');
                 }
@@ -1406,7 +1424,6 @@ class ActionsService
 
                 $players[] = $query->first();
                 break;
-
             case 'notPlayBattleForPoints':
                 $filters = [
                     'notPlayBattleForPoints' => [
@@ -1420,6 +1437,8 @@ class ActionsService
 
                 $query = $filter
                     ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                $query->where('id', '!=', $this->conditionData['player']->id);
 
                 if ($request->additionalParams['player'] === 'randomPlayer') {
                     $query->inRandomOrder();
@@ -1444,6 +1463,8 @@ class ActionsService
                 $query = $filter
                     ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
 
+                $query->where('id', '!=', $this->conditionData['player']->id);
+
                 if (!isset($request->additionalParams['player']) || $request->additionalParams['player'] === 'randomPlayer') {
                     $query->inRandomOrder();
                 } else {
@@ -1466,6 +1487,8 @@ class ActionsService
 
                 $query = $filter
                     ->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                $query->where('id', '!=', $this->conditionData['player']->id);
 
                 if ($request->additionalParams['player'] === 'randomPlayer') {
                     $query->inRandomOrder();
@@ -1491,6 +1514,8 @@ class ActionsService
                 $filter = new BgPlayerFilter($filterRequest);
 
                 $query = $filter->apply(BoardGamePlayer::where('board_game_id', $this->conditionData['boardGame']->id));
+
+                $query->where('id', '!=', $this->conditionData['player']->id);
 
                 if ($request->additionalParams['player'] === 'randomPlayer') {
                     $query->inRandomOrder();

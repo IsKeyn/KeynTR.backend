@@ -16,6 +16,7 @@ use App\Http\Controllers\BoardGame\TimerController;
 Route::prefix('board-game/')->name('v1.')->group(function() {
     Route::get('get/{slug}', [BoardGameController::class, 'getBySlug'])->name('get-by-slug');
     Route::get('get-list', [BoardGameController::class, 'getList'])->name('get-list');
+    Route::get('getShortList', [BoardGameController::class, 'getShortList'])->name('get-short-list');
 
     Route::get('getBoardInfo', [BoardGameController::class, 'getBoardInfo'])->name('get-board-info');
     Route::get('getItemAndInventory', [BoardGameController::class, 'getItemAndInventory'])->name('get-item-and-inventory');

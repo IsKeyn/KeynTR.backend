@@ -23,6 +23,8 @@ class DetailResource extends JsonResource
             'game_completion_time' => $this->game_completion_time,
             'difficulty' => $this->difficulty,
             'status' => $this->status,
+            'comment_for_moderator' => $this->comment_for_moderator,
+            'moderator_comment' => $this->moderator_comment,
         ];
     }
 }

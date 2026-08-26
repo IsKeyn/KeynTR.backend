@@ -423,6 +423,10 @@ class UseItemService
                             $currentUserCurrentGame->status = PlayerGame::GIVEN_AWAY;
                             $currentUserCurrentGame->save();
 
+                            // Проверяем взаимодействия
+                            $interactionsService = new InteractionsService();
+                            $interactionsService->checkInteractionAfterActionWithGame('moshTheGame', $this->conditionData['boardGame']);
+
                             $message .= 'Использовал предмет ' . $this->item->item->name . ' на игрока ' . $player->user->name . ' и выбрал игру ' . $currentUserCurrentGame->game->game->name;
 
                             if ($message) {

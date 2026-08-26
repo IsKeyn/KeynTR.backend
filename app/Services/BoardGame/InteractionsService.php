@@ -189,6 +189,8 @@ class InteractionsService
 
                     $secondPlayerGame->status = PlayerGame::GIVEN_AWAY;
                     $secondPlayerGame->save();
+
+                    $checkInteraction = true;
                 }
             }
         } else {
@@ -575,6 +577,8 @@ class InteractionsService
             $type === PlayerGame::REROLLED
             || $type === PlayerGame::COMPLETED
             || $type === 'switchGame'
+            || $type === 'moshTheGame'
+            || $type === 'playForMe'
         ) {
             $playerInteractions = PlayerInteractions::where('board_game_id', $conditionData['boardGame']->id)
                 ->where(function($query) use ($conditionData) {

@@ -7,6 +7,7 @@ use App\Http\Resources\BoardGame\AddGame\AddGameResource;
 use App\Models\BoardGame\AddGame;
 use App\Services\BoardGame\BgAddGameService;
 use App\Services\BoardGame\PlayerGameService;
+use App\Services\Cache\BoardGame\BgAddGameCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -48,9 +49,17 @@ class BgAddGameController extends Controller
             ->setStatusCode(Response::HTTP_OK);
     }
 
+    /**
+     * Сохранение черновика добавленных игр
+     *
+     * @param Request $request
+     * @param String $slug
+     *
+     * @return array|\Illuminate\Http\JsonResponse|mixed|string[]
+     */
     public function save(
         Request $request,
-        $slug
+        String $slug
     )
     {
         if (!$slug) {
@@ -64,6 +73,38 @@ class BgAddGameController extends Controller
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;
         }
+
+        $request->validate([
+            'data' => 'required|array', // Указываем, что data должен быть массивом
+            'data.*.name' => 'nullable|string|max:1000',
+            'data.*.gaming_platform_id' => 'nullable|integer|exists:gaming_platforms,id',
+            'data.*.coop' => 'nullable|boolean',
+            'data.*.game_completion_time' => 'nullable|string|max:1000',
+            'data.*.difficulty' => 'nullable|integer|min:0|max:100',
+            'data.*.description' => 'nullable|string|max:5000',
+            'data.*.comment_for_moderator' => 'nullable|string|max:5000',
+            'data.*.moderator_comment' => 'nullable|string|max:5000',
+            'data.*.status' => 'nullable|integer',
+            'data.*.sort' => 'nullable|integer',
+            'data.*.active' => 'nullable|boolean',
+        ], [
+            // Общие ошибки для всего массива
+            'data.required' => 'Необходимо передать массив данных.',
+            'data.array' => 'Поле данных должно быть массивом.',
+
+            // Ошибки для конкретных полей и правил (используем *)
+            'data.*.name.max' => 'Название не должно превышать :max символов.',
+
+            'data.*.gaming_platform_id.integer' => 'ID платформы должен быть целым числом.',
+            'data.*.gaming_platform_id.exists' => 'Выбранная игровая платформа не существует.',
+
+            'data.*.difficulty.min' => 'Сложность не может быть меньше :min.',
+            'data.*.difficulty.max' => 'Сложность не может быть больше :max.',
+
+            'data.*.description.max' => 'Описание не должно превышать :max символов.',
+
+            'data.*.active.boolean' => 'Значение активности должно быть true или false.',
+        ]);
 
         $bgAddGameService = app(BgAddGameService::class);
 
@@ -109,7 +150,16 @@ class BgAddGameController extends Controller
                 }
             }
 
+            $bgAddGameCacheService = app(BgAddGameCacheService::class);
+
+
             if (!empty($toUpsert)) {
+                foreach ($toUpsert as $item) {
+                    if (isset($item['id'])) {
+                        $bgAddGameCacheService->clearAdminDetailCacheById($item['id']);
+                    }
+                }
+
                 AddGame::upsert(
                     $toUpsert,
                     ['id', 'bg_player_id']
@@ -125,8 +175,16 @@ class BgAddGameController extends Controller
             });
 
             if ($toDelete->isNotEmpty()) {
+                foreach ($toDelete as $item) {
+                    if (isset($item['id'])) {
+                        $bgAddGameCacheService->clearAdminDetailCacheById($item['id']);
+                    }
+                }
+
                 AddGame::whereIn('id', $toDelete->pluck('id'))->delete();
             }
+
+            $bgAddGameCacheService->clearListCache();
 
             return true;
         });
