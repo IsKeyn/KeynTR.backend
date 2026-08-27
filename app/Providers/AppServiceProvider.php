@@ -86,7 +86,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 //use MoveMoveApp\VKID\VKIDExtendSocialite;
-use SocialiteProviders\Manager\SocialiteWasCalled;
 use App\Providers\VKID\VKIDExtendSocialite;
 use SocialiteProviders\Yandex\YandexExtendSocialite;
 
