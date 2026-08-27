@@ -32,12 +32,18 @@ class OauthController extends Controller
     {
         $driver = Socialite::driver($oauthName)->stateless();
 
-        $provider = $driver->setRequest($request);
+        if ($oauthName === 'vkid') {
+            $request->query->add($request->only([
+                'code', 'state', 'device_id', 'expires_in', 'ext_id', 'type',
+            ]));
+        }
 
-        \Log::info('VKID callback', [
-            'state' => $request->input('state'),
-            'code_present' => $request->filled('code'),
+        \Log::info('VKID debug', [
+            'query' => $request->query->all(),
+            'input' => $request->input(),
         ]);
+
+        $provider = $driver->setRequest($request);
 
         $oauthUser = $provider->user();
 
