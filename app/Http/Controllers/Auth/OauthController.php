@@ -22,7 +22,10 @@ class OauthController extends Controller
         $driver = Socialite::driver($oauthName);
 
         if ($oauthName === 'vkid') {
-            $driver->scopes(['email']);
+            $driver->scopes([
+                'vkid.personal_info',
+                'email',
+            ]);
         } else {
             $driver->stateless();
         }
@@ -49,6 +52,7 @@ class OauthController extends Controller
         $provider = $driver->setRequest($request);
 
         $oauthUser = $provider->user();
+
         if (!$oauthUser) {
             return ErrorService::message(__('user.not_received', ['name' => $oauthName]));
         }

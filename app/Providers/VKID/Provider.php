@@ -299,27 +299,16 @@ class Provider extends AbstractProvider
      */
     protected function mapUserToObject(array $user)
     {
-        $mapped = [
-            'id' => $user['id'] ?? null,
-
-            'nickname' => $user['nickname'] ?? null,
-
-            'name' => $user['name'] ?? null,
-
-            'email' => $user['email'] ?? null,
-
-            'avatar' => $user['avatar'] ?? null,
-
-            'phone' => $user['phone'] ?? null,
-        ];
-
-        /*
-         * Сохраняем дополнительные данные,
-         * чтобы $oauthUser->user содержал raw VK response.
-         */
-        $mapped['user'] = $user['_vk_raw'] ?? $user;
-
-        return new User($mapped);
+        return (new User())
+            ->setRaw($user)
+            ->map([
+                'id' => $user['id'] ?? null,
+                'nickname' => $user['nickname'] ?? null,
+                'name' => $user['name'] ?? null,
+                'email' => $user['email'] ?? null,
+                'avatar' => $user['avatar'] ?? null,
+                'phone' => $user['phone'] ?? null,
+            ]);
     }
 
     /**
