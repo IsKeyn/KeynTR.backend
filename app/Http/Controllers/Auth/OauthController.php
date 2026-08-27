@@ -21,6 +21,10 @@ class OauthController extends Controller
     {
         $driver = Socialite::driver($oauthName)->stateless();
 
+        if ($oauthName === 'vkid') {
+            $driver->stateless();
+        }
+
         $redirectResponse = $driver->redirect();
 
         return response()->json([
@@ -38,13 +42,16 @@ class OauthController extends Controller
             '$oauthName' => $oauthName,
         ]);
 
+        $driver = Socialite::driver($oauthName);
+
         if ($oauthName === 'vkid') {
+            $driver->stateless();
+
             $request->query->add($request->only([
                 'code', 'state', 'device_id', 'expires_in', 'ext_id', 'type',
             ]));
         }
 
-        $driver = Socialite::driver($oauthName)->stateless();
         $provider = $driver->setRequest($request);
 
         $oauthUser = $provider->user();
