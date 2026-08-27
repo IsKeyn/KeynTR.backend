@@ -21,7 +21,9 @@ class OauthController extends Controller
     {
         $driver = Socialite::driver($oauthName);
 
-        if ($oauthName !== 'vkid') {
+        if ($oauthName === 'vkid') {
+            $driver->scopes(['email']);
+        } else {
             $driver->stateless();
         }
 
@@ -34,14 +36,6 @@ class OauthController extends Controller
 
     public function apiCallback(Request $request, $oauthName)
     {
-        \Log::info('VKID raw debug', [
-            'content_type' => $request->header('Content-Type'),
-            'all' => $request->all(),
-            'query' => $request->query->all(),
-            'raw_body' => $request->getContent(),
-            '$oauthName' => $oauthName,
-        ]);
-
         $driver = Socialite::driver($oauthName);
 
         if ($oauthName === 'vkid') {
@@ -55,7 +49,6 @@ class OauthController extends Controller
         $provider = $driver->setRequest($request);
 
         $oauthUser = $provider->user();
-
         if (!$oauthUser) {
             return ErrorService::message(__('user.not_received', ['name' => $oauthName]));
         }
