@@ -21,7 +21,7 @@ class OauthController extends Controller
     {
         $driver = Socialite::driver($oauthName)->stateless();
 
-        if ($oauthName === 'vkid') {
+        if ($oauthName !== 'vkid') {
             $driver->stateless();
         }
 
@@ -45,11 +45,11 @@ class OauthController extends Controller
         $driver = Socialite::driver($oauthName);
 
         if ($oauthName === 'vkid') {
-            $driver->stateless();
-
             $request->query->add($request->only([
                 'code', 'state', 'device_id', 'expires_in', 'ext_id', 'type',
             ]));
+        } else {
+            $driver->stateless();
         }
 
         $provider = $driver->setRequest($request);
