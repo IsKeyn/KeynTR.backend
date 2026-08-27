@@ -75,19 +75,26 @@ class BgPlayerGameObserver
 
     private function additionalActions(PlayerGame $playerGame)
     {
-        $playerGame->load(['boardGame', 'player', 'user']);
+        $playerGame->load([
+            'boardGame',
+            'player',
+            'user',
+            'game',
+            'game.boardGame',
+            'game.game',
+        ]);
+
+        $this->clearRelatedCache($playerGame);
 
         // Отправляем данные через WS
         PlayerInfoForObs::dispatch($playerGame->player);
-
-        $this->clearRelatedCache($playerGame);
     }
 
     private function clearRelatedCache($playerGame)
     {
         $service = app(self::CACHE_SERVICE);
         $service->clearClientDetailCache($playerGame);
-        $service->clearActionsWithGameList($playerGame);
+        $service->clearActionsWithGameList($playerGame->game);
 
         if ($playerGame->player) {
             $service->clearPlayerGameHistoryCache($playerGame->player);

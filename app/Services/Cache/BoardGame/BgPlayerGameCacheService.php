@@ -88,7 +88,7 @@ class BgPlayerGameCacheService extends BaseCacheService
     public function clearActionsWithGameInEventByGameSlugCache($playerGame, $showMessage = false)
     {
         $modelClass = static::MODEL;
-        $origCacheKey = BgPlayerGameCacheService::LIST_PREFIX . '_' . $playerGame->boardGame->slug . '_' . $playerGame->game->slug . '_in_event';
+        $origCacheKey = BgPlayerGameCacheService::LIST_PREFIX . '_' . $playerGame->boardGame->slug . '_' . $playerGame->game->slug;
 
         foreach (static::ARR_PER_PAGE as $perPage) {
             $lastPage = $modelClass::query()
@@ -99,7 +99,7 @@ class BgPlayerGameCacheService extends BaseCacheService
                 ->lastPage();
 
             for ($i = 1; $i <= $lastPage; $i++) {
-                $cacheKey = $origCacheKey . '_' . $i . '_' . $perPage;
+                $cacheKey = $origCacheKey . '_' . $i . '_' . $perPage . '_in_event';
 
                 Cache::forget($cacheKey);
 
@@ -115,7 +115,7 @@ class BgPlayerGameCacheService extends BaseCacheService
     public function clearActionsWithGameInOtherEventsByGameCache($playerGame, $showMessage = false)
     {
         $modelClass = static::MODEL;
-        $origCacheKey = BgPlayerGameCacheService::LIST_PREFIX . '_' . $playerGame->boardGame->slug . '_' . $playerGame->game->slug . '_in_other_events';
+        $origCacheKey = BgPlayerGameCacheService::LIST_PREFIX . '_' . $playerGame->boardGame->slug . '_' . $playerGame->game->slug;
 
         $gameListIds = BoardGameGameList::query()
             ->where('game_id', $playerGame->game->id)
@@ -136,7 +136,7 @@ class BgPlayerGameCacheService extends BaseCacheService
                 ->lastPage();
 
             for ($i = 1; $i <= $lastPage; $i++) {
-                $cacheKey = $origCacheKey . '_' . $i . '_' . $perPage;
+                $cacheKey = $origCacheKey . '_' . $i . '_' . $perPage . '_in_other_events';
 
                 Cache::forget($cacheKey);
 
