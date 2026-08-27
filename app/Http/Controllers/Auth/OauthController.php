@@ -19,7 +19,7 @@ class OauthController extends Controller
 {
     public function redirect($oauthName)
     {
-        $driver = Socialite::driver($oauthName)->stateless();
+        $driver = Socialite::driver($oauthName);
 
         if ($oauthName !== 'vkid') {
             $driver->stateless();
