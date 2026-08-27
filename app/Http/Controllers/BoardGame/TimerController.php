@@ -198,7 +198,7 @@ class TimerController extends Controller
     {
         $result = null;
 
-        $conditionData = PlayerGameService::checkConditions($request->slug);
+        $conditionData = PlayerGameService::checkConditions($request->boardGameSlug);
 
         if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
             return $conditionData;

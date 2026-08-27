@@ -130,13 +130,10 @@ class GameController extends Controller
         return Cache::remember($cacheKey, $time, function () use ($request) {
             $filter = new GameFilter($request);
             $games = $filter->apply(Game::query())
+                ->select('name', 'slug')
                 ->with(['titleImage', 'genres', 'dates'])
                 ->where('show_in_list', true)
                 ->active();
-
-            if (!isset($request->sort)) {
-                $games->orderByRaw('sort IS NULL, sort ASC');
-            }
 
             $result = $games->get();
 
