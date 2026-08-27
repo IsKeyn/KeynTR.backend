@@ -19,7 +19,6 @@
         "laravel/telescope": "^5.2",
         "laravel/tinker": "^2.9",
         "laravel/ui": "^4.5",
-        "movemoveapp/vkid": "^1.0",
         "socialiteproviders/twitch": "^5.4",
         "socialiteproviders/vkontakte": "^5.1",
         "socialiteproviders/yandex": "^4.1"
