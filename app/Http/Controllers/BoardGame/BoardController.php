@@ -111,8 +111,8 @@ class BoardController extends Controller
                         'user',
                         'user.avatar',
                         'user.additionalFields',
-                        'positions' => function ($query) {
-                            $query->active()->orderBy('id', 'desc');
+                        'positions' => function ($query) use ($bgId) {
+                            $query->active()->where('board_game_id', $bgId)->orderBy('id', 'desc');
                         },
                         'playerPositions' => function ($query) {
                             $query->where('has_use_effect', true);
