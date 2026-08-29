@@ -48,28 +48,31 @@ class BoardController extends Controller
             ) {
                 $boardGame = $BoardGame::query()
                     ->findBySlug($slug)
-                    ->with([
-                        'settings',
-                        'players' => function ($query) {
-                            $query->active();
-                        },
-                        'players.user',
-                        'players.user.avatar',
-                        'players.user.additionalFields',
-                        'players.positions' => function ($query) {
-                            $query->active()->orderBy('id', 'desc');
-                        },
-                        'boardPositionEffectsBinds' => function ($query) {
-                            $query->active();
-                        },
-                        'boardPositionEffectsBinds.boardPositionEffect',
-                        'boardPositionEffectsBinds.boardPositionEffect.titleImage',
-                    ])
                     ->first();
 
                 if (!$boardGame) {
                     abort(404, __('boardGame.not_found'));
                 }
+
+                $boardGame->load([
+                    'settings',
+                    'players' => function ($query) {
+                        $query->active();
+                    },
+                    'players.user',
+                    'players.user.avatar',
+                    'players.user.additionalFields',
+                    'players.positions' => function ($query) use ($boardGame) {
+                        $query->active()
+                            ->where('board_game_id', $boardGame->id)
+                            ->orderBy('id', 'desc');
+                    },
+                    'boardPositionEffectsBinds' => function ($query) {
+                        $query->active();
+                    },
+                    'boardPositionEffectsBinds.boardPositionEffect',
+                    'boardPositionEffectsBinds.boardPositionEffect.titleImage',
+                ]);
 
                 $boardType = $boardGame->settings->where('code', '=', 'board_type')->value('value');
 
