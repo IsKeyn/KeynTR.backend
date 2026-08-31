@@ -12,6 +12,7 @@ use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Entity\EntityService;
 use App\Services\ErrorService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -377,5 +378,39 @@ class BgPlayerService
                 BoardGamePlayer::whereIn('id', $inactiveIds)->update(['place' => null]);
             }
         });
+    }
+
+    /**
+     * Функция устанавливает значение настройки игрока
+     *
+     * @param BoardGamePlayer $player
+     * @param string $name
+     * @param mixed $value
+     * @return JsonResponse
+     */
+    public function setPlayerSettings(
+        BoardGamePlayer $player,
+        string $name,
+        mixed $value
+    ) : JsonResponse
+    {
+        if (!$player) {
+            abort(Response::HTTP_BAD_REQUEST, __('boardGame.player.not_found'));
+        }
+
+        if ($name === null || $name === '') {
+            abort(Response::HTTP_BAD_REQUEST, __('boardGame.player.settings.dont_received_setting_name'));
+        }
+
+        if ($value === null) {
+            abort(Response::HTTP_BAD_REQUEST, __('boardGame.player.settings.dont_received_setting_value'));
+        }
+
+        $settings = $player->settings ?? [];
+        $settings[$name] = $value;
+        $player->settings = $settings;
+        $player->save();
+
+        return response()->json(['message' => __('actions.setting_updated')]);
     }
 }

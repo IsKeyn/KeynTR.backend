@@ -65,6 +65,59 @@ class DefaultEntityService
         });
     }
 
+    public function getShortList(
+        $request,
+        $entity,
+        $filterClass,
+        $cacheService,
+        $resource
+    )
+    {
+        $cacheKey = $cacheService::LIST_PREFIX . '_short';
+
+        if (!$request->fullList) {
+            if ($request->page) $cacheKey .= '_' . $request->page;
+            if ($request->perPage) $cacheKey .= '_' . $request->perPage;
+        }
+
+        $time = $cacheService::TIME;
+
+        if ($request->filters) {
+            $cacheToken = Cache::rememberForever(
+                $cacheService::LIST_TOKEN,
+                fn() => Str::random(10)
+            );
+
+            $filters = json_decode($request->filters, true);
+            ksort($filters);
+            $cacheKey .= '_' . md5(json_encode($filters)) . '_' . $cacheToken;
+
+            $time = $cacheService::FILTER_TIME;
+        }
+
+        return Cache::remember(
+            $cacheKey,
+            $time,
+            function () use (
+                $request,
+                $entity,
+                $filterClass,
+                $resource
+            ) {
+                $filter = new $filterClass($request);
+                $item = $filter
+                    ->apply($entity::query())
+                    ->select('id', 'name');
+
+                if (method_exists($entity, 'scopeActive')) $item->active();
+                if (!isset($request->sort)) $item->orderByRaw('sort IS NULL, sort ASC');
+
+                $result = $request->fullList ? $item->get() : $item->paginate($request->perPage ? $request->perPage : 10);
+
+                return $resource::collection($result);
+            });
+    }
+
     public function getListFilters(
         $request,
         $entity,
@@ -78,7 +131,7 @@ class DefaultEntityService
             $entity,
             $filterClass,
             $cacheService,
-            $with ,
+            $with,
             $useShowInList
         );
     }

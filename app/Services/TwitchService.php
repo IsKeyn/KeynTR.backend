@@ -84,7 +84,10 @@ class TwitchService
                 foreach ($user->additionalFields as $field) {
                     if ($field->slug === 'twitch_channel') {
                         $path = parse_url($field->value, PHP_URL_PATH);
-                        $twitchChannelsList[$user->id] = mb_strtolower(basename($path));
+
+                        if ($path) {
+                            $twitchChannelsList[$user->id] = mb_strtolower(basename($path));
+                        }
                     }
                 }
             }

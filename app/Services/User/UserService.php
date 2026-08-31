@@ -49,7 +49,7 @@ class UserService
     {
         if (isset($additionalFields)) {
             foreach ($additionalFields as &$field) {
-                if ($field['slug'] === 'twitch_channel') {
+                if ($field['slug'] === 'twitch_channel' && $field['value']) {
                     $path = parse_url($field['value'], PHP_URL_PATH);
                     $twitchName = basename($path);
 

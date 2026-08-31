@@ -40,6 +40,7 @@ use App\Services\Cache\BoardGame\BgPlayerInteractionCacheService;
 use App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService;
 use App\Services\Entity\DefaultEntityService;
 use App\Services\MediaService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -49,10 +50,14 @@ use Symfony\Component\HttpFoundation\Response;
 class BoardGamePlayerController extends Controller
 {
     protected DefaultEntityService $defaultEntityService;
+    protected BgPlayerService $bgPlayerService;
 
-    public function __construct(DefaultEntityService $defaultEntityService)
-    {
+    public function __construct(
+        DefaultEntityService $defaultEntityService,
+        BgPlayerService $bgPlayerService
+    ) {
         $this->defaultEntityService = $defaultEntityService;
+        $this->bgPlayerService = $bgPlayerService;
     }
 
     public function getPlayer (
@@ -138,6 +143,9 @@ class BoardGamePlayerController extends Controller
 
     public function getList(BoardGame $boardGame, Request $request)
     {
+        // Декодируем фильтры один раз в начале метода
+        $filters = json_decode($request->filters, true) ?? [];
+
         $cacheKey = BgPlayerCacheService::LIST_PREFIX . '_' . $boardGame->slug;
 
         if (!$request->fullList) {
@@ -156,7 +164,7 @@ class BoardGamePlayerController extends Controller
             $time = BgPlayerCacheService::FILTER_TIME;
         }
 
-        return Cache::remember($cacheKey, $time, function () use ($request, $boardGame) {
+        $getData = function () use ($request, $boardGame, $filters) {
             $filter = new BgPlayerFilter($request);
             $players = $filter
                 ->apply(BoardGamePlayer::where('board_game_id', $boardGame->id))
@@ -198,8 +206,6 @@ class BoardGamePlayerController extends Controller
                 $players->orderByRaw('sort IS NULL, sort ASC');
             }
 
-            $filters = json_decode($request->filters, true) ?? [];
-
             if ($request->fullList) {
                 $result = $players->get();
             } elseif ($request->filters && isset($filters['limit']) && $filters['limit']) {
@@ -209,7 +215,13 @@ class BoardGamePlayerController extends Controller
             }
 
             return BgPlayerListResource::collection($result);
-        });
+        };
+
+        if (isset($filters['twitchStreamOnline']) && $filters['twitchStreamOnline'] === true) {
+            return $getData();
+        }
+
+        return Cache::remember($cacheKey, $time, $getData);
     }
 
     public function getListFilters(Request $request)
@@ -826,23 +838,29 @@ class BoardGamePlayerController extends Controller
        return $bgImage;
     }
 
-    public function setPlayerSettings(Request $request, $slug)
+    /**
+     * Обновление настроек игрока в Bg
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function setPlayerSettings(Request $request): JsonResponse
     {
-        $conditionData = PlayerGameService::checkConditions($slug);
+        $player = $request->attributes->get('player');
 
-        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
-            return $conditionData;
+        if (!$player) {
+            abort(Response::HTTP_NOT_FOUND, __('boardGame.player.not_found'));
         }
 
-        $player = $conditionData['player'];
+        $validated = $request->validate([
+            'name'  => 'required|string|max:255',
+            'value' => 'present',
+        ]);
 
-        if ($request->name) {
-            $settings = $player->settings ?? [];
-            $settings[$request->name] = $request->value;
-            $player->settings = $settings;
-            $player->save();
-        }
-
-        return response()->json(['message' => 'Настройки обновлены']);
+        return $this->bgPlayerService->setPlayerSettings(
+            $player,
+            $validated['name'],
+            $validated['value']
+        );
     }
 }
