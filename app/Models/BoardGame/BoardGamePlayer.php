@@ -59,6 +59,7 @@ class BoardGamePlayer extends Model
 
     protected $casts = [
         'active' => 'boolean',
+        'added_games' => 'boolean',
         'premium' => 'boolean',
         'settings' => 'array',
     ];

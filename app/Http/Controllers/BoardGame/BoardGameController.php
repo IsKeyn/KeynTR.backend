@@ -26,6 +26,10 @@ use Illuminate\Support\Str;
 
 class BoardGameController extends Controller
 {
+    /**
+     * @param Request $request
+     * @return array
+     */
     public function getLayoutData(Request $request)
     {
         $twitchService = app(TwitchService::class);

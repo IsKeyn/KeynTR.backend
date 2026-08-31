@@ -203,6 +203,7 @@ Route::name('api.')->group(function() {
     // Работа с сущностью gaming_platforms
     Route::prefix('gaming-platform/')->controller(GamingPlatformController::class)->name('.gaming-platform')->group(function() {
         Route::get('list', 'getList')->name('list');
+        Route::get('getShortList', 'getShortList')->name('get-short-list');
         Route::get('filters', 'getListFilters')->name('filters');
         Route::get('{gamingPlatform:slug}', 'get')->name('get');
     });

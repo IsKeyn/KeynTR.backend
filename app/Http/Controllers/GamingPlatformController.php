@@ -26,6 +26,17 @@ class GamingPlatformController extends Controller
         );
     }
 
+    public function getShortList(Request $request)
+    {
+        return $this->defaultEntityService->getList(
+            $request,
+            'App\Models\GamingPlatform',
+            'App\Filters\GamingPlatformFilter',
+            'App\Services\Cache\GamingPlatformCacheService',
+            'App\Http\Resources\GamingPlatform\ForSelectResource',
+        );
+    }
+
     public function getListFilters(Request $request)
     {
         return $this->defaultEntityService->getListFilters(

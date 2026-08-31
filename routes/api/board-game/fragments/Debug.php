@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('debug/')
     ->controller(DebugController::class)
-    ->middleware(['bg.check.board', 'bg.check.debug'])
+    ->middleware(['bg.check.full_condition', 'bg.check.debug'])
     ->group(function() {
     Route::post('reset-board-cell-effects', 'resetBoardCellEffects')->name('reset-board-cell-effects');
     Route::post('set-board-position', 'setBoardPosition')->name('set-board-position');

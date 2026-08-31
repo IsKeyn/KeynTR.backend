@@ -72,8 +72,14 @@ return Application::configure(basePath: dirname(__DIR__))
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'bg.check.board' => \App\Http\Middleware\BoardGame\CheckConditions::class,
+        'bg.check.full_condition' => \App\Http\Middleware\BoardGame\CheckConditions::class,
         'bg.check.debug' => \App\Http\Middleware\BoardGame\CheckDebugMode::class,
+        'bg.check.is' => \App\Http\Middleware\BoardGame\CheckIsBg::class,
+        'bg.check.is_coming_soon' => \App\Http\Middleware\BoardGame\CheckIsBgComingSoonStatus::class,
+        'bg.check.is_open' => \App\Http\Middleware\BoardGame\CheckIsBgOpenStatus::class,
+        'bg.check.is_close' => \App\Http\Middleware\BoardGame\CheckIsBgClose::class,
+        'bg.check.dont_close' => \App\Http\Middleware\BoardGame\CheckIsBgDontClose::class,
+        'bg.check.active_player' => \App\Http\Middleware\BoardGame\CheckIsPlayer::class,
     ]);
 })
     ->withSchedule(function (Schedule $schedule) {

@@ -8,8 +8,13 @@ return [
     'not_found_or_not_active' => 'Ивент не найден или не активен',
 
     'registration_is_close' => 'Регистрация на ивент закрыта',
+    'is_close' => 'Ивент закрыт',
     'is_finish' => 'Ивент закончился',
     'coming_soon' => 'Ивент скоро начнется',
+    'is_not_open' => 'Ивент не открыт',
+    'is_dont_close' => 'Ивент не закрыт',
+    'is_dont_finish' => 'Ивент не закончился',
+    'coming_dont_soon' => 'Ивент не начнется скоро',
 
     'not_received_type' => 'Тип не получен',
     'board_type_not_found' => 'В ивенте отсуствует настройка board_type, указывающая на тип игрового поля',
