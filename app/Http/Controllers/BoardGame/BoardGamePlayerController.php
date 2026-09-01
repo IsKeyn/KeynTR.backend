@@ -799,43 +799,38 @@ class BoardGamePlayerController extends Controller
             ->setStatusCode(Response::HTTP_BAD_REQUEST);
     }
 
-    public function setPlayerBackground(Request $request, $slug)
+    /**
+     * Установка изображения бекграунда игрока
+     *
+     * @param Request $request
+     * @return mixed
+     */
+    public function setPlayerBackground(Request $request)
     {
-        $conditionData = PlayerGameService::checkConditions($slug);
+        $player = $request->attributes->get('player');
+        $user = $request->attributes->get('user');
+        $boardGame = $request->attributes->get('boardGame');
 
-        if (isset($conditionData['status']) && $conditionData['status'] === 'error') {
-            return $conditionData;
+        if (!$player) {
+            abort(Response::HTTP_NOT_FOUND, __('boardGame.player.not_found'));
         }
 
-        $mediaService = new MediaService();
-
-        $conditionData['player']->load([
-            'media' => function ($query) {
-                $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
-            },
-        ]);
-
-        $bgImage = $conditionData['player']->media->first();
-
-        if ($bgImage) {
-            $mediaService->destroy($bgImage);
-            $conditionData['player']->media()->detach();
+        if (!$user) {
+            abort(Response::HTTP_NOT_FOUND, __('boardGame.user_not_found'));
         }
 
-        $playerName = $conditionData['user']->public_name ? $conditionData['user']->public_name : $conditionData['user']->name;
+        if (!$boardGame) {
+            abort(Response::HTTP_NOT_FOUND, __('boardGame.not_found'));
+        }
 
-       $fileArray = [
-           'name' => 'Бекграунд изображение игрока ' . $playerName . ' в ивенте ' . $conditionData['boardGame']->name,
-           'src' => $request->file('bgImage'),
-       ];
-
-       if ($bgImage = $mediaService->addMedia($fileArray, $conditionData['user'])) {
-           $conditionData['player']->media()->syncWithPivotValues($bgImage->id, ['type' => 1]);
-
-           $conditionData['player']->touch();
-       }
-
-       return $bgImage;
+        return $this->bgPlayerService->setPlayerBackground(
+            [
+                'player' => $player,
+                'user' => $user,
+                'boardGame' => $boardGame
+            ],
+            $request
+        );
     }
 
     /**
@@ -854,7 +849,7 @@ class BoardGamePlayerController extends Controller
 
         $validated = $request->validate([
             'name'  => 'required|string|max:255',
-            'value' => 'present',
+            'value' => 'nullable',
         ]);
 
         return $this->bgPlayerService->setPlayerSettings(

@@ -7,6 +7,8 @@ return [
     'not_received_slug' => 'Slug ивента не получен',
     'not_found_or_not_active' => 'Ивент не найден или не активен',
 
+    'condition_data_not_found' => 'Condition data не получены',
+
     'registration_is_close' => 'Регистрация на ивент закрыта',
     'is_close' => 'Ивент закрыт',
     'is_finish' => 'Ивент закончился',
@@ -42,6 +44,7 @@ return [
             'dont_received_setting_name' => 'Не получено название опции',
             'dont_received_setting_value' => 'Не получено значение опции',
             'to_many_exception_platforms' => 'Выбрано слишком много платформ',
+            'bg_image' => 'Бекграунд изображение игрока :player_name в ивенте :bg_name',
         ],
         'dont_have_items_roll' => 'Нет ни одной доступной крутки рулетки',
         'inventory' => [

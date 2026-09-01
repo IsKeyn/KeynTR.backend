@@ -12,7 +12,9 @@ use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Entity\EntityService;
 use App\Services\ErrorService;
+use App\Services\MediaService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -402,15 +404,60 @@ class BgPlayerService
             abort(Response::HTTP_BAD_REQUEST, __('boardGame.player.settings.dont_received_setting_name'));
         }
 
-        if ($value === null) {
-            abort(Response::HTTP_BAD_REQUEST, __('boardGame.player.settings.dont_received_setting_value'));
-        }
-
         $settings = $player->settings ?? [];
         $settings[$name] = $value;
         $player->settings = $settings;
         $player->save();
 
         return response()->json(['message' => __('actions.setting_updated')]);
+    }
+
+    /**
+     * Установка изображения бекграунда игрока
+     *
+     * @param array $conditionData
+     * @param Request $request
+     * @return mixed
+     */
+    public function setPlayerBackground(array $conditionData, Request $request)
+    {
+        if (!$conditionData) {
+            abort(Response::HTTP_NOT_FOUND, __('boardGame.condition_data_not_found'));
+        }
+
+        $mediaService = new MediaService();
+
+        $conditionData['player']->load([
+            'media' => function ($query) {
+                $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
+            },
+        ]);
+
+        $bgImage = $conditionData['player']->media->first();
+
+        if ($bgImage) {
+            $mediaService->destroy($bgImage);
+            $conditionData['player']->media()->detach();
+        }
+
+        $playerName = $conditionData['user']->public_name ? $conditionData['user']->public_name : $conditionData['user']->name;
+
+        $fileArray = [
+            'name' => __(
+                'boardGame.player.settings.bg_image',
+                [
+                    'player_name' => $playerName,
+                    'bg_name' => $conditionData['boardGame']->name,
+                ]
+            ),
+            'src' => $request->file('bgImage'),
+        ];
+
+        if ($bgImage = $mediaService->addMedia($fileArray, $conditionData['user'])) {
+            $conditionData['player']->media()->syncWithPivotValues($bgImage->id, ['type' => 1]);
+            $conditionData['player']->touch();
+        }
+
+        return $bgImage;
     }
 }

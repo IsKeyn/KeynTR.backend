@@ -24,9 +24,10 @@ Route::prefix('player/')->controller(BoardGamePlayerController::class)->group(fu
     Route::middleware('auth:sanctum')->group(function() {
         Route::post('rollItem/{slug}', 'rollItem')->name('rollItem');
         Route::post('setSetting/{slug}', 'setSetting')->name('set-setting');
-        Route::post('setPlayerSettings/{slug}', 'setPlayerSettings')
-            ->middleware(['bg.check.is', 'bg.check.dont_close', 'bg.check.active_player'])
-            ->name('set-player-setting');
-        Route::post('setPlayerBackground/{slug}', 'setPlayerBackground')->name('set-player-background');
+
+        Route::middleware(['bg.check.is', 'bg.check.dont_close', 'bg.check.active_player'])->group(function() {
+            Route::post('setPlayerSettings/{slug}', 'setPlayerSettings')->name('set-player-setting');
+            Route::post('setPlayerBackground/{slug}', 'setPlayerBackground')->name('set-player-background');
+        });
     });
 });
