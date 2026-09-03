@@ -419,6 +419,9 @@ class PlayerGameController extends Controller
                             }
                         }
 
+                        // Сбрасываем счетчик пройденных игр
+                        $conditionData['player']->rerolled_game_count = 0;
+
                         $conditionData['player']->save();
 
                         // Игра из очереди

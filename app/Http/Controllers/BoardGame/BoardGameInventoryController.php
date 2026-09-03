@@ -13,6 +13,10 @@ use Illuminate\Http\Request;
 
 class BoardGameInventoryController extends Controller
 {
+    public function __construct(
+        private UseItemService $useItemService
+    ) {}
+
     public function index(BoardGameInventory $BoardGameInventory) {
         return $BoardGameInventory::all();
     }
@@ -61,10 +65,13 @@ class BoardGameInventoryController extends Controller
         }
     }
 
+    /**
+     * @param Request $request
+     * @return array|mixed|null
+     */
     public function useItem(Request $request)
     {
-        $useItemService = new UseItemService();
-        return $useItemService->useItem($request);
+        return $this->useItemService->useItem($request);
     }
 
     public function sellItem(Request $request)

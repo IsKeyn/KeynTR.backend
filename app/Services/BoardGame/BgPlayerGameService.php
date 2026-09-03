@@ -464,13 +464,13 @@ class BgPlayerGameService
             $platformIds = (array) $platformIds;
             $gameListQuery->whereIn('gaming_platform_id', $platformIds);
         } else if (
-                $listType !== 'rerolled'
-                && $listType !== 'myOwnGame'
-                && (bool) $boardGame->settings->firstWhere('code', 'hasExceptionPlatforms')?->value('value')
-                && $player->settings
-                && isset($player->settings['exceptionPlatforms'])
-                && $player->settings['exceptionPlatforms']
-            ) {
+            $listType !== 'rerolled'
+            && $listType !== 'myOwnGame'
+            && (bool) $boardGame->settings->firstWhere('code', 'hasExceptionPlatforms')?->value('value')
+            && $player->settings
+            && isset($player->settings['exceptionPlatforms'])
+            && $player->settings['exceptionPlatforms']
+        ) {
             // Если платформы нет, то исключаем выбранные (на исключение) пользователем платформы
             $gameListQuery->whereNotIn('gaming_platform_id', $player->settings['exceptionPlatforms']);
         }
