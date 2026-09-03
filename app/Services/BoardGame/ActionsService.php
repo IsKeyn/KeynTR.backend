@@ -165,6 +165,13 @@ class ActionsService
                 );
                 break;
 
+            case 'randomWithMessage':
+                $result = $this->randomWithMessage(
+                    $data,
+                    $action,
+                );
+                break;
+
             case 'game':
                 $result = $this->gameAction(
                     $data,
@@ -1042,13 +1049,84 @@ class ActionsService
                 $randomKey = array_rand($action->actionsForRandom);
                 $randomAction = $action->actionsForRandom[$randomKey];
 
-                if ($this->activateAction($data, (object) $randomAction, $player->user_id)) {
+                if ($result = $this->activateAction($data, (object) $randomAction, $player->user_id)) {
                     $resultByPlayers[$player->id] = $randomAction;
+                    $resultByPlayers[$player->id]['result'] = $result;
+                    $resultByPlayers[$player->id]['player'] = $player;
                 }
             }
         }
 
         return $resultByPlayers;
+    }
+
+    /**
+     * Активация случайного действия с формированием комбинированного сообщения о результате
+     *
+     * @param $data
+     * @param $action
+     * @return string
+     */
+    private function randomWithMessage($data, $action) : string
+    {
+        $resultByUser = $this->randomAction($data, $action);
+
+        // Формируем общее сообщение о результате
+        $compositeMessage = '';
+
+        $totalPlayer = count($resultByUser);
+        $i = 0;
+
+        foreach ($resultByUser as $playerId => $result) {
+            if ($result['player']) {
+                $result['player']->loadMissing(['user']);
+
+                $user = $result['player']->user;
+
+                $compositeMessage .= ($user->public_name ? $user->public_name : $user->name) . ': ';
+            }
+
+            $message = '';
+
+            $actionResult = $result['result'];
+
+            // Если действие завершилось ошибкой - записываем текст ошибки
+            if ($actionResult['error'] ?? null) {
+                // В данном случае $actionResult array{error: string}
+                $message .= $actionResult['error'];
+            } else {
+                // Ищем результирующий текст
+                if ($actionResult && is_string($actionResult)) {
+                    $message .= $actionResult;
+                } elseif ($actionResult && isset($actionResult['returnMessage']) && is_string($actionResult['returnMessage'])) {
+                    $message .= $actionResult['returnMessage'];
+                } else {
+                    // Если результирующий текст не найден, то записываем текст для логов
+                    if ($actionResult && isset($actionResult['logMessage']) && is_string($actionResult['logMessage'])) {
+                        $message .= $actionResult['logMessage'];
+                    } else if (isset($data->additionalParams['logMessage'])) {
+                        $message .= $data->additionalParams['logMessage'];
+                    }
+                }
+            }
+
+            // Если сообщение пустое, пробуем составить
+            if (!$message) {
+                $message = $this->prepareMessage((object) $result, 'message');
+            }
+
+            if ($message) {
+                $compositeMessage .= $message;
+            }
+
+            $i++;
+
+            if ($i < $totalPlayer) {
+                $compositeMessage .= ' ';
+            }
+        }
+
+        return $compositeMessage;
     }
 
     private function gameAction($data, $action)

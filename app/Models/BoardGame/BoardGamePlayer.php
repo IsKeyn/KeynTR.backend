@@ -95,6 +95,7 @@ class BoardGamePlayer extends Model
 
     public function positions()
     {
+        // TODO переделать на return $this->hasMany(BoardGamePlayerPosition::class, 'bg_player_id');
         return $this->hasMany(BoardGamePlayerPosition::class, 'user_id', 'user_id');
     }
 

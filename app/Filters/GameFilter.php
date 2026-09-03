@@ -33,11 +33,17 @@ class GameFilter
                 $value = json_decode($value, true);
             }
 
-            $this->query
-                ->with('bgGamesList')
-                ->whereHas('bgGamesList', function($query) use ($value) {
-                    $query->whereIn('board_game_game_lists.gaming_platform_id', $value);
-                });
+            $decodedFilters = $this->filters();
+
+            $this->query->whereHas('bgGamesList', function($query) use ($value, $decodedFilters) {
+                $query->whereIn('board_game_game_lists.gaming_platform_id', $value);
+
+                if (isset($decodedFilters['events'])) {
+                    $query->whereHas('boardGame', function($q) use ($decodedFilters) {
+                        $q->whereIn('board_games.id', $decodedFilters['events']);
+                    });
+                }
+            });
         }
     }
 

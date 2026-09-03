@@ -342,12 +342,17 @@ class BgPlayerService
             // 1. Получаем всех игроков игры вместе с их позициями на поле
             $players = BoardGamePlayer::query()
                 ->findByBoardGame($boardGameId)
-                ->with(['positions'])
+                ->with([
+                    'positions' => function ($query) use ($boardGameId) {
+                        $query->active()->where('board_game_id', $boardGameId)->orderBy('id', 'desc');
+                    },
+                ])
                 ->get();
 
             // 2. Разделяем игроков на активных и неактивных
-            $activePlayers = $players->filter(fn($player) => $player->active)->values();
-            $inactiveIds   = $players->filter(fn($player) => !$player->active)->pluck('id');
+            $activePlayers = $players->filter(fn($player) => $player->active && $player->positions->count() > 1)->values();
+            $inactiveIds = $players->filter(fn($player) => !$player->active)->pluck('id');
+            $newPlayers = $players->filter(fn($player) => $player->active && $player->positions->count() === 1)->pluck('id');
 
             // 3. Сортируем ТОЛЬКО активных игроков по вашей логике (очки + позиция)
             $activePlayers = $activePlayers->sortByDesc(function ($player) {
@@ -378,6 +383,11 @@ class BgPlayerService
             // 5. Неактивным игрокам массово ставим null
             if ($inactiveIds->isNotEmpty()) {
                 BoardGamePlayer::whereIn('id', $inactiveIds)->update(['place' => null]);
+            }
+
+            // 6. Ставим новым игрокам null место
+            if ($newPlayers->isNotEmpty()) {
+                BoardGamePlayer::whereIn('id', $newPlayers)->update(['place' => null]);
             }
         });
     }
