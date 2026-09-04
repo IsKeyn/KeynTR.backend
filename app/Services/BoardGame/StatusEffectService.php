@@ -220,7 +220,8 @@ class StatusEffectService
         $conditionData,
         $playerStatusEffects,
         $type,
-        $additionActionOn
+        $additionActionOn,
+        $freeReroll = false
     )
     {
         foreach ($playerStatusEffects as $statusEffect) {
@@ -238,12 +239,17 @@ class StatusEffectService
                                 && $autoAction['type'] === $additionActionOn
                                 && isset($autoAction['actions'])
                             ) {
-                                foreach ($autoAction['actions'] as $action) {
-                                    $actionService->activateAction(
-                                        (Object) [],
-                                        (Object) $action
-                                    );
+                                $shouldSkip = $additionActionOn === 'reroll' && $freeReroll && $autoAction['disableOnFreeReroll'];
+
+                                if (!$shouldSkip) {
+                                    foreach ($autoAction['actions'] as $action) {
+                                        $actionService->activateAction(
+                                            (object)[],
+                                            (object)$action
+                                        );
+                                    }
                                 }
+
                                 $statusEffect->update(['active' => false]);
                             }
                         }

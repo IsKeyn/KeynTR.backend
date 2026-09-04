@@ -240,7 +240,13 @@ class PlayerGameController extends Controller
                             }
                         }
 
-                        StatusEffectService::activateAdditionalAction($conditionData, $playerStatusEffects, StatusEffect::GAME_LIST_TYPE, 'reroll');
+                        StatusEffectService::activateAdditionalAction(
+                            $conditionData,
+                            $playerStatusEffects,
+                            StatusEffect::GAME_LIST_TYPE,
+                            'reroll',
+                            $freeReroll
+                        );
 
                         /* Проверяем взаимодействия */
                         $interactionsService = new InteractionsService();
