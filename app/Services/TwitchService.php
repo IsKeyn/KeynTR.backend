@@ -130,32 +130,34 @@ class TwitchService
                 $data = json_decode($response, true);
 
                 foreach ($data['data'] as $streamer) {
-                    $userId = array_search($streamer['user_login'], $twitchChannelsList);
+                    $userIds = array_keys($twitchChannelsList, $streamer['user_login']);
 
-                    if (!$userId) continue;
+                    if (!$userIds) continue;
 
-                    $user = $users->where('id', $userId)->first();
-                    if (!$user) continue;
+                    foreach ($userIds as $userId) {
+                        $user = $users->where('id', $userId)->first();
+                        if (!$user) continue;
 
-                    $userBoardGames = [];
+                        $userBoardGames = [];
 
-                    if ($user->bgPlayer) {
-                        foreach ($user->bgPlayer as $player) {
-                            $userBoardGames[] = [
-                                'id' => $player->boardGame->id,
-                                'name' => $player->boardGame->name,
-                                'slug' => $player->boardGame->slug,
-                            ];
+                        if ($user->bgPlayer) {
+                            foreach ($user->bgPlayer as $player) {
+                                $userBoardGames[] = [
+                                    'id' => $player->boardGame->id,
+                                    'name' => $player->boardGame->name,
+                                    'slug' => $player->boardGame->slug,
+                                ];
+                            }
                         }
+
+
+                        $streamerAdditionalData = [
+                            'site_user_id' => $userId,
+                            'board_games_list' => $userBoardGames,
+                        ];
+
+                        $listOnline[] = array_merge($streamer, $streamerAdditionalData);
                     }
-
-
-                    $streamerAdditionalData = [
-                        'site_user_id' => $userId,
-                        'board_games_list' => $userBoardGames,
-                    ];
-
-                    $listOnline[] = array_merge($streamer, $streamerAdditionalData);
                 }
             }
 
