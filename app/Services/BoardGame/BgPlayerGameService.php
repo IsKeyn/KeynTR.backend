@@ -477,8 +477,9 @@ class BgPlayerGameService
 
         $gameList = $gameListQuery
             ->with([
-                'game',
-                'game.titleImage',
+                'game' => fn($q) => $q->select(['id', 'name', 'slug']),
+                'game.titleImage' => fn($q) => $q->select(['media.id', 'media.file_name', 'media.mime_type']),
+//                'game.genres' => fn($q) => $q->select(['genres.id', 'genres.name']),
             ])
             ->active()
             ->get();

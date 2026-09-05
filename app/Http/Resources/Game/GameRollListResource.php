@@ -25,9 +25,9 @@ class GameRollListResource extends JsonResource
             ...$this->commonFields(),
 
             'entity_type' => Game::class,
-            'title_image' => $this->whenLoaded('titleImage', ShortMediaResource::make($this->titleImage)),
-            'genres' => $this->whenLoaded('genres', GenreResource::collection($this->genres)),
-            'release_dates' => $this->whenLoaded('dates', DateShortResource::collection($this->dates)),
+            'title_image' => $this->whenLoaded('titleImage', fn() => ShortMediaResource::make($this->titleImage)),
+            'genres' => $this->whenLoaded('genres', fn() => GenreResource::collection($this->genres)),
+            'release_dates' => $this->whenLoaded('dates', fn() => DateShortResource::collection($this->dates)),
         ];
     }
 }
