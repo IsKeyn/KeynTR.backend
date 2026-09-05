@@ -83,7 +83,7 @@ class BoardGameController extends Controller
             $boardGames = $filter->apply(BoardGame::query())->select('id', 'name')->active();
 
             if (!isset($request->sort)) {
-                $boardGames->orderByRaw('sort IS NULL, sort ASC');
+                $boardGames->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
             }
 
             $result = $request->fullList ? $boardGames->get() : $boardGames->paginate($request->perPage ? $request->perPage : 10);

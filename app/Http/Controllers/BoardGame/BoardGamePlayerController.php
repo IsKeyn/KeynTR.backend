@@ -203,7 +203,7 @@ class BoardGamePlayerController extends Controller
                 ]);
 
             if (!isset($request->sort)) {
-                $players->orderByRaw('sort IS NULL, sort ASC');
+                $players->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
             }
 
             if ($request->fullList) {

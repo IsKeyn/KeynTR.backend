@@ -37,7 +37,7 @@ class AdminSeriesController extends Controller {
             $elementsList = $filter->apply(Series::query())->with([]);
 
             if (!isset($request->sort)) {
-                $elementsList->orderByRaw('sort IS NULL, sort ASC');
+                $elementsList->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
             }
 
             $result = $elementsList->paginate($request->perPage ? $request->perPage : 10);

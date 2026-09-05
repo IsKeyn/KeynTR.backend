@@ -57,7 +57,7 @@ class DefaultEntityService
                 ->with($with);
 
             if (method_exists($entity, 'scopeActive')) $item->active();
-            if (!isset($request->sort)) $item->orderByRaw('sort IS NULL, sort ASC');
+            if (!isset($request->sort)) $item->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
 
             $result = $request->fullList ? $item->get() : $item->paginate($request->perPage ? $request->perPage : 10);
 
@@ -110,7 +110,7 @@ class DefaultEntityService
                     ->select('id', 'name');
 
                 if (method_exists($entity, 'scopeActive')) $item->active();
-                if (!isset($request->sort)) $item->orderByRaw('sort IS NULL, sort ASC');
+                if (!isset($request->sort)) $item->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
 
                 $result = $request->fullList ? $item->get() : $item->paginate($request->perPage ? $request->perPage : 10);
 
