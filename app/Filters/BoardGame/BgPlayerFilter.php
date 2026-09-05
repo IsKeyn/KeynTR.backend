@@ -374,7 +374,7 @@ class BgPlayerFilter
 
            $field = strtolower($value->field);
            if ($field !== 'id') {
-               $this->query->orderBy('id', 'desc');
+               $this->query->orderBy('id', 'asc');
            }
        }
     }
