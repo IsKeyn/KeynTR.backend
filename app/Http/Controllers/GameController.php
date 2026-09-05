@@ -127,18 +127,18 @@ class GameController extends Controller
             $time = GameCacheService::FILTER_TIME;
         }
 
-        return Cache::remember($cacheKey, $time, function () use ($request) {
+        $gamesCollection = Cache::remember($cacheKey, $time, function () use ($request) {
             $filter = new GameFilter($request);
-            $games = $filter->apply(Game::query())
+
+            return $filter->apply(Game::query())
                 ->select(['id', 'name', 'slug'])
                 ->with(['titleImage', 'genres', 'dates'])
                 ->where('show_in_list', true)
-                ->active();
-
-            $result = $games->get();
-
-            return GameRollListResource::collection($result);
+                ->active()
+                ->get();
         });
+
+        return GameRollListResource::collection($gamesCollection);
     }
 
     /**
