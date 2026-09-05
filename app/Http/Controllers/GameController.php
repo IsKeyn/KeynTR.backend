@@ -136,7 +136,10 @@ class GameController extends Controller
 
                 return $filter->apply(Game::query())
                     ->select(['id', 'name', 'slug'])
-                    ->with(['titleImage', 'genres', 'dates'])
+                    ->with([
+                        'titleImage' => fn($q) => $q->select(['media.id', 'media.file_name', 'media.mime_type']),
+                        'genres' => fn($q) => $q->select(['genres.id', 'genres.name']),
+                    ])
                     ->where('show_in_list', true)
                     ->active()
                     ->get();
@@ -144,7 +147,6 @@ class GameController extends Controller
 
             return GameRollListResource::collection($gamesCollection);
         } catch (\Exception $e) {
-            // Если что-то пойдет не так, мы точно узнаем об этом в логах
             Log::error('Game Roulette List Error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'cache_key' => $cacheKey,
