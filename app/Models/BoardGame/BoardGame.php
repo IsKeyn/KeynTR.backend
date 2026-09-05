@@ -44,6 +44,7 @@ class BoardGame extends Model
      * design_theme String Тема оформления ивента
      * max_streak Int Максимальный стрик, который участник может набрать в ивенте
      * event_organizers Json Организторы ивента Пример: [{"user_id": 2,"description": "Программирование"}]
+     * show_recommendation_block Boolean Показывать блок рекомендаций сайта
      */
 
     public const CACHE_NAME = 'board-game';
