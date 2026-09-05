@@ -49,7 +49,7 @@ class AdminGameController extends Controller {
             $games = $filter->apply(Game::query())->with(['titleImage']);
 
             if (!isset($request->sort)) {
-                $games->orderByRaw('sort IS NULL, sort ASC');
+                $games->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
             }
 
             $result = $games->paginate($request->perPage ? $request->perPage : 10);

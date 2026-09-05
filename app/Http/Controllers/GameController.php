@@ -65,7 +65,7 @@ class GameController extends Controller
                 ->active();
 
             if (!isset($request->sort)) {
-                $games->orderByRaw('sort IS NULL, sort ASC');
+                $games->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
             }
 
             $result = $request->fullList ? $games->get() : $games->paginate($request->perPage ? $request->perPage : 10);
@@ -105,7 +105,7 @@ class GameController extends Controller
             $games = $filter->apply(Game::query())->select('id', 'name')->active();
 
             if (!isset($request->sort)) {
-                $games->orderByRaw('sort IS NULL, sort ASC');
+                $games->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
             }
 
             $result = $request->fullList ? $games->get() : $games->paginate($request->perPage ? $request->perPage : 10);

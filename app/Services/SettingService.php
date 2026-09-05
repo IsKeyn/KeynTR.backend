@@ -43,7 +43,7 @@ class SettingService
                 ->active();
 
             if (!isset($request->sort)) {
-                $settings->orderByRaw('sort IS NULL, sort ASC');
+                $settings->orderByRaw('sort IS NULL, sort ASC')->orderBy('id', 'asc');
             }
 
             $result = $settings->get();

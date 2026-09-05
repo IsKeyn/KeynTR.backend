@@ -169,6 +169,11 @@ trait HasFilters
                     $this->query->orderBy($value->field, $value->sort);
                     break;
             }
+
+            $field = strtolower($value->field);
+            if ($field !== 'id') {
+                $this->query->orderBy('id', 'desc');
+            }
         }
     }
 }
