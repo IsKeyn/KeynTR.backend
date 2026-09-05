@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Log;
 
 class GameController extends Controller
 {
@@ -114,7 +115,7 @@ class GameController extends Controller
     }
 
     public function getRollList(Request $request) {
-        $cacheKey = GameCacheService::ROLL_LIST_PREFIX . '_' . $request->page . '_' . $request->perPage;
+        $cacheKey = GameCacheService::ROLL_LIST_PREFIX;
         $time = GameCacheService::TIME;
 
         if ($request->filters) {
@@ -123,22 +124,35 @@ class GameController extends Controller
                 fn() => Str::random(10)
             );
 
-            $cacheKey .= '_' . md5(json_encode($request->filters, 16)) . '_' . $cacheToken;
+            $filtersData = is_array($request->filters) ? $request->filters : json_decode($request->filters, true);
+
+            $cacheKey .= '_filtered_' . md5(json_encode($filtersData)) . '_' . $cacheToken;
             $time = GameCacheService::FILTER_TIME;
         }
 
-        $gamesCollection = Cache::remember($cacheKey, $time, function () use ($request) {
-            $filter = new GameFilter($request);
+        try {
+            $gamesCollection = Cache::remember($cacheKey, $time, function () use ($request) {
+                $filter = new GameFilter($request);
 
-            return $filter->apply(Game::query())
-                ->select(['id', 'name', 'slug'])
-                ->with(['titleImage', 'genres', 'dates'])
-                ->where('show_in_list', true)
-                ->active()
-                ->get();
-        });
+                return $filter->apply(Game::query())
+                    ->select(['id', 'name', 'slug'])
+                    ->with(['titleImage', 'genres', 'dates'])
+                    ->where('show_in_list', true)
+                    ->active()
+                    ->get();
+            });
 
-        return GameRollListResource::collection($gamesCollection);
+            return GameRollListResource::collection($gamesCollection);
+        } catch (\Exception $e) {
+            // Если что-то пойдет не так, мы точно узнаем об этом в логах
+            Log::error('Game Roulette List Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'cache_key' => $cacheKey,
+                'filters' => $request->filters
+            ]);
+
+            return response()->json(['error' => 'Не удалось загрузить список игр'], 500);
+        }
     }
 
     /**
