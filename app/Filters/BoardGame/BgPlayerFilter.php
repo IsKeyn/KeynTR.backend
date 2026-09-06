@@ -284,98 +284,96 @@ class BgPlayerFilter
 
     protected function sort($value): void
     {
-       if ($value) {
-           switch ($value->field) {
-               case 'name':
-                   $this->query->orderBy(
-                       User::select('public_name')
-                           ->whereColumn('users.id', self::TABLE_NAME . '.user_id')
-                           ->limit(1),
-                       $value->sort ?? 'asc'
-                   );
-                   break;
-               case 'likes':
-                   $this->query
-                       ->with('likes')
-                       ->orderBy(
-                           VotesCount::select('value')
-                               ->whereColumn('entity_id', self::TABLE_NAME . '.id')
-                               ->where('entity_type', self::MODEL)
-                               ->limit(1),
-                           $value->sort
-                       );
-                   break;
-               case 'views':
-                   $this->query
-                       ->with('views')
-                       ->orderBy(
-                           ViewsCount::select('value')
-                               ->whereColumn('entity_id', self::TABLE_NAME . '.id')
-                               ->where('entity_type', self::MODEL)
-                               ->limit(1),
-                           $value->sort
-                       );
-                   break;
-               case 'date':
-                   $this->query
-                       ->with('dates')
-                       ->withAggregate('dates', 'date')
-                       ->orderBy('dates_date', $value->sort);
-                   break;
+        if ($value) {
+            $table = self::TABLE_NAME;
+            $field = strtolower($value->field);
+            $direction = (isset($value->sort) && strtolower($value->sort) === 'asc') ? 'ASC' : 'DESC';
 
-               case 'sort':
-                   $this->query->orderByRaw('sort IS NULL, sort ' . $value->sort);
-                   break;
+            switch ($value->field) {
+                case 'name':
+                    $subquery = User::select('public_name')
+                        ->whereColumn('users.id', $table . '.user_id')
+                        ->limit(1);
 
-               case 'full_points':
-                   // Создаем подзапрос, имитирующий ->first()
-                   $table = self::TABLE_NAME;
+                    $this->query->orderByRaw("CASE WHEN ({$subquery->toSql()}) IS NULL THEN 1 ELSE 0 END ASC", $subquery->getBindings());
+                    $this->query->orderBy($subquery, $value->sort ?? 'asc');
+                    break;
 
-                   $positionSubquery = BoardGamePlayerPosition::select('position')
-                       ->whereColumn('board_game_id', $table . '.id')
-                       ->limit(1);
+                case 'likes':
+                    $this->query->with('likes');
+                    $subquery = VotesCount::select('value')
+                        ->whereColumn('entity_id', $table . '.id')
+                        ->where('entity_type', self::MODEL)
+                        ->limit(1);
 
-                   $subquerySql = $positionSubquery->toSql();
+                    $this->query->orderByRaw("CASE WHEN ({$subquery->toSql()}) IS NULL THEN 1 ELSE 0 END ASC", $subquery->getBindings());
+                    $this->query->orderBy($subquery, $value->sort);
+                    break;
 
-                   // Формируем выражение: points + COALESCE(подзапрос, 0)
-                   $orderByExpression = "({$table}.points + COALESCE(({$subquerySql}), 0))";
+                case 'views':
+                    $this->query->with('views');
+                    $subquery = ViewsCount::select('value')
+                        ->whereColumn('entity_id', $table . '.id')
+                        ->where('entity_type', self::MODEL)
+                        ->limit(1);
 
-                   $direction = (isset($value->sort) && strtolower($value->sort) === 'asc') ? 'ASC' : 'DESC';
+                    $this->query->orderByRaw("CASE WHEN ({$subquery->toSql()}) IS NULL THEN 1 ELSE 0 END ASC", $subquery->getBindings());
+                    $this->query->orderBy($subquery, $value->sort);
+                    break;
+
+                case 'date':
+                    $this->query->with('dates')->withAggregate('dates', 'date');
+                    $this->query->orderByRaw("CASE WHEN dates_date IS NULL THEN 1 ELSE 0 END ASC");
+                    $this->query->orderBy('dates_date', $value->sort);
+                    break;
+
+                case 'sort':
+                    $this->query->orderByRaw("CASE WHEN sort IS NULL THEN 1 ELSE 0 END ASC, sort {$direction}");
+                    break;
+
+                case 'full_points':
+                    $positionSubquery = BoardGamePlayerPosition::select('position')
+                        ->whereColumn('board_game_id', $table . '.id')
+                        ->limit(1);
+
+                    $subquerySql = $positionSubquery->toSql();
+                    $orderByExpression = "({$table}.points + COALESCE(({$subquerySql}), 0))";
 
                     $this->query->orderByRaw(
-                        "{$orderByExpression} {$direction}",
+                        "CASE WHEN {$orderByExpression} IS NULL THEN 1 ELSE 0 END ASC, {$orderByExpression} {$direction}",
                         $positionSubquery->getBindings()
                     );
                     break;
 
-               case 'position':
-                   $table = self::TABLE_NAME;
+                case 'position':
+                    $positionSubquery = BoardGamePlayerPosition::select('position')
+                        ->whereColumn('user_id', $table . '.user_id')
+                        ->whereColumn('board_game_id', $table . '.board_game_id')
+                        ->orderByDesc('id')
+                        ->limit(1);
 
-                   $positionSubquery = BoardGamePlayerPosition::select('position')
-                       ->whereColumn('user_id', $table . '.user_id')
-                       ->whereColumn('board_game_id', $table . '.board_game_id')
-                       ->orderByDesc('id')
-                       ->limit(1);
+                    $subquerySql = $positionSubquery->toSql();
 
-                   $subquerySql = $positionSubquery->toSql();
+                    $orderByExpression = "COALESCE(({$subquerySql}), 1)";
+                    $posDirection = (isset($value->sort) && strtolower($value->sort) === 'desc') ? 'DESC' : 'ASC';
 
-                   $direction = (isset($value->sort) && strtolower($value->sort) === 'desc') ? 'DESC' : 'ASC';
+                    $this->query->orderByRaw(
+                        "CASE WHEN {$positionSubquery->toSql()} IS NULL THEN 1 ELSE 0 END ASC, {$orderByExpression} {$posDirection}",
+                        $positionSubquery->getBindings()
+                    );
+                    break;
 
-                   $this->query->orderByRaw(
-                       "COALESCE(({$subquerySql}), 1) {$direction}",
-                       $positionSubquery->getBindings()
-                   );
-                   break;
+                case 'place':
+                default:
+                    $column = "{$table}.{$value->field}";
+                    $this->query->orderByRaw("CASE WHEN {$column} IS NULL THEN 1 ELSE 0 END ASC");
+                    $this->query->orderBy($value->field, $value->sort);
+                    break;
+            }
 
-               default:
-                   $this->query->orderBy($value->field, $value->sort);
-                   break;
-           }
-
-           $field = strtolower($value->field);
-           if ($field !== 'id') {
-               $this->query->orderBy('id', 'asc');
-           }
-       }
+            if ($field !== 'id') {
+                $this->query->orderBy('id', 'asc');
+            }
+        }
     }
 }

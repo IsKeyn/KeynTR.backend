@@ -240,7 +240,7 @@ class BgPlayerService
                 ->findById($playerId)
                 ->with([
                     'user',
-                    'positions' => function ($query) {
+                    'positionsByPlayer' => function ($query) {
                         $query->orderBy('id', 'desc');
                     },
                     'statusEffects' => function ($query) {
@@ -264,6 +264,8 @@ class BgPlayerService
                     ->json(['error' => __('boardGame.player.not_found')])
                     ->setStatusCode(Response::HTTP_BAD_REQUEST);
             }
+
+            $player->setRelation('positions', $player->positionsByPlayer);
 
             return BgPlayerWithInventoryResource::make($player);
         });
