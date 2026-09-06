@@ -338,7 +338,7 @@ class PlayerGameController extends Controller
                             $stepCountForAdd = 1;
 
                             if ($playerCurrentGame->game->game_completion_time) {
-                                $count = ceil(($playerCurrentGame->game->game_completion_time / 60) / 4);
+                                $count = GameService::calcActionCountForGame($playerCurrentGame->game);
                                 $itemRollCountForAdd = $count;
                                 $stepCountForAdd = $count;
                             }

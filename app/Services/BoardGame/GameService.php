@@ -208,4 +208,15 @@ class GameService
 
         return $pointsForGame;
     }
+
+    /**
+     * Функция рассчитывает количество выдаваемых дополнительных действий за игру, таких как ходы по игровому полю и броски кубика
+     *
+     * @param $game
+     * @return false|float
+     */
+    public static function calcActionCountForGame($game)
+    {
+        return ceil(($game->game_completion_time / 60) / 4);
+    }
 }
