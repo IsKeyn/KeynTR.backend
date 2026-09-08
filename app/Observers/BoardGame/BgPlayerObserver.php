@@ -28,7 +28,8 @@ class BgPlayerObserver
         $this->defaultObserverService->created(
             $boardGamePlayer,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false,
         );
 
         PlayerData::dispatch($boardGamePlayer);
@@ -42,7 +43,9 @@ class BgPlayerObserver
         $this->defaultObserverService->updated(
             $boardGamePlayer,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
 
         PlayerData::dispatch($boardGamePlayer);
@@ -56,7 +59,9 @@ class BgPlayerObserver
         $this->defaultObserverService->deleted(
             $boardGamePlayer,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
 
         PlayerData::dispatch($boardGamePlayer);
@@ -70,7 +75,9 @@ class BgPlayerObserver
         $this->defaultObserverService->restored(
             $boardGamePlayer,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
 
         PlayerData::dispatch($boardGamePlayer);

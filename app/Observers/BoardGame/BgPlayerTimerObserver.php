@@ -12,6 +12,7 @@ class BgPlayerTimerObserver
 {
     private const CACHE_SERVICE = 'App\Services\Cache\BgPlayerTimerCacheService';
     private const SERVICE = 'App\Services\BoardGame\BgTimerTimerService';
+    private const CREATE_VERSION = BoardGamePlayerTimer::CREATE_VERSION;
 
     protected DefaultObserverService $defaultObserverService;
 
@@ -25,7 +26,8 @@ class BgPlayerTimerObserver
         $this->defaultObserverService->created(
             $boardGamePlayerTimer,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            self::CREATE_VERSION,
         );
 
         $boardGamePlayerTimer->load(['timer.boardGame']);
@@ -41,8 +43,10 @@ class BgPlayerTimerObserver
         $entityCacheService->clearAdminDetailCacheById($entity->id);
         $entityCacheService->clearDetailCacheBySlug($entity->slug);
 
-        $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
-        VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_UPDATE);
+        if (self::CREATE_VERSION) {
+            $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
+            VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_UPDATE);
+        }
 
         $boardGamePlayerTimer->load(['timer.boardGame']);
         TimerStatusToggle::dispatch($boardGamePlayerTimer->timer);
@@ -57,18 +61,21 @@ class BgPlayerTimerObserver
             class_uses_recursive($entity)
         );
 
-        if ($hasSoftDeletes && !$entity->isForceDeleting()) {
-            $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
-            VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_SOFT_DELETE);
-        } else {
-            $lastVersion = Version::query()
-                ->where('entity_type', $entity->model)
-                ->where('entity_id', $entity->id)
-                ->latest()
-                ->first();
+        if (self::CREATE_VERSION) {
+            if ($hasSoftDeletes && !$entity->isForceDeleting()) {
+                $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
+                VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_SOFT_DELETE);
+            } else {
+                $lastVersion = Version::query()
+                    ->where('entity_type', $entity->model)
+                    ->where('entity_id', $entity->id)
+                    ->latest()
+                    ->first();
 
-            if ($lastVersion) {
-                VersionService::set($lastVersion->data, $entity->model, $entity->id, $entity->name, Version::TYPE_DELETE);
+                if ($lastVersion) {
+                    VersionService::set($lastVersion->data, $entity->model, $entity->id, $entity->name,
+                        Version::TYPE_DELETE);
+                }
             }
         }
 
@@ -87,8 +94,10 @@ class BgPlayerTimerObserver
         $entityCacheService->clearAdminDetailCacheById($entity->id);
         $entityCacheService->clearDetailCacheBySlug($entity->slug);
 
-        $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
-        VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_RECOVERY);
+        if (self::CREATE_VERSION) {
+            $version = self::SERVICE::getById($entity->id, true, false)->toArray(request());
+            VersionService::set($version, $entity->model, $entity->id, $entity->name, Version::TYPE_RECOVERY);
+        }
     }
 
     public function forceDeleted(BoardGamePlayerTimer $boardGamePlayerTimer)

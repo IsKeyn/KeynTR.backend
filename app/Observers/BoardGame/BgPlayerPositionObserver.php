@@ -28,7 +28,8 @@ class BgPlayerPositionObserver
         $this->defaultObserverService->created(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
         );
 
         /* Отправляем данные для движения игрока */
@@ -54,7 +55,9 @@ class BgPlayerPositionObserver
         $this->defaultObserverService->updated(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
@@ -65,7 +68,9 @@ class BgPlayerPositionObserver
         $this->defaultObserverService->deleted(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
@@ -76,7 +81,9 @@ class BgPlayerPositionObserver
         $this->defaultObserverService->restored(
             $boardGamePlayerPosition,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 

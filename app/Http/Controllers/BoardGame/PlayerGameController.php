@@ -130,11 +130,10 @@ class PlayerGameController extends Controller
             return ErrorService::message('Не найдено текущей игры');
         }
 
-        $fields = $this->getFields($request);
-        $fields['finished_at'] = Carbon::now();
-
         try {
-            $result = DB::transaction(function () use ($request, $conditionData, $playerCurrentGame, $fields) {
+            $result = DB::transaction(function () use ($request, $conditionData, $playerCurrentGame) {
+                $fields = $this->getFields($request);
+                $fields['finished_at'] = Carbon::now();
 
                 if ($result = $playerCurrentGame->update($fields)) {
                     $playerStatusEffects = PlayerStatusEffect::query()
@@ -435,18 +434,6 @@ class PlayerGameController extends Controller
 
                         $message = 'прошел игру ' . $playerCurrentGame->game->game->name . ' и получил за неё ' . $pointsForGame . ' очков';
 
-                        if ($request->time) {
-                            $formattedTime = sprintf("%02d:%02d:%02d",
-                                floor($request->time / 3600),
-                                floor(($request->time % 3600) / 60),
-                                $request->time % 60
-                            );
-
-                            if ($formattedTime) {
-                                $message .= ', затратил ' . $formattedTime;
-                            }
-                        }
-
                         StatusEffectService::activateAdditionalAction($conditionData, $playerStatusEffects, StatusEffect::GAME_LIST_TYPE, 'complite');
 
                         /* Проверяем взаимодействия */
@@ -458,6 +445,18 @@ class PlayerGameController extends Controller
                     /* TODO Легаси, сейчас игра передается предметом, удалить */
                     if ($request->type === PlayerGame::GIVEN_AWAY) {
                         $message = 'отдал игру ' . $playerCurrentGame->game->game->name;
+                    }
+
+                    if ($request->time) {
+                        $formattedTime = sprintf("%02d:%02d:%02d",
+                            floor($request->time / 3600),
+                            floor(($request->time % 3600) / 60),
+                            $request->time % 60
+                        );
+
+                        if ($formattedTime) {
+                            $message .= ', затратил ' . $formattedTime;
+                        }
                     }
 
                     if ($message) {

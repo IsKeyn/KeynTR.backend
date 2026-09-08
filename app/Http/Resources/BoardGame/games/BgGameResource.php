@@ -42,6 +42,7 @@ class BgGameResource extends JsonResource
             'added_by_user' => $this->whenLoaded('addedBy', fn() => UserPublicResource::make($this->addedBy)),
             'computed_points' => GameService::calcPoints($this),
             'rerollPenalty' => GameService::rerollPenalty($this->boardGame, $this),
+            'actionCount' => GameService::calcActionCountForGame($this),
         ];
     }
 }

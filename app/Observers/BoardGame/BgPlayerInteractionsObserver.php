@@ -25,7 +25,8 @@ class BgPlayerInteractionsObserver
         $this->defaultObserverService->created(
             $playerInteractions,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false,
         );
 
         $cacheService = app(PlayerInteractions::CACHE_SERVICE);
@@ -49,6 +50,7 @@ class BgPlayerInteractionsObserver
             self::CACHE_SERVICE,
             self::SERVICE,
             false,
+            true,
         );
 
         $this->sendCurrentInteractionsList($playerInteractions);
@@ -67,6 +69,7 @@ class BgPlayerInteractionsObserver
             self::CACHE_SERVICE,
             self::SERVICE,
             false,
+            true,
         );
 
         $this->sendCurrentInteractionsList($playerInteractions);
@@ -85,6 +88,7 @@ class BgPlayerInteractionsObserver
             self::CACHE_SERVICE,
             self::SERVICE,
             false,
+            true,
         );
 
         $this->sendCurrentInteractionsList($playerInteractions);

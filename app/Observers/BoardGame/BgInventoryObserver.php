@@ -26,7 +26,8 @@ class BgInventoryObserver
         $this->defaultObserverService->created(
             $boardGameInventory,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false
         );
     }
 
@@ -37,7 +38,9 @@ class BgInventoryObserver
         $this->defaultObserverService->updated(
             $boardGameInventory,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
@@ -48,7 +51,9 @@ class BgInventoryObserver
         $this->defaultObserverService->deleted(
             $boardGameInventory,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
@@ -59,7 +64,9 @@ class BgInventoryObserver
         $this->defaultObserverService->restored(
             $boardGameInventory,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
