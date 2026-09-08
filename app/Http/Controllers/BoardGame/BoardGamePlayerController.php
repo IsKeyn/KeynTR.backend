@@ -91,8 +91,8 @@ class BoardGamePlayerController extends Controller
                     'user',
                     'user.avatar',
                     'user.additionalFields',
-                    'positions' => function ($query) {
-                        $query->active()->orderBy('id', 'desc');
+                    'positions' => function ($query) use ($bgId) {
+                        $query->active()->where('board_game_id', $bgId)->orderBy('id', 'desc');
                     },
                     'media' => function ($query) {
                         $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
@@ -166,12 +166,13 @@ class BoardGamePlayerController extends Controller
 
         $getData = function () use ($request, $boardGame, $filters) {
             $filter = new BgPlayerFilter($request);
+            $bgId = $boardGame->id;
             $players = $filter
-                ->apply(BoardGamePlayer::where('board_game_id', $boardGame->id))
+                ->apply(BoardGamePlayer::where('board_game_id', $bgId))
                 ->with([
                     'boardGame',
-                    'positions' => function ($query) {
-                        $query->active()->orderBy('id', 'desc');
+                    'positions' => function ($query) use ($bgId) {
+                        $query->active()->where('board_game_id', $bgId)->orderBy('id', 'desc');
                     },
                     'user',
                     'user.avatar',
