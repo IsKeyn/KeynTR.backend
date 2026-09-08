@@ -26,7 +26,8 @@ class BgPlayerStatusEffectObserver
         $this->defaultObserverService->created(
             $playerStatusEffect,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false,
         );
     }
 
@@ -37,7 +38,9 @@ class BgPlayerStatusEffectObserver
         $this->defaultObserverService->updated(
             $playerStatusEffect,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
@@ -48,7 +51,9 @@ class BgPlayerStatusEffectObserver
         $this->defaultObserverService->deleted(
             $playerStatusEffect,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
@@ -59,7 +64,9 @@ class BgPlayerStatusEffectObserver
         $this->defaultObserverService->restored(
             $playerStatusEffect,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 

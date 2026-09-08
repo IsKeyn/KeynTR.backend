@@ -8,6 +8,9 @@ return [
     'not_found_or_not_active' => 'Ивент не найден или не активен',
 
     'condition_data_not_found' => 'Condition data не получены',
+    'in_condition_data_not_found_user' => 'В condition data отсутствует user',
+    'in_condition_data_not_found_player' => 'В condition data отсутствует player',
+    'in_condition_data_not_found_boardGame' => 'В condition data отсутствует boardGame',
 
     'registration_is_close' => 'Регистрация на ивент закрыта',
     'is_close' => 'Ивент закрыт',
@@ -91,6 +94,11 @@ return [
     'board' => [
         'not_found' => 'Игровое поле не найдено',
         'position_not_received' => 'Номер позиции не получен',
+        'cell' => [
+            'review' => [
+                'not_received_data_for_comment' => 'Не получены данные для добавления комментария'
+            ],
+        ],
     ],
 
     'player_game' => [

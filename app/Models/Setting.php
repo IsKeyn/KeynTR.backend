@@ -25,6 +25,8 @@ class Setting extends Model
     /* Resource for public */
     public const PUBLIC_RESOURCES = [];
 
+    public const CREATE_VERSION = false;
+
     protected $fillable = [
         'site_id',
         'name',

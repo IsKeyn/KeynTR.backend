@@ -27,7 +27,8 @@ class BgLogObserver
         $this->defaultObserverService->created(
             $boardGameLog,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            false,
         );
 
         if ($boardGameLog->important) {
@@ -45,7 +46,9 @@ class BgLogObserver
         $this->defaultObserverService->updated(
             $boardGameLog,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
@@ -58,7 +61,9 @@ class BgLogObserver
         $this->defaultObserverService->deleted(
             $boardGameLog,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 
@@ -71,7 +76,9 @@ class BgLogObserver
         $this->defaultObserverService->restored(
             $boardGameLog,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            false,
         );
     }
 

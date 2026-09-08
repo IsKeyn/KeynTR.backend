@@ -11,6 +11,7 @@ class SettingObserver
 {
     private const CACHE_SERVICE = Setting::CACHE_SERVICE;
     private const SERVICE = Setting::SERVICE;
+    private const CREATE_VERSION = Setting::CREATE_VERSION;
 
     protected DefaultObserverService $defaultObserverService;
 
@@ -32,7 +33,8 @@ class SettingObserver
         $this->defaultObserverService->created(
             $setting,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            self::CREATE_VERSION,
         );
     }
 
@@ -49,7 +51,9 @@ class SettingObserver
         $this->defaultObserverService->updated(
             $setting,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            self::CREATE_VERSION,
         );
     }
 
@@ -66,7 +70,9 @@ class SettingObserver
         $this->defaultObserverService->deleted(
             $setting,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            self::CREATE_VERSION,
         );
     }
 
@@ -83,7 +89,9 @@ class SettingObserver
         $this->defaultObserverService->restored(
             $setting,
             self::CACHE_SERVICE,
-            self::SERVICE
+            self::SERVICE,
+            true,
+            self::CREATE_VERSION,
         );
     }
 

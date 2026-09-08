@@ -86,7 +86,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // ─────────────────────────────────────────
         // Расписание задач (было в App\Console\Kernel)
         // ─────────────────────────────────────────
-        $schedule->command('YouTube:FetchLastVideos')->daily();
+        //$schedule->command('YouTube:FetchLastVideos')->daily();
         $schedule->command('auth:clear-resets')->everyFifteenMinutes();
         $schedule->command('views:count')->everyFifteenMinutes();
         $schedule->command('user:clear-magic-links')->daily();
