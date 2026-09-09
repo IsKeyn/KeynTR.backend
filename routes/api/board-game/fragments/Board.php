@@ -9,10 +9,13 @@ Route::prefix('board/')->controller(BoardController::class)->group(function() {
 });
 
 Route::prefix('board-cell/')->controller(BoardCellController::class)->group(function() {
-    Route::get('get-current-user-review/', 'getCurrentUserReview')
-        ->middleware(['bg.check.is', 'auth:sanctum'])
-        ->name('get-current-user-review');
-    Route::get('set-review/', 'setReview')
-        ->middleware(['bg.check.is', 'bg.check.is_open', 'bg.check.active_player'])
-        ->name('set-review');
+    Route::middleware(['bg.check.is', 'bg.check.is_open', 'bg.check.active_player'])->group(function() {
+        Route::get('get-current-player-review/', 'getCurrentPlayerReview')->name('get-current-player-review');
+        Route::put('set-review/', 'setReview')->name('set-review');
+    });
+
+    Route::middleware(['bg.check.is', 'auth:sanctum'])->group(function() {
+        Route::get('get-current-event-review/{slug}/{id}/', 'getCurrentEventReview')->name('get-current-event-review');
+        Route::get('get-other-event-review/{slug}/{id}/', 'getOtherEventReview')->name('get-other-event-review');
+    });
 });
