@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Article;
 use App\Models\BoardGame\AddGame;
 use App\Models\BoardGame\Board;
+use App\Models\BoardGame\BoardCellReview;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameGameList;
 use App\Models\BoardGame\BoardGameInventory;
@@ -61,6 +62,7 @@ use App\Observers\BoardGame\BgPositionEffectObserver;
 use App\Observers\BoardGame\BgShopItemObserver;
 use App\Observers\BoardGame\BgStatusEffectBindObserver;
 use App\Observers\BoardGame\BgStatusEffectObserver;
+use App\Observers\BoardGame\BoardCellReviewObserver;
 use App\Observers\BoardGame\BoardGameObserver;
 use App\Observers\CharacterObserver;
 use App\Observers\CompanyObserver;
@@ -163,5 +165,6 @@ class AppServiceProvider extends ServiceProvider
         Message::observe(MessageObserver::class);
         Chat::observe(ChatObserver::class);
         Character::observe(CharacterObserver::class);
+        BoardCellReview::observe(BoardCellReviewObserver::class);
     }
 }
