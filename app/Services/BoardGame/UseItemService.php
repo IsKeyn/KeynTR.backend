@@ -425,7 +425,7 @@ class UseItemService
 
                             // Проверяем взаимодействия
                             $interactionsService = new InteractionsService();
-                            $interactionsService->checkInteractionAfterActionWithGame('moshTheGame', $this->conditionData['boardGame']);
+                            $interactionsService->checkInteractionAfterActionWithGame('moshTheGame', $this->conditionData);
 
                             $message .= 'Использовал предмет ' . $this->item->item->name . ' на игрока ' . $player->user->name . ' и выбрал игру ' . $currentUserCurrentGame->game->game->name;
 
