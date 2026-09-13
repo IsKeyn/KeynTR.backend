@@ -358,7 +358,7 @@ class BgPlayerFilter
                     $posDirection = (isset($value->sort) && strtolower($value->sort) === 'desc') ? 'DESC' : 'ASC';
 
                     $this->query->orderByRaw(
-                        "CASE WHEN {$positionSubquery->toSql()} IS NULL THEN 1 ELSE 0 END ASC, {$orderByExpression} {$posDirection}",
+                        "CASE WHEN ({$positionSubquery->toSql()}) IS NULL THEN 1 ELSE 0 END ASC, {$orderByExpression} {$posDirection}",
                         $positionSubquery->getBindings()
                     );
                     break;
