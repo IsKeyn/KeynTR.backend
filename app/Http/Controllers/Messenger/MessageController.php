@@ -6,7 +6,7 @@ use App\Events\Messenger\LastReadCompanionMessage;
 use App\Events\Messenger\Typing;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Messenger\ListResource;
-use App\Http\Resources\UserPublicResource;
+use App\Http\Resources\User\UserPublicResource;
 use App\Models\Messenger\Chat;
 use App\Models\Messenger\Message;
 use App\Services\Cache\Messenger\ChatCacheService;
@@ -43,9 +43,9 @@ class MessageController extends Controller
         return Cache::remember($cacheKey, ChatCacheService::TIME, function () use ($request, $user) {
             $chats = $user->chats()
                 ->with([
-                    'lastMessage.user:id,name',
+                    'lastMessage.user:id,name,public_name',
                     'users' => function ($query) {
-                        $query->select('users.id', 'users.name')
+                        $query->select('users.id', 'users.name', 'users.public_name')
                             ->withPivot('last_read_message_id');
                     },
                     'users.avatar',

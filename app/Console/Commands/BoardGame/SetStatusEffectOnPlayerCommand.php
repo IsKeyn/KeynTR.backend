@@ -52,7 +52,8 @@ class SetStatusEffectOnPlayerCommand extends Command
         $boardGameList = BoardGame::query()
             ->active()
             ->open()
-            ->with(['settings'])
+            ->select('id', 'name', 'active', 'is_close', 'started_at', 'ended_at')
+            ->with(['settings', 'players'])
             ->get();
 
         foreach ($boardGameList as $boardGame) {
@@ -122,10 +123,26 @@ class SetStatusEffectOnPlayerCommand extends Command
             );
         }
 
-        // Ищем случайного игрока
-        $randomPlayer = $this->getRandomPlayer($boardGame, $bindId);
+        // Считаем, сколько статус эффектов выдать
+        // По 1 на каждые 5-ть игроков
+        $playersCount = $boardGame->players->count();
+        $needRandomPlayers = 1;
 
-        if (!$randomPlayer) {
+        if ($playersCount > 5) {
+            $needRandomPlayers = floor($playersCount/5);
+        }
+
+        // Ищем случайного игрока
+        $randomPlayers = $this->getRandomPlayer(
+            $boardGame,
+            $bindId,
+            [],
+            0,
+            $needRandomPlayers*5,
+            $needRandomPlayers
+        );
+
+        if (!$randomPlayers) {
             Log::channel('statusEffects')->warning(
                 "Не удалось найти подходящего игрока для игры {$boardGame->id}"
             );
@@ -133,76 +150,80 @@ class SetStatusEffectOnPlayerCommand extends Command
         }
 
         // Вешаем на игрока статус эффект в транзакции
-        DB::transaction(function () use ($randomPlayer, $boardGame, $bindId, $statusEffect) {
-            $playerStatusEffect = PlayerStatusEffect::create([
-                'user_id' => $randomPlayer->user_id,
-                'bg_player_id' => $randomPlayer->id,
-                'board_game_id' => $boardGame->id,
-                'status_effect_bind_id' => $bindId,
-                'active' => true,
-            ]);
-
-            // Логи
-            $userName = $randomPlayer->user->public_name ?? $randomPlayer->user->name;
-
-            $fields = [
-                'user_id' => $randomPlayer->user_id,
-                'created_by' => $randomPlayer->user_id,
-                'message' => "Вы получили статус эффект {$statusEffect->name}, воспользуйтесь его преимуществами, пока он не ущел другому игроку",
-                'entity_type' => $boardGame::class,
-                'entity_id' => $boardGame->id,
-            ];
-
-            Notification::create($fields);
-
-            $message = "получил статус эффект {$statusEffect->name}";
-
-            $this->line("Статус эффект {$statusEffect->name} получил {$userName}");
-
-            Log::channel('statusEffects')->info(
-                'Статус эффект получен',
-                [
-                    'user_id' => $randomPlayer->user_id,
-                    'user_name' => $userName,
+        DB::transaction(function () use ($randomPlayers, $boardGame, $bindId, $statusEffect) {
+            foreach ($randomPlayers as $player) {
+                PlayerStatusEffect::create([
+                    'user_id'      => $player->user_id,
+                    'bg_player_id' => $player->id,
                     'board_game_id' => $boardGame->id,
-                    'board_game_name' => $boardGame->name,
-                    'player_id' => $randomPlayer->id,
-                    'status_effect_id' => $statusEffect->id,
-                ]
-            );
+                    'status_effect_bind_id' => $bindId,
+                    'active'       => true,
+                ]);
 
-            LogService::addLog(
-                $randomPlayer->user_id,
-                $boardGame->id,
-                $message,
-                $randomPlayer->id
-            );
+                // Логи
+                $userName = $player->user->public_name ?? $player->user->name;
+
+                $fields = [
+                    'user_id' => $player->user_id,
+                    'created_by' => $player->user_id,
+                    'message' => "Вы получили статус эффект {$statusEffect->name}, воспользуйтесь его преимуществами, пока он не ущел другому игроку",
+                    'entity_type' => $boardGame::class,
+                    'entity_id' => $boardGame->id,
+                ];
+
+                Notification::create($fields);
+
+                $message = "получил статус эффект {$statusEffect->name}";
+
+                $this->line("Статус эффект {$statusEffect->name} получил {$userName}");
+
+                Log::channel('statusEffects')->info(
+                    'Статус эффект получен',
+                    [
+                        'user_id' => $player->user_id,
+                        'user_name' => $userName,
+                        'board_game_id' => $boardGame->id,
+                        'board_game_name' => $boardGame->name,
+                        'player_id' => $player->id,
+                        'status_effect_id' => $statusEffect->id,
+                    ]
+                );
+
+                LogService::addLog(
+                    $player->user_id,
+                    $boardGame->id,
+                    $message,
+                    $player->id
+                );
+            }
         });
     }
 
     /**
-     * Ищем случайного игрока в настолькой игре/ивенте, исключая тех, кто владел статус эффектом
+     * Ищем случайных игроков в настольной игре/ивенте, исключая тех, кто владел статус эффектом
      *
      * @param BoardGame $boardGame Настольная игра / Ивент
      * @param int $bindId ID привязки предмета к настольной игре (StatusEffectBind)
      * @param array $excludingPlayers Игроки, которых исключаем из выборки
      * @param int $recursionDepth Глубина рекурсии для предотвращения бесконечного цикла
-     * @param int $maxLastPlayers Количество игроков, которые получали эффект ранее
-     * @return BoardGamePlayer|null
+     * @param int|null $maxLastPlayers Количество игроков, которые получали эффект ранее
+     * @param int $count Количество случайных игроков, которых нужно вернуть (по умолчанию 1)
+     * @return array|null Массив игроков или одиночный объект/null для обратной совместимости
      */
     private function getRandomPlayer(
         BoardGame $boardGame,
         int $bindId,
         array $excludingPlayers = [],
         int $recursionDepth = 0,
-        int $maxLastPlayers = null
-    ): ?BoardGamePlayer {
+        ?int $maxLastPlayers = null,
+        int $count = 1
+    ): array|null {
         if ($recursionDepth > 1000) {
             Log::warning('Превышена глубина рекурсии в getRandomPlayer', [
                 'board_game_id' => $boardGame->id,
                 'bind_id' => $bindId,
             ]);
-            return null;
+            return $count === 1 ? null : [];
         }
 
         if ($maxLastPlayers === null) {
@@ -211,15 +232,13 @@ class SetStatusEffectOnPlayerCommand extends Command
                 ->where('code', '=', 'last_players_with_every_day_status_effect')
                 ->first();
 
-
-            $maxLastPlayers = $lastPlayersWithEveryDayStatusEffectSetting ? $lastPlayersWithEveryDayStatusEffectSetting->value : 3;
+            $maxLastPlayers = $lastPlayersWithEveryDayStatusEffectSetting ? (int)$lastPlayersWithEveryDayStatusEffectSetting->value : 3;
         }
 
         // Получаем последних игроков со статус-эффектом
         $lastPlayersWithSe = PlayerStatusEffect::query()
             ->findByBoardGame($boardGame->id)
             ->where('status_effect_bind_id', $bindId)
-            ->with(['player:id'])
             ->orderByDesc('id')
             ->limit($maxLastPlayers)
             ->pluck('bg_player_id')
@@ -228,43 +247,67 @@ class SetStatusEffectOnPlayerCommand extends Command
         // Объединяем исключаемых игроков
         $excludedIds = array_unique(array_merge($lastPlayersWithSe, $excludingPlayers));
 
-        // Ищем активного игрока через запрос к БД
-        $player = BoardGamePlayer::query()
+        // Ищем активных игроков через запрос к БД сразу с limit($count) для оптимизации
+        $players = BoardGamePlayer::query()
             ->findByBoardGame($boardGame->id)
             ->active()
             ->whereNotIn('id', $excludedIds)
-            ->with('user')
             ->inRandomOrder()
-            ->first();
+            ->limit($count)
+            ->with('user')
+            ->get();
 
-        // Если игрок не найден - возвращаем null
-        if (!$player) {
+        // Если игроки вообще не найдены - ослабляем ограничение maxLastPlayers и рекурсируем
+        if ($players->isEmpty()) {
+            $relaxedMaxLastPlayers = $maxLastPlayers !== 0 ? $maxLastPlayers - 1 : 0;
             return $this->getRandomPlayer(
                 $boardGame,
                 $bindId,
                 [],
                 $recursionDepth + 1,
-                $maxLastPlayers !== 0 ? $maxLastPlayers - 1 : 0
+                $relaxedMaxLastPlayers,
+                $count
             );
         }
 
-        // Проверяем условие для рекурсивного поиска
+        // Проверяем условие для фильтрации (board-last-cell)
         $eventType = $boardGame->settings->where('code', 'event_type')->first();
+        $isBoardLastCell = $eventType && $eventType->value === 'board-last-cell';
 
-        if ($eventType &&
-            $eventType->value === 'board-last-cell' &&
-            $player->finishBoard) {
+        $validPlayers = [];
+        $newExcludingPlayers = $excludingPlayers;
 
-            // Рекурсивно ищем другого игрока
-            $excludingPlayers[] = $player->id;
-            return $this->getRandomPlayer(
+        foreach ($players as $player) {
+            if ($isBoardLastCell && $player->finishBoard) {
+                // Игрок не подходит по условию, добавляем его в исключения для следующих итераций
+                $newExcludingPlayers[] = $player->id;
+            } else {
+                $validPlayers[] = $player;
+            }
+        }
+
+        // Если количество валидных игроков меньше запрошенного, рекурсивно добираем недостающих
+        if (count($validPlayers) < $count) {
+            $remainingCount = $count - count($validPlayers);
+            $additionalPlayers = $this->getRandomPlayer(
                 $boardGame,
                 $bindId,
-                $excludingPlayers,
-                $recursionDepth + 1
+                $newExcludingPlayers,
+                $recursionDepth + 1,
+                $maxLastPlayers,
+                $remainingCount
             );
+
+            // Нормализуем результат рекурсивного вызова к массиву для безопасного слияния
+            $additionalArray = match (true) {
+            is_array($additionalPlayers) => $additionalPlayers,
+                $additionalPlayers !== null => [$additionalPlayers],
+                default => []
+            };
+
+            $validPlayers = array_merge($validPlayers, $additionalArray);
         }
 
-        return $player;
+        return $validPlayers;
     }
 }

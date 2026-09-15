@@ -79,31 +79,31 @@ class BoardGamePlayerController extends Controller
             $cacheKey,
             BgPlayerCacheService::TIME,
             function () use ($BoardGame, $slug, $BoardGamePlayer, $userId
-        ) {
-            $bgId = $BoardGame->findBySlug($slug)->value('id');
+            ) {
+                $bgId = $BoardGame->findBySlug($slug)->value('id');
 
-            if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+                if (!$bgId) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-            $player = $BoardGamePlayer
-                ->findByBoardGame($bgId)
-                ->findByUserId($userId)
-                ->with([
-                    'user',
-                    'user.avatar',
-                    'user.additionalFields',
-                    'positions' => function ($query) use ($bgId) {
-                        $query->active()->where('board_game_id', $bgId)->orderBy('id', 'desc');
-                    },
-                    'media' => function ($query) {
-                        $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
-                    },
-                ])
-                ->first();
+                $player = $BoardGamePlayer
+                    ->findByBoardGame($bgId)
+                    ->findByUserId($userId)
+                    ->with([
+                        'user',
+                        'user.avatar',
+                        'user.additionalFields',
+                        'positions' => function ($query) use ($bgId) {
+                            $query->active()->where('board_game_id', $bgId)->orderBy('id', 'desc');
+                        },
+                        'media' => function ($query) {
+                            $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
+                        },
+                    ])
+                    ->first();
 
-            if (!$player) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
+                if (!$player) return response()->json()->setStatusCode(Response::HTTP_NOT_FOUND);
 
-            return BgPlayerDetailResource::make($player);
-        });
+                return BgPlayerDetailResource::make($player);
+            });
     }
 
     public function getPlayerWithInventory(Request $request)
@@ -169,37 +169,77 @@ class BoardGamePlayerController extends Controller
             $bgId = $boardGame->id;
             $players = $filter
                 ->apply(BoardGamePlayer::where('board_game_id', $bgId))
+                ->select([
+                    'id',
+                    'user_id',
+                    'settings',
+                    'premium',
+                    'board_game_id',
+                    'points',
+                    'points_per_hour',
+                    'streak',
+                    'place',
+                    'active',
+                    'not_active_reason',
+                ])
                 ->with([
-                    'boardGame',
+                    'boardGame:id',
                     'positions' => function ($query) use ($bgId) {
-                        $query->active()->where('board_game_id', $bgId)->orderBy('id', 'desc');
+                        $query
+                            ->select(
+                                'id',
+                                'position',
+                                'bg_player_id',
+                                'board_game_id',
+                                'user_id'
+                            )
+                            ->active()
+                            ->where('board_game_id', $bgId)
+                            ->orderBy('id', 'desc');
                     },
-                    'user',
-                    'user.avatar',
-                    'currentGames',
-                    'currentGames.user',
-                    'currentGames.game',
-                    'currentGames.comment',
-                    'currentGames.game.platform',
-                    'currentGames.game.addedBy',
-                    'currentGames.game.game',
-                    'currentGames.game.game.dates',
-                    'currentGames.game.game.titleImage',
-                    'currentGames.game.game.cover',
-                    'currentGames.game.game.genres',
+                    'user:id,name,public_name',
+                    'user.avatar:id,name,file_name',
+                    'currentGames:id,bg_player_id,board_game_id,board_game_game_list_id,status,type',
+                    'currentGames.game:id,game_id,board_game_id,gaming_platform_id',
+                    'currentGames.game.platform:id,name,short_name',
+                    'currentGames.game.game:id,name',
+                    'currentGames.game.game.titleImage:id,name,file_name',
                     'statusEffects' => function ($query) {
-                        $query->active()->orderBy('updated_at', 'desc');
+                        $query
+                            ->select(
+                                'id',
+                                'user_id',
+                                'bg_player_id',
+                                'board_game_id',
+                                'status_effect_bind_id'
+                            )
+                            ->active()
+                            ->orderBy('updated_at', 'desc');
                     },
-                    'statusEffects.statusEffectBind.statusEffect.titleImage',
+                    'statusEffects.statusEffectBind:id,status_effect_id,board_game_id',
+                    'statusEffects.statusEffectBind.statusEffect:id,name,type,description,board_game_id,debuff',
+                    'statusEffects.statusEffectBind.statusEffect.titleImage:id,name,file_name',
                     'inventory' => function ($query) {
-                        $query->active()->where('has_used', false)->orderBy('created_at', 'desc');
+                        $query
+                            ->select(
+                                'id',
+                                'user_id',
+                                'bg_player_id',
+                                'board_game_item_id',
+                                'has_used',
+                                'board_game_id',
+                            )
+                            ->active()
+                            ->where('has_used', false)
+                            ->orderBy('created_at', 'desc');
                     },
-                    'inventory.itemBind.item',
-                    'inventory.itemBind.item.titleImage',
-                    'inventory.itemBind.item.sound',
-                    'inventory.itemBind.item.authorUser',
+                    'inventory.itemBind:id,item_id,board_game_id,active',
+                    'inventory.itemBind.item:id,name,short_description,full_description,type',
+                    'inventory.itemBind.item.titleImage:id,name,file_name',
                     'media' => function ($query) {
-                        $query->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
+                        $query
+                            ->select('media.id', 'media.name', 'media.file_name')
+                            ->wherePivot('type', BoardGamePlayer::MEDIA_BG_IMAGE);
                     },
                 ]);
 
@@ -362,18 +402,18 @@ class BoardGamePlayerController extends Controller
 
         return Cache::remember($cacheKey, BgPlayerStatusEffectCacheService::TIME,
             function () use ($BoardGame, $PlayerStatusEffect, $userId, $bgId) {
-            $statusEffects = $PlayerStatusEffect
-                ->where('board_game_id', $bgId)
-                ->where('user_id', $userId)
-                ->with([
-                    'statusEffectBind',
-                    'statusEffectBind.statusEffect',
-                    'statusEffectBind.statusEffect.titleImage',
-                ])
-                ->get();
+                $statusEffects = $PlayerStatusEffect
+                    ->where('board_game_id', $bgId)
+                    ->where('user_id', $userId)
+                    ->with([
+                        'statusEffectBind',
+                        'statusEffectBind.statusEffect',
+                        'statusEffectBind.statusEffect.titleImage',
+                    ])
+                    ->get();
 
-            return BgPlayerStatusEffectResource::collection($statusEffects);
-        });
+                return BgPlayerStatusEffectResource::collection($statusEffects);
+            });
     }
 
     /**
