@@ -113,7 +113,8 @@ class BgGameController extends Controller
                     'game.platform',
                     'game.addedBy',
                     'comment',
-                ]);
+                ])
+                ->orderByDesc('id');
 
             $result = $request->fullList ? $playerGame->get() : $playerGame->paginate($request->perPage ? $request->perPage : 10);
 
@@ -210,7 +211,8 @@ class BgGameController extends Controller
                     'game.addedBy',
                     'comment',
                     'boardGame',
-                ]);
+                ])
+                ->orderByDesc('id');
 
             $result = $request->fullList ? $playerGame->get() : $playerGame->paginate($request->perPage ? $request->perPage : 10);
 
