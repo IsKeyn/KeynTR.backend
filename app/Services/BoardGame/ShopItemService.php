@@ -122,7 +122,12 @@ class ShopItemService
                     ->setStatusCode(Response::HTTP_BAD_REQUEST);
             }
 
-            $inventoryItemUpdate = $inventoryItem->update(['active' => false]);
+            $inventoryItemUpdate = $inventoryItem->update(
+                [
+                    'active' => false,
+                    'use_result' => ['value' => 'Выставлен на продажу'],
+                ]
+            );
 
             if (!$inventoryItemUpdate) {
                 return response()
