@@ -1,6 +1,7 @@
 <?php
 namespace App\Filters\BoardGame;
 
+use App\Events\TwitchOnlineStreamers;
 use App\Filters\Concerns\HasFilters;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGamePlayer;
@@ -57,6 +58,7 @@ class BgPlayerFilter
         if ($value) {
             $twitchService = app(TwitchService::class);
             $result = $twitchService->streamersLive();
+            TwitchOnlineStreamers::dispatch($result);
             $this->query->whereIn('user_id', array_column($result, 'site_user_id'));
         }
     }

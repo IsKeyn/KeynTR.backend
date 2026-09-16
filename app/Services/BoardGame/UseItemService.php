@@ -49,6 +49,7 @@ class UseItemService
                 'item',
                 'item.item',
             ])
+            ->active()
             ->first();
 
         if (!$usedInventoryItem || !$usedInventoryItem->board_game_item_id) {
@@ -244,12 +245,12 @@ class UseItemService
 
                 if (gettype($players) === 'array') {
                     foreach ($players as $player) {
-                        if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->count() > 0) {
+                        if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->where('active', true)->count() > 0) {
                             $logMessage = null;
 
-                            if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->count() === 1) {
+                            if ($player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->where('active', true)->count() === 1) {
                                 if (mt_rand(1, 100) <= $action->value[1] ?? 50) {
-                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->first();
+                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->where('active', true)->first();
 
                                     $playerFields = [
                                         'user_id' => $user->id,
@@ -259,6 +260,7 @@ class UseItemService
                                     $inventoryItem->update($playerFields);
 
                                     $message .= 'Попытался применить ' . $this->item->item->name . ' на игрока ' . $player->user->name . ', кража удалась, игрок украл ' . $inventoryItem->item->item->name;
+                                    $logMessage = $message;
 
                                     $useResult = [
                                         'type' => true,
@@ -290,7 +292,7 @@ class UseItemService
                                 }
                             } else {
                                 if (mt_rand(1, 100) > $action->value[0] ?? 20) {
-                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->random();
+                                    $inventoryItem = $player->inventory->where('board_game_id', $this->conditionData['boardGame']->id)->where('has_used', false)->where('active', true)->random();
 
                                     $playerFields = [
                                         'user_id' => $user->id,
@@ -300,6 +302,7 @@ class UseItemService
                                     $inventoryItem->update($playerFields);
 
                                     $message .= 'Попытался применить ' . $this->item->item->name . ' на игрока ' . $player->user->name . ', кража удалась, игрок украл ' . $inventoryItem->item->item->name;
+                                    $logMessage = $message;
 
                                     $useResult = [
                                         'type' => true,

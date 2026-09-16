@@ -39,7 +39,6 @@ use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
 use App\Services\Cache\BoardGame\BgPlayerInteractionCacheService;
 use App\Services\Cache\BoardGame\StatusEffect\BgPlayerStatusEffectCacheService;
 use App\Services\Entity\DefaultEntityService;
-use App\Services\MediaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,13 +50,16 @@ class BoardGamePlayerController extends Controller
 {
     protected DefaultEntityService $defaultEntityService;
     protected BgPlayerService $bgPlayerService;
+    protected BoardGameInventory $boardGameInventory;
 
     public function __construct(
         DefaultEntityService $defaultEntityService,
-        BgPlayerService $bgPlayerService
+        BgPlayerService $bgPlayerService,
+        BoardGameInventory $boardGameInventory
     ) {
         $this->defaultEntityService = $defaultEntityService;
         $this->bgPlayerService = $bgPlayerService;
+        $this->boardGameInventory = $boardGameInventory;
     }
 
     public function getPlayer (
@@ -355,14 +357,12 @@ class BoardGamePlayerController extends Controller
      * @param string $slug
      * @param string $name
      * @param BoardGame $BoardGame
-     * @param BoardGameInventory $BoardGameInventory
      * @return JsonResponse|mixed
      */
     public function getInventory(
         string $slug,
         string $name,
-        BoardGame $BoardGame,
-        BoardGameInventory $BoardGameInventory
+        BoardGame $BoardGame
     )
     {
         $userId = User::findByName($name)->value('id');
@@ -373,8 +373,8 @@ class BoardGamePlayerController extends Controller
 
         $cacheKey = BgInventoryCacheService::LIST_PREFIX . '_' . $slug . '_' . $userId;
 
-        return Cache::remember($cacheKey, BgInventoryCacheService::TIME, function () use ($BoardGameInventory, $userId, $bgId) {
-            $inventory = $BoardGameInventory
+        return Cache::remember($cacheKey, BgInventoryCacheService::TIME, function () use ($userId, $bgId) {
+            $inventory = $this->boardGameInventory::query()
                 ->where('board_game_id', $bgId)
                 ->where('user_id', $userId)
                 ->active()
