@@ -228,6 +228,7 @@ class BoardGamePlayerController extends Controller
                                 'board_game_item_id',
                                 'has_used',
                                 'board_game_id',
+                                'active',
                             )
                             ->active()
                             ->where('has_used', false)
@@ -350,10 +351,16 @@ class BoardGamePlayerController extends Controller
 
     /**
      * Инвентарь игрока
+     *
+     * @param string $slug
+     * @param string $name
+     * @param BoardGame $BoardGame
+     * @param BoardGameInventory $BoardGameInventory
+     * @return JsonResponse|mixed
      */
     public function getInventory(
-        $slug,
-        $name,
+        string $slug,
+        string $name,
         BoardGame $BoardGame,
         BoardGameInventory $BoardGameInventory
     )
@@ -370,11 +377,24 @@ class BoardGamePlayerController extends Controller
             $inventory = $BoardGameInventory
                 ->where('board_game_id', $bgId)
                 ->where('user_id', $userId)
+                ->active()
+                ->select(
+                    'id',
+                    'user_id',
+                    'bg_player_id',
+                    'board_game_id',
+                    'board_game_item_id',
+                    'has_used',
+                    'active',
+                    'active',
+                    'created_by',
+                )
                 ->with([
-                    'itemBind.item',
-                    'itemBind.item.titleImage',
-                    'itemBind.item.sound',
-                    'itemBind.item.authorUser',
+                    'itemBind:id,item_id,board_game_id,active',
+                    'itemBind.item:id,name,slug,short_description,full_description,type,drop_chance,price,active,author',
+                    'itemBind.item.titleImage:id,name,file_name',
+                    'itemBind.item.sound:id,name,file_name',
+                    'itemBind.item.authorUser:id,name,public_name',
                 ])
                 ->get();
 
