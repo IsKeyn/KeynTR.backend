@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Http\Resources\Event\StreamersOnlineResource;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -28,6 +29,6 @@ class TwitchOnlineStreamers implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return $this->streamersOnline;
+        return StreamersOnlineResource::collection($this->streamersOnline)->toArray(request());
     }
 }
