@@ -213,7 +213,8 @@ class BoardGamePlayerController extends Controller
                                 'user_id',
                                 'bg_player_id',
                                 'board_game_id',
-                                'status_effect_bind_id'
+                                'status_effect_bind_id',
+                                'active',
                             )
                             ->active()
                             ->orderBy('updated_at', 'desc');
