@@ -247,13 +247,6 @@ class TimerService
                         $playerTimer->delete();
                     }
 
-                    $timer = Timer::query()
-                        ->where('user_id', $player->user_id)
-                        ->where('board_game_id', $boardGame->id)
-                        ->where('slug', $boardGame->slug ? $boardGame->slug : 'main')
-                        ->where('active', true)
-                        ->orderBy('id', 'desc')->first();
-
                     $statusNew = TimerService::getTimerStatus($timer);
 
                     $secondsForSave = $seconds - $statusNew['time'];
