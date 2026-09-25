@@ -23,17 +23,17 @@ class BoardCellController extends Controller
         $player = $request->attributes->get('player');
         $boardGame = $request->attributes->get('boardGame');
 
-        $newReview = $this->boardCellService->getCurrentPlayerReview(
+        $currentUserReview = $this->boardCellService->getCurrentPlayerReview(
             $player,
             $boardGame,
             $request->board_position_effects_id,
         );
 
-        if (!$newReview) {
-            return response()->json(null); // или 404, зависит от вашей логики
+        if (!$currentUserReview) {
+            return response()->json(null);
         }
 
-        return ReviewResource::make($newReview);
+        return ReviewResource::make($currentUserReview);
     }
 
     /**
