@@ -109,19 +109,30 @@ class SetStatusEffectOnPlayerCommand extends Command
 
         $bindId = $bind->id;
 
-        // Массовое снятие статус-эффектов с текущих игроков
-        $updatedCount = PlayerStatusEffect::query()
-            ->where('board_game_id', $boardGame->id)
-            ->where('status_effect_bind_id', $bindId)
-            ->where('active', true)
-            ->update(['active' => false]);
+        // ИСПРАВЛЕНО: Массовое снятие статус-эффектов с блокировкой строк (lockForUpdate).
+        // Это предотвращает race condition, если команда случайно запустится параллельно.
+        DB::transaction(function () use ($boardGame, $bindId) {
+            $ids = PlayerStatusEffect::query()
+                ->where('board_game_id', $boardGame->id)
+                ->where('status_effect_bind_id', $bindId)
+                ->where('active', true)
+                ->lockForUpdate()
+                ->pluck('id');
 
-        if ($updatedCount > 0) {
-            Log::channel('statusEffects')->info(
-                "Снято статус-эффектов: {$updatedCount}",
-                ['board_game_id' => $boardGame->id, 'bind_id' => $bindId]
-            );
-        }
+            $updatedCount = 0;
+            if ($ids->isNotEmpty()) {
+                $updatedCount = PlayerStatusEffect::query()
+                    ->whereIn('id', $ids)
+                    ->update(['active' => false]);
+            }
+
+            if ($updatedCount > 0) {
+                Log::channel('statusEffects')->info(
+                    "Снято статус-эффектов: {$updatedCount}",
+                    ['board_game_id' => $boardGame->id, 'bind_id' => $bindId]
+                );
+            }
+        });
 
         // Считаем, сколько статус эффектов выдать
         // По 1 на каждые 5-ть игроков
@@ -129,7 +140,7 @@ class SetStatusEffectOnPlayerCommand extends Command
         $needRandomPlayers = 1;
 
         if ($playersCount > 5) {
-            $needRandomPlayers = floor($playersCount/5);
+            $needRandomPlayers = (int)floor($playersCount / 5);
         }
 
         // Ищем случайного игрока
@@ -138,7 +149,7 @@ class SetStatusEffectOnPlayerCommand extends Command
             $bindId,
             [],
             0,
-            $needRandomPlayers*5,
+            $needRandomPlayers * 5,
             $needRandomPlayers
         );
 
@@ -151,7 +162,11 @@ class SetStatusEffectOnPlayerCommand extends Command
 
         // Вешаем на игрока статус эффект в транзакции
         DB::transaction(function () use ($randomPlayers, $boardGame, $bindId, $statusEffect) {
-            foreach ($randomPlayers as $player) {
+            // ВАЖНО: Гарантируем уникальность игроков на уровне кода.
+            // Если в массиве случайно оказались дубликаты, мы их отсечем перед созданием записей.
+            $uniquePlayers = collect($randomPlayers)->unique('id')->values();
+
+            foreach ($uniquePlayers as $player) {
                 PlayerStatusEffect::create([
                     'user_id'      => $player->user_id,
                     'bg_player_id' => $player->id,
@@ -263,7 +278,7 @@ class SetStatusEffectOnPlayerCommand extends Command
             return $this->getRandomPlayer(
                 $boardGame,
                 $bindId,
-                [],
+                $excludingPlayers, // ИСПРАВЛЕНО: Передаем текущие исключения, а не [], чтобы не потерять уже отсеянных игроков
                 $recursionDepth + 1,
                 $relaxedMaxLastPlayers,
                 $count
@@ -289,6 +304,12 @@ class SetStatusEffectOnPlayerCommand extends Command
         // Если количество валидных игроков меньше запрошенного, рекурсивно добираем недостающих
         if (count($validPlayers) < $count) {
             $remainingCount = $count - count($validPlayers);
+
+            // ВАЖНО: Добавляем ID уже найденных валидных игроков в исключения.
+            // Это предотвращает ситуацию, когда SQL-запрос с inRandomOrder() выбирает того же самого игрока повторно.
+            $validPlayerIds = array_map(fn($p) => $p->id, $validPlayers);
+            $newExcludingPlayers = array_merge($newExcludingPlayers, $validPlayerIds);
+
             $additionalPlayers = $this->getRandomPlayer(
                 $boardGame,
                 $bindId,
