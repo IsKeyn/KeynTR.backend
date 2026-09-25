@@ -154,7 +154,8 @@ class BoardCellService
                     'user.avatar',
                     'boardGame',
                     'boardGame.media',
-                ]);
+                ])
+                ->orderBy('id', 'desc');
 
             if ($fullList) {
                 $result = $cellReviews->get();
@@ -204,7 +205,8 @@ class BoardCellService
                     'user.avatar',
                     'boardGame',
                     'boardGame.media',
-                ]);
+                ])
+                ->orderBy('id', 'desc');
 
             if ($fullList) {
                 $result = $cellReviews->get();
