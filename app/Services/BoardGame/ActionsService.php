@@ -284,10 +284,12 @@ class ActionsService
         if (isset($action->logMessage) && $action->logMessage) {
             $logMessage = $this->prepareMessage($action, 'logMessage');
         } else {
+            $playerName = $player->user->public_name ? $player->user->public_name : $player->user->name;
+
             if ($this->type === 'item') {
-                $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' предметом ' . $this->itemElement->item->name . ' (с ' . $player->points . ' на ' . $playerFields["points"] . ')';
+                $logMessage = 'Изменил количество очков игрока ' . $playerName . ' предметом ' . $this->itemElement->item->name . ' (с ' . $player->points . ' на ' . $playerFields["points"] . ')';
             } else if ($this->type === 'statusEffect') {
-                $logMessage = 'Изменил количество очков игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (с ' . $player->points . ' на ' . $playerFields["points"] . ')';
+                $logMessage = 'Изменил количество очков игрока ' . $playerName . ' статус эффектом ' . $this->statusEffectElement->name . ' (с ' . $player->points . ' на ' . $playerFields["points"] . ')';
             }
         }
 
@@ -338,10 +340,12 @@ class ActionsService
                 }
             }
 
+            $playerName = $player->user->public_name ? $player->user->public_name : $player->user->name;
+
             if ($this->type === 'item') {
-                $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' предметом ' . $this->itemElement->item->name . ' (с ' . $playerPosition->position . ' на ' . $playerPositionFields['position'] . ')';
+                $logMessage = 'Изменил позицию игрока ' . $playerName . ' предметом ' . $this->itemElement->item->name . ' (с ' . $playerPosition->position . ' на ' . $playerPositionFields['position'] . ')';
             } else if ($this->type === 'statusEffect') {
-                $logMessage = 'Изменил позицию игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (с ' . $player->points . ' на ' . $playerPositionFields["points"] . ')';
+                $logMessage = 'Изменил позицию игрока ' . $playerName . ' статус эффектом ' . $this->statusEffectElement->name . ' (с ' . $player->points . ' на ' . $playerPositionFields["points"] . ')';
             }
 
             if (isset($logMessage)) {
@@ -1411,12 +1415,14 @@ class ActionsService
         if (isset($action->logMessage) && $action->logMessage) {
             $logMessage = $this->prepareMessage($action, 'logMessage');
         } else {
+            $playerName = $player->user->public_name ? $player->user->public_name : $player->user->name;
+
             if ($this->type === 'item') {
-                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' предметом ' . $this->itemElement->item->name . ' (с ' . $player->$columnName . ' на ' . $value . ')';
+                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $playerName . ' предметом ' . $this->itemElement->item->name . ' (с ' . $player->$columnName . ' на ' . $value . ')';
             } else if ($this->type === 'statusEffect') {
-                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' статус эффектом ' . $this->statusEffectElement->name . ' (с ' . $player->$columnName . ' на ' . $value . ')';
+                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $playerName . ' статус эффектом ' . $this->statusEffectElement->name . ' (с ' . $player->$columnName . ' на ' . $value . ')';
             } else {
-                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $player->user->name . ' (с ' . $player->points . ' на ' . $value . ')';
+                $logMessage = 'Изменил ' . $fieldHumanName . ' игрока ' . $playerName . ' (с ' . $player->points . ' на ' . $value . ')';
             }
         }
 

@@ -217,6 +217,8 @@ class ShopItemController extends Controller
                 $shopItem->seller->id,
             );
 
+            $playerName = $conditionData['user']->public_name ? $conditionData['user']->public_name : $conditionData['user']->name;
+
             // Уведомляем продавца о покупке его предмета
             NotificationService::set(
                 [
@@ -224,6 +226,7 @@ class ShopItemController extends Controller
                     'message' => __('boardGame.shop.sell_item_notification_message', [
                         'name' => $shopItem->entity->item->name,
                         'points' => $shopItem->entity->item->price,
+                        'player_name' => $playerName,
                     ]),
                 ]
             );

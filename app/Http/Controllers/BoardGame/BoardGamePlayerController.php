@@ -238,7 +238,7 @@ class BoardGamePlayerController extends Controller
                             ->orderBy('created_at', 'desc');
                     },
                     'inventory.itemBind:id,item_id,board_game_id,active',
-                    'inventory.itemBind.item:id,name,short_description,full_description,type',
+                    'inventory.itemBind.item:id,name,short_description,full_description,type,drop_chance',
                     'inventory.itemBind.item.titleImage:id,name,file_name',
                     'media' => function ($query) {
                         $query
