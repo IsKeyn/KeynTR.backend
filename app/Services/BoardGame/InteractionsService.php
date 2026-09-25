@@ -529,7 +529,7 @@ class InteractionsService
             return ErrorService::message('Вы не можете принять взаимодействие, которое находится в статусе отличном от "Отправлено"');
         }
 
-        $this->interaction->status = PlayerInteractions::I_WIN;
+        $this->interaction->status = PlayerInteractions::I_LOSE;
 
         $this->interaction->active = $active;
         return $this->interaction->save();
