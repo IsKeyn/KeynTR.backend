@@ -362,7 +362,20 @@ class ActionsService
                 'player' => $player,
             ];
 
-            BoardService::setPosition($positionParams, $this->conditionData,false, false);
+            $player->loadMissing(['user']);
+
+            $conditionData = [
+                'boardGame' => $this->conditionData['boardGame'],
+                'player' => $player,
+                'user' => $player->user,
+            ];
+
+            BoardService::setPosition(
+                $positionParams,
+                $conditionData,
+                false,
+                false
+            );
 
             $this->notificationHandler($request, $player, $action);
         }
