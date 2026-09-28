@@ -238,19 +238,13 @@ class BgPlayerFilter
 
             $boardGameId = BoardGame::query()->findBySlug($bgSlug)->value('id');
 
-            $playerInteractions = PlayerInteractions::query()
+            $arWithPlayers = PlayerInteractions::query()
                 ->where('board_game_id', $boardGameId)
                 ->where('created_by', $currentUserId)
                 ->where('status', PlayerInteractions::COOP_FINISH)
                 ->where('type', 'inviteToCoop')
                 ->select('with_player')
-                ->get();
-
-            $arWithPlayers = [];
-
-            foreach ($playerInteractions as $interaction) {
-                $arWithPlayers[] = $interaction->with_player;
-            }
+                ->pluck('with_player');
 
             $this->query->whereNotIn('user_id', $arWithPlayers);
         }
