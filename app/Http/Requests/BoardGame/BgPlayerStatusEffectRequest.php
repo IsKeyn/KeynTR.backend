@@ -28,7 +28,7 @@ class BgPlayerStatusEffectRequest extends FormRequest
     public function messages()
     {
         return [
-            'board_game_player_id.required' => 'board_game_player_id обязательно для заполнения.',
+            'bg_player_id.required' => 'bg_player_id обязательно для заполнения.',
             'status_effect_bind_id.required' => 'status_effect_bind_id обязателен для заполнения.',
         ];
     }

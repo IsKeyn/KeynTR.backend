@@ -28,7 +28,7 @@ class BgStatusEffectRequest extends FormRequest
                 Rule::unique(StatusEffect::TABLE_NAME, 'slug')->ignore($id),
             ],
             'description' => 'sometimes|string|nullable',
-            'board_game_player_id' => 'sometimes|integer|nullable',
+            'bg_player_id' => 'sometimes|integer|nullable',
             'board_game_id' => 'sometimes|integer|nullable',
             'actions' => 'nullable|array',
             'debuff' => 'sometimes|boolean|nullable',
