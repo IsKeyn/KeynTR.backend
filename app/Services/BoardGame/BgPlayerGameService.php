@@ -397,23 +397,33 @@ class BgPlayerGameService
             ->where('board_game_id', $boardGameId);
 
         if ($setGameList) {
-            $getListTypeFromSeResult = $this->getListTypeFromSe($conditionData, $removeSe);
-
-            if (!empty($getListTypeFromSeResult['statusEffectIds'])) {
-                $statusEffectIdsForUpdate = array_merge($statusEffectIdsForUpdate, $getListTypeFromSeResult['statusEffectIds']);
-            }
-
-            if (!empty($getListTypeFromSeResult['listType'])) {
-                $listType = $getListTypeFromSeResult['listType'];
-            }
-
-            // Рулетка рерольнутых игр (извлекает все уникальные рерольнутые игры, всех игроков)
+            // НАЧАЛО: Проверяем не попадает ли участник в список реролов
             $rerolledOwnGameCountForRerolledList = $boardGame
                 ->settings
                 ->firstWhere('code',  'rerolled_own_game_count_for_rerolled_list')
                 ?->value ?? 2;
 
-            if ((int)$player->rerolled_own_game_count >= (int)$rerolledOwnGameCountForRerolledList || $listType === 'rerolled') {
+            if ((int)$player->rerolled_own_game_count >= (int)$rerolledOwnGameCountForRerolledList) {
+                $listType = 'rerolled';
+            }
+            // КОНЕЦ: Проверяем не попадает ли участник в список реролов
+
+            // НАЧАЛО: Проверяем списки игр, в которые попадает игрок, если он ещё не попал ни в один
+            if ($listType === 'default') {
+                $getListTypeFromSeResult = $this->getListTypeFromSe($conditionData, $removeSe);
+
+                if (!empty($getListTypeFromSeResult['statusEffectIds'])) {
+                    $statusEffectIdsForUpdate = array_merge($statusEffectIdsForUpdate, $getListTypeFromSeResult['statusEffectIds']);
+                }
+
+                if (!empty($getListTypeFromSeResult['listType'])) {
+                    $listType = $getListTypeFromSeResult['listType'];
+                }
+            }
+            // КОНЕЦ: Проверяем списки игр, в которые попадает игрок, если он ещё не попал ни в один
+
+            // Рулетка рерольнутых игр (извлекает все уникальные рерольнутые игры, всех игроков)
+            if ($listType === 'rerolled') {
                 $rerolledIds = $this->rerolledGamesIds($boardGameId);
 
                 if (!empty($rerolledIds)) {
@@ -548,11 +558,14 @@ class BgPlayerGameService
      */
     public function getListTypeFromSe(array $conditionData, bool $removeSe = false)
     {
-        // Проверяем статус эффекты и при необходимости устанавливаем платформу фильтрации
         $playerStatusEffects = $conditionData['player']->statusEffects->where('active', true);
 
         $listType = null;
         $statusEffectIds = [];
+
+        $boardGame = $conditionData['boardGame'];
+        $user = $conditionData['user'];
+        $boardGameId = $boardGame->id;
 
         foreach ($playerStatusEffects as $statusEffect) {
             if ((int)$statusEffect->statusEffectBind->statusEffect->type === StatusEffect::GAME_LIST_TYPE) {
@@ -560,6 +573,17 @@ class BgPlayerGameService
                     $action = (object)$action;
 
                     if (isset($action->type) && $action->type === 'listType' && $action->value) {
+                        if ($action->value === 'myOwnGame') {
+                            $myOwnGameCount = BoardGameGameList::query()
+                                ->where('board_game_id', $boardGameId)
+                                ->where('added_by', $user->id)
+                                ->count();
+
+                            if ($myOwnGameCount === 0) {
+                                continue;
+                            }
+                        }
+
                         $listType = $action->value;
 
                         if ($removeSe && $statusEffect->active === true) {
