@@ -9,4 +9,6 @@ Route::prefix('Inventory/')->controller(InventoryController::class)->group(funct
     Route::post('{Inventory}/recovery', 'recovery')->name('recovery');
     Route::get('filters', 'getListFilters')->name('filters');
 });
-Route::resource('Inventory', InventoryController::class);
+
+Route::resource('Inventory', InventoryController::class)
+    ->parameters(['Inventory' => 'boardGameInventory']);
