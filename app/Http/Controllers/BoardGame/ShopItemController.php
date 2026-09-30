@@ -121,53 +121,49 @@ class ShopItemController extends Controller
             return $conditionData;
         }
 
-        if (!$request->id) {
-            return response()
-                ->json(['error' => __('notReceived.not_received_id')])
-                ->setStatusCode(Response::HTTP_BAD_REQUEST);
-        }
+        // Оборачиваем ВСЮ логику чтения и записи в транзакцию
+        return DB::transaction(function () use ($request, $conditionData) {
 
-        // Получаем товар магазина
-        $shopItem = ShopItem::query()
-            ->findById($request->id)
-            ->where('status', ShopItem::STATUS_ON_SALE)
-            ->with([
-                'seller',
-                'entity',
-            ]);
+            // Получаем товар с ПЕССИМИСТИЧЕСКОЙ БЛОКИРОВКОЙ (lockForUpdate)
+            $shopItem = ShopItem::query()
+                ->findById($request->id)
+                ->where('status', ShopItem::STATUS_ON_SALE)
+                ->with([
+                    'seller',
+                    'entity',
+                    'entity.item'
+                ])
+                ->lockForUpdate()
+                ->first();
 
-        if ($request->entity_type) {
-            $shopItem->with([
-                'entity.item',
-            ]);
-        }
-
-        $shopItem = $shopItem->first();
-
-        if (!$shopItem) {
-            return response()
-                ->json(['error' => __('boardGame.shop.shop_item_not_found')])
-                ->setStatusCode(Response::HTTP_BAD_REQUEST);
-        }
-
-        $price = 0;
-
-        if ($request->entity_type && $shopItem->entity->item->price) {
-            // Проверяем достаточно ли у игрока очков, чтобы купить предмет
-            $price = round($shopItem->entity->item->price + ($shopItem->entity->item->price * 0.35));
-
-            if ($conditionData['player']->points < $price) {
+            // Если товар не найден или его статус уже не ON_SALE (куплен кем-то другим пока мы ждали блокировку)
+            if (!$shopItem) {
                 return response()
-                    ->json(['error' => __('boardGame.shop.not_enough_points')])
+                    ->json(['error' => __('boardGame.shop.shop_item_not_found')])
                     ->setStatusCode(Response::HTTP_BAD_REQUEST);
             }
-        }
 
-        return DB::transaction(function () use ($conditionData, $shopItem, $price) {
+            $price = 0;
+
+            if ($request->entity_type && $shopItem->entity && $shopItem->entity->item && $shopItem->entity->item->price) {
+                $price = round($shopItem->entity->item->price + ($shopItem->entity->item->price * 0.35));
+
+                // Перепроверяем очки игрока внутри транзакции (на случай, если он параллельно потратил их на что-то еще)
+                $player = $conditionData['player'];
+                $player->refresh(); // Обновляем данные из БД, чтобы быть уверенными в актуальности
+
+                if ($player->points < $price) {
+                    return response()
+                        ->json(['error' => __('boardGame.shop.not_enough_points')])
+                        ->setStatusCode(Response::HTTP_BAD_REQUEST);
+                }
+            }
+
             // Снимаем очки за покупку у игрока
             $conditionData['player']->update(['points' => $conditionData['player']->points - $price]);
 
             // Добавляем очки продавшему предмет
+            $shopItem->seller->refresh(); // Хорошая практика перед обновлением в транзакции
             $shopItem->seller->update(['points' => $shopItem->seller->points + $shopItem->entity->item->price]);
 
             // Добавляем предмет в инвентарь игрока
@@ -217,7 +213,8 @@ class ShopItemController extends Controller
                 $shopItem->seller->id,
             );
 
-            $playerName = $conditionData['user']->public_name ? $conditionData['user']->public_name : $conditionData['user']->name;
+            // Уведомляем продавца
+            $playerName = $conditionData['user']->public_name ?: $conditionData['user']->name;
 
             // Уведомляем продавца о покупке его предмета
             NotificationService::set(
