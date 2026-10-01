@@ -256,17 +256,16 @@ class BgPlayerFilter
             $type = is_array($value) ? ($value['type'] ?? null) : ($value->type ?? null);
             $typeValue = is_array($value) ? ($value['value'] ?? null) : ($value->value ?? null);
 
-            if (str_contains($type, 'moreThen')) {
-                $this->query->where('streak', '>', $typeValue);
-            } elseif (str_contains($type, 'lessThen')) {
-                $this->query->where('streak', '<', $typeValue);
-            } elseif (str_contains($type, 'moreThenOrEquals')) {
-                $this->query->where('streak', '>=', $typeValue);
-            } elseif (str_contains($type, 'lessThenOrEquals')) {
-                $this->query->where('streak', '<=', $typeValue);
-            } else {
-                $this->query->where('streak', $typeValue);
-            }
+            // TODO исправить Then на Than
+            $operator = match($type) {
+                'moreThenOrEquals' => '>=',
+                'lessThenOrEquals' => '<=',
+                'moreThen'         => '>',
+                'lessThen'         => '<',
+                default            => '=',
+            };
+
+            $this->query->where('streak', $operator, $typeValue);
         }
     }
 

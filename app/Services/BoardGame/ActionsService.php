@@ -1644,10 +1644,10 @@ class ActionsService
                     ->first();
                 break;
 
-            case str_contains($action->target, 'moreThen'):
-            case str_contains($action->target, 'lessThen'):
             case str_contains($action->target, 'moreThenOrEquals'):
             case str_contains($action->target, 'lessThenOrEquals'):
+            case str_contains($action->target, 'moreThen'):
+            case str_contains($action->target, 'lessThen'):
                 $explodedData = explode('_', $action->target);
 
                 $filters = [
