@@ -17,6 +17,7 @@ use App\Http\Resources\BoardGame\Player\BgPlayerDetailResource;
 use App\Http\Resources\BoardGame\Player\BgPlayerListResource;
 use App\Http\Resources\BoardGame\PlayerGame\BgPlayerGameShortResource;
 use App\Http\Resources\BoardGame\StatusEffects\BgPlayerStatusEffectResource;
+use App\Jobs\BoardGame\AutoUseItemJob;
 use App\Models\BoardGame\BoardGame;
 use App\Models\BoardGame\BoardGameInventory;
 use App\Models\BoardGame\BoardGameLog;
@@ -32,7 +33,6 @@ use App\Services\BoardGame\BoardGameService;
 use App\Services\BoardGame\ItemService;
 use App\Services\BoardGame\LogService;
 use App\Services\BoardGame\PlayerGameService;
-use App\Services\BoardGame\UseItemService;
 use App\Services\Cache\BoardGame\BgInventoryCacheService;
 use App\Services\Cache\BoardGame\BgPlayerCacheService;
 use App\Services\Cache\BoardGame\BgPlayerGameCacheService;
@@ -721,12 +721,8 @@ class BoardGamePlayerController extends Controller
                         $conditionData['player']->id,
                     );
 
-                    /* Применяем статус эффект */
-                    $useItemService = new UseItemService($conditionData);
-
-                    $data = (object)['id' => $inventoryItem->id];
-
-                    $useItemService->useItem($data);
+                    // Применяем авто-используемый предмет, вешам на джобу, чтобы выполнялся, пока крутится рулетка
+                    AutoUseItemJob::dispatch($conditionData, $inventoryItem);
 
                     $dontAddToInventory = true;
                     break;
