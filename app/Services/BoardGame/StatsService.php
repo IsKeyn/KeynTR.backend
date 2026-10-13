@@ -147,13 +147,20 @@ class StatsService
         return $sort === 'asc' ? $result->sortBy('additional_data') : $result->sortByDesc('additional_data');
     }
 
-    public function getGamesByTime($boardGameId, $sort = 'asc', $limit = 5)
+    public function getGamesByTime($boardGameId, $sort = 'asc', $limit = 5, $status = null)
     {
-        $shortestGames = PlayerGame::query()
+        $shortestGamesRequest = PlayerGame::query()
             ->where('time', '!=', null)
+            ->where('time', '!=', 0)
             ->where('board_game_id', $boardGameId)
-            ->orderBy('time', $sort)
-            ->get();
+            ->orderBy('time', $sort);
+
+
+        if ($status) {
+            $shortestGamesRequest->where('status', $status);
+        }
+
+        $shortestGames = $shortestGamesRequest->get();
 
         $result = collect([]);
 

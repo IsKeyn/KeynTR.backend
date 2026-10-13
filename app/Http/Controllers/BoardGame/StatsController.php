@@ -47,10 +47,10 @@ class StatsController extends Controller
             $mostRerolledGames = $statsService->getGamesListByStatus($playerGames, $gameList, PlayerGame::REROLLED, $limit);
 
             /* Самые быстро проходимые игры */
-            $shortestGames = $statsService->getGamesByTime($boardGameId, 'asc', $limit);
+            $shortestGames = $statsService->getGamesByTime($boardGameId, 'asc', $limit, PlayerGame::COMPLETED);
 
             /* Самые долго проходимые игры */
-            $longestGames = $statsService->getGamesByTime($boardGameId, 'desc', $limit);
+            $longestGames = $statsService->getGamesByTime($boardGameId, 'desc', $limit, PlayerGame::COMPLETED);
 
             /* Наиболее используемые предметы */
             $mostUsedItem = $statsService->getUsedItemsList($boardGameId, 'desc', $limit);
