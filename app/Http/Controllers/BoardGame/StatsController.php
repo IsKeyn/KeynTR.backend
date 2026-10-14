@@ -52,6 +52,9 @@ class StatsController extends Controller
             /* Самые долго проходимые игры */
             $longestGames = $statsService->getGamesByTime($boardGameId, 'desc', $limit, PlayerGame::COMPLETED);
 
+            /* Игры, в которые дольше всего играли до рерола */
+            $longestGamesBeforeRerolling = $statsService->getGamesByTime($boardGameId, 'desc', $limit, PlayerGame::REROLLED);
+
             /* Наиболее используемые предметы */
             $mostUsedItem = $statsService->getUsedItemsList($boardGameId, 'desc', $limit);
 
@@ -128,6 +131,13 @@ class StatsController extends Controller
                 $returnData['longestGames'] = [
                     'name' => 'Наиболее длинные игры',
                     'data' => PlayerGameStatsResource::collection($longestGames)->resolve()
+                ];
+            }
+
+            if (isset($longestGamesBeforeRerolling)) {
+                $returnData['longestGamesBeforeRerolling'] = [
+                    'name' => 'Игры, в которые дольше всего играли до рерола',
+                    'data' => PlayerGameStatsResource::collection($longestGamesBeforeRerolling)->resolve()
                 ];
             }
 

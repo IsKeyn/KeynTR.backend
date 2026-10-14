@@ -126,6 +126,20 @@ class GameFilter
         }
     }
 
+    protected function eventCoop($value): void
+    {
+        $decodedFilters = $this->filters();
+
+        if ($value && isset($decodedFilters['events'])) {
+            $this->query
+                ->with('bgGamesList')
+                ->whereHas('bgGamesList', function($query) use ($decodedFilters) {
+                    $query->whereIn('board_game_id', $decodedFilters['events']);
+                    $query->where('coop', true);
+                });
+        }
+    }
+
     protected function sort($value): void
     {
         if ($value) {
