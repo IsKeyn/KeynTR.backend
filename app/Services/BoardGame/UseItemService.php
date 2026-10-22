@@ -492,6 +492,8 @@ class UseItemService
                                 'type' => 'back',
                                 'value' => $newPosition,
                             ];
+                        } else { // Если игрок находится на одной клетке
+                            return ErrorService::message('Вы не можете использовать предмет на данного игрока');
                         }
 
                         $newPosition = BoardService::checkPosition($newPosition, $this->conditionData['boardGame']);
